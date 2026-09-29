@@ -1,3 +1,4 @@
+import { TeamLogo } from "@/components/team-logo";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, MapPin, Trophy } from "lucide-react";
@@ -47,6 +48,7 @@ export default async function MatchDetail({
         </p>
         <div className="scoreboard-teams">
           <div>
+            <TeamLogo team={match.homeTeam} size={48} />
             <h1>{match.homeTeam?.name ?? "Domácí"}</h1>
             {match.homeTeam && <FollowButton team={match.homeTeam} />}
             <span>DOMÁCÍ</span>
@@ -61,6 +63,7 @@ export default async function MatchDetail({
             </span>
           </div>
           <div>
+            <TeamLogo team={match.awayTeam} size={48} />
             <h2>{match.awayTeam?.name ?? "Hosté"}</h2>
             {match.awayTeam && <FollowButton team={match.awayTeam} />}
             <span>HOSTÉ</span>

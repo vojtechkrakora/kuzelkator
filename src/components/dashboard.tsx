@@ -10,7 +10,6 @@ import {
   CalendarDays,
   ChevronLeft,
   ChevronRight,
-  CircleDot,
   Heart,
   LayoutGrid,
   Star,
@@ -20,6 +19,7 @@ import {
 import type { Competition, Match, Season, Standing } from "@/domain/models";
 import { resultFor, statusLabel } from "@/domain/models";
 import { dayLabel, shiftDay, todayPrague, weekRange } from "@/lib/dates";
+import { TeamLogo } from "./team-logo";
 import { FavoriteLeagues } from "./favorite-leagues";
 import type { FavoriteLeague } from "./providers";
 import { usePreferences } from "./providers";
@@ -180,7 +180,7 @@ export function Dashboard() {
                     chooseCompetition("");
                   }}
                 >
-                  <span className="team-dot" />
+                  <TeamLogo team={team} size={24} />
                   {team.name}
                 </button>
                 <FollowButton team={team} />
@@ -487,15 +487,13 @@ export function MatchCard({ match }: { match: Match }) {
         const score = result as typeof home;
         return (
           <div className="team-row" key={index}>
-            <span className={`team-avatar ${index ? "away" : ""}`}>
-              <CircleDot size={19} />
-            </span>
             <Link
               prefetch={false}
               href={`/matches/${match.id}`}
               className="team-name"
             >
-              {entry?.name ?? "Tým bude upřesněn"}
+              <TeamLogo team={entry} size={24} />
+              <span>{entry?.name ?? "Tým bude upřesněn"}</span>
             </Link>
             {entry && <FollowButton team={entry} />}
             <span className="pins-score">{score?.totalPerformance ?? "—"}</span>
@@ -595,6 +593,7 @@ function Standings({
                       <td>{row.position}</td>
                       <th scope="row">
                         <span className="table-team">
+                          <TeamLogo team={row.team} size={24} />
                           {row.team.name}
                           <FollowButton team={row.team} />
                         </span>

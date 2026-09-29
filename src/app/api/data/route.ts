@@ -6,6 +6,7 @@ import {
   getTeamSeasonMatches,
   teamSeasonFilters,
   getSeasons,
+  getTeam,
   getStandings,
   matchFilters,
 } from "@/server/cka";
@@ -17,6 +18,11 @@ export async function GET(request: NextRequest) {
   try {
     let result;
     switch (params.kind) {
+      case "team":
+        result = await getTeam(
+          z.coerce.number().int().positive().parse(params.id),
+        );
+        break;
       case "seasons":
         result = await getSeasons();
         break;

@@ -5,6 +5,7 @@ import {
   matchSchema,
   seasonSchema,
   standingSchema,
+  teamSchema,
 } from "../domain/models";
 import { pragueMidnight, shiftDay } from "../lib/dates";
 import { apiCache, UpstreamError } from "./cache";
@@ -45,7 +46,8 @@ export function getMatches(filters: z.infer<typeof matchFilters>) {
         Date.parse(pragueMidnight(shiftDay(filters.to, 1))) - 1000,
       ).toISOString(),
     ),
-    include: "homeTeam,awayTeam,competition,results",
+    include:
+      "homeTeam,homeTeam.club,awayTeam,awayTeam.club,competition,results",
   });
   if (filters.competitionId)
     query.set("competitionId", String(filters.competitionId));
@@ -65,7 +67,8 @@ export async function getTeamSeasonMatches(
     seasonId: String(filters.seasonId),
     limit: "100",
     sort: "date,time,id",
-    include: "homeTeam,awayTeam,competition,results",
+    include:
+      "homeTeam,homeTeam.club,awayTeam,awayTeam.club,competition,results",
   });
   const first = await apiCache.get(
     `/matches?${query}`,
@@ -92,7 +95,7 @@ export function getMatch(id: number) {
   // Nested player relations work on the public endpoint, although the OpenAPI
   // include enum currently stops at results.playerResults (verified 2026-09-28).
   return apiCache.get(
-    `/matches/${id}?include=homeTeam,awayTeam,competition,results,results.playerResults,results.playerResults.player,results.playerResults.substitute,venue`,
+    `/matches/${id}?include=homeTeam,homeTeam.club,awayTeam,awayTeam.club,competition,results,results.playerResults,results.playerResults.player,results.playerResults.substitute,venue`,
     matchSchema,
   );
 }
@@ -107,7 +110,7 @@ export function getCompetitions(seasonId: number, offset = 0) {
   );
 }
 async function getRoundStandings(slug: string, round: number) {
-  const path = `/competitions/${encodeURIComponent(slug)}/rounds/${round}/table?type=ALL&include=team&sort=position&limit=100`;
+  const path = `/competitions/${encodeURIComponent(slug)}/rounds/${round}/table?type=ALL&include=team,team.club&sort=position&limit=100`;
   const first = await apiCache.get(path, collection(standingSchema), 300000);
   const items = [...first.data.items];
   let stale = first.stale;
@@ -168,4 +171,8 @@ export async function getStandings(slug: string, round: number) {
     stale: !!current?.stale || !!rounds?.stale,
     data: { items: [], total: 0, round: null },
   };
+}
+
+export function getTeam(id: number) {
+  return apiCache.get(`/teams/${id}?include=club`, teamSchema, 86400000);
 }

@@ -1,5 +1,6 @@
 "use client";
 
+import { TeamLogo } from "./team-logo";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import type { Match } from "@/domain/models";
@@ -57,7 +58,8 @@ export function TeamSeason({
         <div>
           <span className="section-kicker">CELÁ SEZÓNA {seasonName}</span>
           <h3>
-            {name} {team && <FollowButton team={team} />}
+            <TeamLogo team={team} size={36} /> {name}{" "}
+            {team && <FollowButton team={team} />}
           </h3>
           <p>
             Odehráno {played} z {items.length} zápasů · domácí tým vždy první
@@ -132,10 +134,13 @@ export function TeamSeason({
                             String(side?.id) === teamId ? "followed-side" : ""
                           }
                         >
-                          {side?.name ??
-                            (isHome
-                              ? "Domácí tým neuveden"
-                              : "Hostující tým neuveden")}
+                          <TeamLogo team={side} size={22} />
+                          <span>
+                            {side?.name ??
+                              (isHome
+                                ? "Domácí tým neuveden"
+                                : "Hostující tým neuveden")}
+                          </span>
                         </Link>
                       </th>
                       <td className="season-score">

@@ -2127,3 +2127,40 @@ tfoot {
   color: var(--muted);
   line-height: 1.6;
 }
+
+.club-logo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border-radius: 6px;
+  background: #f3f6ef;
+  color: var(--green);
+  overflow: hidden;
+  vertical-align: middle;
+}
+.club-logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+.season-matches tbody a {
+  gap: 6px;
+}
+.season-matches tbody a > span:last-child {
+  min-width: 0;
+}
+.scoreboard-teams > div > .club-logo {
+  display: inline-flex;
+  margin: 0 auto 10px;
+  padding: 0;
+}
+.team-name {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.team-name > span:last-child {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}

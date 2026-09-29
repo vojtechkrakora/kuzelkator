@@ -455,3 +455,68 @@ test("saved league is available from the desktop sidebar", async ({ page }) => {
   await expect(page).toHaveURL(/competition=17/);
   await expect(page).toHaveURL(/season=20/);
 });
+
+test("club logos use optimized images, persist in favourites and fall back when broken", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 320, height: 780 });
+  await mockApi(page);
+  const logo = "https://evidence.kuzelky.cz/assets/clubs/test.png";
+  await page.route("**/api/data?kind=matches**", (route) =>
+    route.fulfill({
+      json: {
+        data: {
+          items: [
+            {
+              ...match,
+              homeTeam: { ...match.homeTeam, club: { id: 456, logo } },
+              awayTeam: { ...match.awayTeam, club: { id: 445, logo: null } },
+            },
+          ],
+          total: 1,
+        },
+        checkedAt: "2026-09-28T18:00:00Z",
+        stale: false,
+      },
+    }),
+  );
+  await page.route("**/_next/image?**", (route) =>
+    route.fulfill({
+      contentType: "image/png",
+      body: Buffer.from(
+        "iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAIAAAAlC+aJAAAAeklEQVR4nO3PUQkAIBTAwBfBKEY0uiH8OITBAtxmnf11wwUNaEEDWtCAFjSgBQ1oQQNa0IAWNKAFDWhBA1rQgBY0oAUNaEEDWtCAFjSgBQ1oQQNa0IAWNKAFDWhBA1rQgBY0oAUNaEEDWtCAFjSgBQ1oQQNa0IAWPHYBJ6EAtTTA5NAAAAAASUVORK5CYII=",
+        "base64",
+      ),
+    }),
+  );
+  await page.goto("/?date=2026-09-26");
+  const image = page.locator(".match-card .club-logo img");
+  await expect(image).toHaveCount(1);
+  await image.scrollIntoViewIfNeeded();
+  expect(
+    (await page.locator(".match-card .team-name").first().boundingBox())!.width,
+  ).toBeGreaterThan(100);
+  await expect(image).toHaveAttribute("src", /\/_next\/image\?/);
+  await expect
+    .poll(() => image.evaluate((el: HTMLImageElement) => el.naturalWidth))
+    .toBeGreaterThan(0);
+  await page
+    .getByRole("button", { name: "Sledovat SK Podlužan Prušánky", exact: true })
+    .click();
+  await page.reload();
+  await page.getByRole("button", { name: "Oblíbené", exact: false }).click();
+  await expect(page.locator("dialog .sheet-team .club-logo img")).toHaveCount(
+    1,
+  );
+  await page.getByRole("button", { name: "Zavřít oblíbené" }).click();
+  await page.route("**/_next/image?**", (route) => route.abort());
+  await page.reload();
+  await page.locator(".match-card").scrollIntoViewIfNeeded();
+  await expect(page.locator(".match-card .club-logo img")).toHaveCount(0);
+  await expect(page.locator(".match-card .club-logo svg")).toHaveCount(2);
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= innerWidth,
+    ),
+  ).toBe(true);
+});

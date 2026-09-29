@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import { CalendarDays, Star, Trophy, X } from "lucide-react";
 import { usePreferences } from "./providers";
+import { TeamLogo } from "./team-logo";
 import { FavoriteLeagues } from "./favorite-leagues";
 import type { FavoriteLeague } from "./providers";
 import { FollowButton } from "./common";
@@ -123,7 +124,7 @@ export function MobileNavigation({
                       document.getElementById("match-feed")?.scrollIntoView();
                     }}
                   >
-                    <span className="team-dot" />
+                    <TeamLogo team={team} size={28} />
                     {team.name}
                   </button>
                   <FollowButton team={team} />

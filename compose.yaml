@@ -13,6 +13,7 @@ services:
     read_only: true
     tmpfs:
       - /tmp
+      - /app/.next/cache/images:uid=1001,gid=1001,mode=0700,size=64m
     cap_drop:
       - ALL
     security_opt:

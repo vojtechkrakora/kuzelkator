@@ -3,7 +3,10 @@ import { z } from "zod";
 export const teamSchema = z.object({
   id: z.number().int(),
   name: z.string(),
-  slug: z.string().optional(),
+  slug: z.string().nullish(),
+  club: z
+    .object({ id: z.number().int(), logo: z.string().nullish() })
+    .nullish(),
 });
 export const competitionSchema = z.object({
   id: z.number().int(),
