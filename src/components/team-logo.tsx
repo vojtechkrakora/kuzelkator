@@ -25,6 +25,9 @@ export function TeamLogo({
     staleTime: 86400000,
   });
   const url = clubLogoUrl((team?.club ?? detail.data?.data.club)?.logo);
+  const [optimizerFailedUrl, setOptimizerFailedUrl] = useState<string | null>(
+    null,
+  );
   const [failedUrl, setFailedUrl] = useState<string | null>(null);
   return (
     <span
@@ -34,13 +37,20 @@ export function TeamLogo({
     >
       {url && failedUrl !== url ? (
         <Image
+          key={`${url}:${optimizerFailedUrl === url}`}
+          unoptimized={optimizerFailedUrl === url}
           src={url}
           alt=""
           width={size}
           height={size}
           sizes={`${size}px`}
           style={{ objectFit: "contain" }}
-          onError={() => setFailedUrl(url)}
+          onError={() => {
+            // Some hosting networks receive a non-image response from the
+            // upstream even though the visitor can load the public image.
+            if (optimizerFailedUrl !== url) setOptimizerFailedUrl(url);
+            else setFailedUrl(url);
+          }}
         />
       ) : (
         <CircleDot size={Math.round(size * 0.65)} />

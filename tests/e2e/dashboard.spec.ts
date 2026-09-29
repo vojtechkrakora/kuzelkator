@@ -509,7 +509,31 @@ test("club logos use optimized images, persist in favourites and fall back when 
     1,
   );
   await page.getByRole("button", { name: "Zavřít oblíbené" }).click();
-  await page.route("**/_next/image?**", (route) => route.abort());
+  await page.route("**/_next/image?**", (route) =>
+    route.fulfill({
+      status: 400,
+      body: "The requested resource isn't a valid image.",
+    }),
+  );
+  await page.route("https://evidence.kuzelky.cz/assets/clubs/**", (route) =>
+    route.fulfill({
+      contentType: "image/png",
+      body: Buffer.from(
+        "iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAIAAAAlC+aJAAAAeklEQVR4nO3PUQkAIBTAwBfBKEY0uiH8OITBAtxmnf11wwUNaEEDWtCAFjSgBQ1oQQNa0IAWNKAFDWhBA1rQgBY0oAUNaEEDWtCAFjSgBQ1oQQNa0IAWNKAFDWhBA1rQgBY0oAUNaEEDWtCAFjSgBQ1oQQNa0IAWPHYBJ6EAtTTA5NAAAAAASUVORK5CYII=",
+        "base64",
+      ),
+    }),
+  );
+  await page.reload();
+  await page.locator(".match-card").scrollIntoViewIfNeeded();
+  await expect(image).toHaveAttribute("src", logo);
+  await expect
+    .poll(() => image.evaluate((el: HTMLImageElement) => el.naturalWidth))
+    .toBeGreaterThan(0);
+  await expect(image).not.toHaveAttribute("srcset");
+  await page.route("https://evidence.kuzelky.cz/assets/clubs/**", (route) =>
+    route.abort(),
+  );
   await page.reload();
   await page.locator(".match-card").scrollIntoViewIfNeeded();
   await expect(page.locator(".match-card .club-logo img")).toHaveCount(0);
