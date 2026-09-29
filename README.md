@@ -61,11 +61,12 @@ References: [Render Docker services](https://render.com/docs/docker), [Blueprint
 
 - Czech interface with desktop and phone layouts, 44px touch targets, safe-area spacing, and bottom navigation for matches, favourites, and competitions.
 - Weekly fixtures and results, with pagination and competition filters.
-- Up to 20 followed teams, saved on this device; click a team in the sidebar to filter its matches.
+- Region-first competition picker using official ČKA region assignments (including shared divisions), with district/regional/division/league shortcuts and accent-insensitive search. The selected area is remembered on this device. Area filters narrow the chooser; choosing a competition filters matches. Tier shortcuts are inferred from competition names/category; unfamiliar names remain available under all levels.
+- Up to 20 followed teams, saved on this device; choose a favourite from the sidebar or phone menu to see all its matches in the selected season. A compact table includes dates, home/away teams, points, total pins, and future fixtures. Team names link to match details; upcoming scores stay blank (dashes).
 - Shareable date, competition, season-selector, and team filter URLs.
 - Match detail with team scores, totals, player names, and available substitute names alongside lineup positions.
 - Phone match details use player cards with full names and all scores, plus quick links to each team's results. Desktop keeps the tabular overview. Phone standings prioritise rank, team, matches played, and points.
-- Official competition standings with a selectable round, shown below the match list after choosing a competition.
+- Official competition standings with a selectable round, shown below the match list after choosing a competition. Unpublished tables automatically fall back to the latest published earlier round, with the displayed round clearly labelled. All pages of team standings are loaded.
 - Server-side validation, a bounded memory cache, ETag revalidation, request deduplication, a four-request upstream concurrency limit, and rate-limit cooldown.
 - Explicit loading, empty, error, and stale-data states. Visible match lists refresh every 60 seconds.
 

@@ -7,7 +7,7 @@ import {
   standingSchema,
 } from "../domain/models";
 import { pragueMidnight, shiftDay } from "../lib/dates";
-import { apiCache } from "./cache";
+import { apiCache, UpstreamError } from "./cache";
 
 export const dateInput = z
   .string()
@@ -52,6 +52,42 @@ export function getMatches(filters: z.infer<typeof matchFilters>) {
   if (filters.teamId) query.set("teamId", String(filters.teamId));
   return apiCache.get(`/matches?${query}`, collection(matchSchema));
 }
+export const teamSeasonFilters = z.object({
+  teamId: z.coerce.number().int().positive(),
+  seasonId: z.coerce.number().int().positive(),
+});
+
+export async function getTeamSeasonMatches(
+  filters: z.infer<typeof teamSeasonFilters>,
+) {
+  const query = new URLSearchParams({
+    teamId: String(filters.teamId),
+    seasonId: String(filters.seasonId),
+    limit: "100",
+    sort: "date,time,id",
+    include: "homeTeam,awayTeam,competition,results",
+  });
+  const first = await apiCache.get(
+    `/matches?${query}`,
+    collection(matchSchema),
+  );
+  const items = [...first.data.items];
+  let stale = first.stale;
+  let checkedAt = first.checkedAt;
+  while (items.length < first.data.total) {
+    query.set("offset", String(items.length));
+    const next = await apiCache.get(
+      `/matches?${query}`,
+      collection(matchSchema),
+    );
+    if (!next.data.items.length) throw new UpstreamError(502);
+    items.push(...next.data.items);
+    stale ||= next.stale;
+    if (next.checkedAt < checkedAt) checkedAt = next.checkedAt;
+  }
+  return { data: { items, total: first.data.total }, stale, checkedAt };
+}
+
 export function getMatch(id: number) {
   // Nested player relations work on the public endpoint, although the OpenAPI
   // include enum currently stops at results.playerResults (verified 2026-09-28).
@@ -65,15 +101,71 @@ export function getSeasons() {
 }
 export function getCompetitions(seasonId: number, offset = 0) {
   return apiCache.get(
-    `/competitions?seasonId=${seasonId}&limit=100&offset=${offset}&sort=priority,name`,
+    `/competitions?seasonId=${seasonId}&limit=100&offset=${offset}&sort=priority,name&include=regions`,
     collection(competitionSchema),
     300000,
   );
 }
-export function getStandings(slug: string, round: number) {
-  return apiCache.get(
-    `/competitions/${encodeURIComponent(slug)}/rounds/${round}/table?type=ALL&include=team&sort=position`,
-    collection(standingSchema),
-    300000,
-  );
+async function getRoundStandings(slug: string, round: number) {
+  const path = `/competitions/${encodeURIComponent(slug)}/rounds/${round}/table?type=ALL&include=team&sort=position&limit=100`;
+  const first = await apiCache.get(path, collection(standingSchema), 300000);
+  const items = [...first.data.items];
+  let stale = first.stale;
+  let checkedAt = first.checkedAt;
+  while (items.length < first.data.total) {
+    const next = await apiCache.get(
+      `${path}&offset=${items.length}`,
+      collection(standingSchema),
+      300000,
+    );
+    if (!next.data.items.length) throw new UpstreamError(502);
+    items.push(...next.data.items);
+    stale ||= next.stale;
+    if (next.checkedAt < checkedAt) checkedAt = next.checkedAt;
+  }
+  return { ...first, stale, checkedAt, data: { ...first.data, items } };
+}
+
+export async function getStandings(slug: string, round: number) {
+  async function read(candidate: number) {
+    try {
+      return await getRoundStandings(slug, candidate);
+    } catch (error) {
+      // A missing table is different from an outage or rate limit.
+      if (error instanceof UpstreamError && error.status === 404) return null;
+      throw error;
+    }
+  }
+  const current = await read(round);
+  if (current?.data.items.length)
+    return { ...current, data: { ...current.data, round } };
+
+  // Use the official round list rather than probing arbitrary round numbers.
+  const rounds =
+    round > 1
+      ? await apiCache.get(
+          `/competitions/${encodeURIComponent(slug)}/rounds`,
+          z.array(z.number().int().positive()),
+          300000,
+        )
+      : null;
+  const previous = [...new Set(rounds?.data ?? [])]
+    .filter((value) => value < round)
+    .sort((a, b) => b - a);
+  for (const candidate of previous) {
+    const table = await read(candidate);
+    if (table?.data.items.length) {
+      return {
+        ...table,
+        stale: table.stale || !!current?.stale || !!rounds?.stale,
+        data: { ...table.data, round: candidate },
+      };
+    }
+  }
+  return {
+    checkedAt:
+      current?.checkedAt ?? rounds?.checkedAt ?? new Date().toISOString(),
+    stale: !!current?.stale || !!rounds?.stale,
+    data: { items: [], total: 0, round: null },
+  };
 }

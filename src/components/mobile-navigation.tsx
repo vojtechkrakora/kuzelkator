@@ -49,7 +49,15 @@ export function MobileNavigation({
             {teams.length > 0 && <b className="nav-count">{teams.length}</b>}
           </span>
         </button>
-        <a href="#competitions">
+        <a
+          href="#competitions"
+          onClick={() => {
+            const picker = document.querySelector<HTMLDetailsElement>(
+              "#competitions details",
+            );
+            if (picker) picker.open = true;
+          }}
+        >
           <Trophy size={21} />
           <span>Soutěže</span>
         </a>

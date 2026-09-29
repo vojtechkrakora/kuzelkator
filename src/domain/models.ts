@@ -10,6 +10,10 @@ export const competitionSchema = z.object({
   name: z.string(),
   slug: z.string(),
   discipline: z.string().optional(),
+  category: z.string().optional(),
+  regions: z
+    .array(z.object({ id: z.number().int(), name: z.string() }))
+    .optional(),
 });
 export const seasonSchema = z.object({
   id: z.number().int(),

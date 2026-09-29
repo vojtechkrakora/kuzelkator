@@ -13,36 +13,20 @@ import {
   CircleDot,
   Heart,
   LayoutGrid,
-  Search,
   Star,
   Trophy,
   X,
 } from "lucide-react";
-import type {
-  Competition,
-  Match,
-  Resource,
-  Season,
-  Standing,
-} from "@/domain/models";
+import type { Competition, Match, Season, Standing } from "@/domain/models";
 import { resultFor, statusLabel } from "@/domain/models";
 import { dayLabel, shiftDay, todayPrague, weekRange } from "@/lib/dates";
 import { usePreferences } from "./providers";
 import { ErrorNotice, FollowButton, Freshness } from "./common";
+import { getData } from "@/lib/client-api";
+import { TeamSeason } from "./team-season";
+import { CompetitionPicker } from "./competition-picker";
 import { MobileNavigation } from "./mobile-navigation";
 
-async function getData<T>(
-  params: Record<string, string | number>,
-  signal?: AbortSignal,
-): Promise<Resource<T>> {
-  const query = new URLSearchParams(
-    Object.entries(params).map(([key, value]) => [key, String(value)]),
-  );
-  const response = await fetch(`/api/data?${query}`, { signal });
-  const json = await response.json();
-  if (!response.ok) throw new Error(json.error ?? "Data nejsou dostupná.");
-  return json;
-}
 type Page<T> = { items: T[]; total: number };
 function validDay(value: string | null) {
   if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
@@ -64,7 +48,6 @@ export function Dashboard() {
   const [teamId, setTeamId] = useState(params.get("team") ?? "");
   const [offset, setOffset] = useState(0);
   const [seasonId, setSeasonId] = useState(params.get("season") ?? "");
-  const [competitionSearch, setCompetitionSearch] = useState("");
   const range = weekRange(day);
   useEffect(() => {
     const url = new URL(window.location.href);
@@ -108,6 +91,7 @@ export function Dashboard() {
   });
   const matches = useQuery({
     queryKey: ["matches", range.from, range.to, competitionId, teamId, offset],
+    enabled: !teamId,
     queryFn: ({ signal }) =>
       getData<Page<Match>>(
         {
@@ -236,39 +220,45 @@ export function Dashboard() {
         <div className="section-title" id="match-feed">
           <div>
             <span className="section-kicker">NA KUŽELNÁCH</span>
-            <h2>{selectedTeam ? selectedTeam.name : "Týden v kuželkách"}</h2>
+            <h2>
+              {teamId
+                ? (selectedTeam?.name ?? "Sezóna týmu")
+                : "Týden v kuželkách"}
+            </h2>
           </div>
-          <div className="week-controls">
-            <button
-              className="icon-button"
-              aria-label="Předchozí týden"
-              onClick={() => changeDay(shiftDay(day, -7))}
-            >
-              <ChevronLeft size={18} />
-            </button>
-            <label className="date-control">
-              <CalendarDays size={16} />
-              <input
-                aria-label="Datum v požadovaném týdnu"
-                type="date"
-                value={day}
-                onChange={(event) => changeDay(event.target.value)}
-              />
-            </label>
-            <button
-              className="icon-button"
-              aria-label="Následující týden"
-              onClick={() => changeDay(shiftDay(day, 7))}
-            >
-              <ChevronRight size={18} />
-            </button>
-            <button
-              className="today-button"
-              onClick={() => changeDay(todayPrague())}
-            >
-              Dnes
-            </button>
-          </div>
+          {!teamId && (
+            <div className="week-controls">
+              <button
+                className="icon-button"
+                aria-label="Předchozí týden"
+                onClick={() => changeDay(shiftDay(day, -7))}
+              >
+                <ChevronLeft size={18} />
+              </button>
+              <label className="date-control">
+                <CalendarDays size={16} />
+                <input
+                  aria-label="Datum v požadovaném týdnu"
+                  type="date"
+                  value={day}
+                  onChange={(event) => changeDay(event.target.value)}
+                />
+              </label>
+              <button
+                className="icon-button"
+                aria-label="Následující týden"
+                onClick={() => changeDay(shiftDay(day, 7))}
+              >
+                <ChevronRight size={18} />
+              </button>
+              <button
+                className="today-button"
+                onClick={() => changeDay(todayPrague())}
+              >
+                Dnes
+              </button>
+            </div>
+          )}
         </div>
         <div className="filters">
           <label className="select-wrap">
@@ -294,21 +284,6 @@ export function Dashboard() {
               ))}
             </select>
           </label>
-          <label className="select-wrap competition-select">
-            <span>Soutěž</span>
-            <select
-              aria-label="Soutěž"
-              value={competitionId}
-              onChange={(event) => chooseCompetition(event.target.value)}
-            >
-              <option value="">Všechny soutěže</option>
-              {competitions.data?.data.items.map((competition) => (
-                <option key={competition.id} value={competition.id}>
-                  {competition.name}
-                </option>
-              ))}
-            </select>
-          </label>
           {filtersActive && (
             <button
               className="clear-filters"
@@ -321,6 +296,16 @@ export function Dashboard() {
             </button>
           )}
         </div>
+        <CompetitionPicker
+          items={competitions.data?.data.items ?? []}
+          selected={competitionId}
+          onChoose={(id) => {
+            chooseTeam("");
+            chooseCompetition(id);
+          }}
+          loading={seasons.isPending || competitions.isPending}
+          failed={seasons.isError || competitions.isError}
+        />
         {(seasons.isError || competitions.isError) && (
           <ErrorNotice
             message="Seznam soutěží se nepodařilo načíst. Zápasy můžete dál procházet podle data."
@@ -330,140 +315,116 @@ export function Dashboard() {
             }}
           />
         )}
-        <div className="feed-meta">
-          <span>
-            {dayLabel(range.from)} — {dayLabel(range.to)}{" "}
-            <span className="meta-divider">/</span>{" "}
-            {matches.data
-              ? `${matches.data.data.total} zápasů`
-              : "Načítání zápasů"}
-          </span>
-          {matches.data && <Freshness {...matches.data} />}
-        </div>
-        {matches.isError && (
-          <ErrorNotice
-            retry={() => void matches.refetch()}
-            message={matches.error.message}
+        {teamId ? (
+          <TeamSeason
+            teamId={teamId}
+            seasonId={activeSeason}
+            teamName={selectedTeam?.name}
+            seasonName={
+              seasons.data?.data.items.find(
+                (item) => String(item.id) === activeSeason,
+              )?.name
+            }
           />
-        )}
-        {matches.isPending && (
-          <div
-            className="skeleton-list"
-            role="status"
-            aria-label="Načítání zápasů"
-          >
-            {[1, 2, 3].map((item) => (
-              <div className="skeleton" key={item} />
-            ))}
-          </div>
-        )}
-        {matches.data?.data.items.length === 0 && (
-          <div className="empty-state">
-            <CalendarDays size={34} />
-            <h3>V tomto týdnu je na drahách klid.</h3>
-            <p>
-              Pro zvolené filtry nejsou zveřejněné žádné zápasy. Zkuste jiný
-              týden nebo soutěž.
-            </p>
-            <button
-              className="button"
-              onClick={() => changeDay(shiftDay(day, 7))}
-            >
-              Následující týden <ArrowRight size={16} />
-            </button>
-          </div>
-        )}
-        {[...grouped].map(([name, items]) => (
-          <section key={name} className="competition-group">
-            <div className="competition-heading">
+        ) : (
+          <>
+            <div className="feed-meta">
               <span>
-                <Trophy size={16} />
-                {name}
+                {dayLabel(range.from)} — {dayLabel(range.to)}{" "}
+                <span className="meta-divider">/</span>{" "}
+                {matches.data
+                  ? `${matches.data.data.total} zápasů`
+                  : "Načítání zápasů"}
               </span>
-              <span>
-                {items.length} {items.length === 1 ? "zápas" : "zápasů"} na této
-                stránce
-              </span>
+              {matches.data && <Freshness {...matches.data} />}
             </div>
-            <div className="match-grid">
-              {items.map((match) => (
-                <MatchCard key={match.id} match={match} />
-              ))}
-            </div>
-          </section>
-        ))}
-        {matches.data && matches.data.data.total > 24 && (
-          <div className="pagination">
-            <button
-              className="button"
-              disabled={offset === 0}
-              onClick={() => setOffset(Math.max(0, offset - 24))}
-            >
-              <ChevronLeft size={16} /> Předchozí
-            </button>
-            <span>
-              {offset + 1}–{Math.min(offset + 24, matches.data.data.total)} z{" "}
-              {matches.data.data.total}
-            </span>
-            <button
-              className="button"
-              disabled={offset + 24 >= matches.data.data.total}
-              onClick={() => setOffset(offset + 24)}
-            >
-              Další <ChevronRight size={16} />
-            </button>
-          </div>
-        )}
-        {selectedCompetition && (
-          <Standings
-            competition={selectedCompetition}
-            round={Math.max(
-              1,
-              ...(matches.data?.data.items ?? []).map(
-                (match) => match.round ?? 1,
-              ),
+            {matches.isError && (
+              <ErrorNotice
+                retry={() => void matches.refetch()}
+                message={matches.error.message}
+              />
             )}
-          />
-        )}
-        <section className="discovery" id="competitions">
-          <div>
-            <span className="section-kicker">NAJDĚTE SVOU SOUTĚŽ</span>
-            <h2>Od první ligy po domácí dráhy.</h2>
-          </div>
-          <label className="search-box">
-            <Search size={17} />
-            <input
-              aria-label="Hledat v načtených soutěžích"
-              placeholder="Název soutěže…"
-              value={competitionSearch}
-              onChange={(event) => setCompetitionSearch(event.target.value)}
-            />
-          </label>
-          <div className="competition-chips">
-            {competitions.data?.data.items
-              .filter((item) =>
-                item.name
-                  .toLocaleLowerCase("cs")
-                  .includes(competitionSearch.toLocaleLowerCase("cs")),
-              )
-              .slice(0, 12)
-              .map((item) => (
+            {matches.isPending && (
+              <div
+                className="skeleton-list"
+                role="status"
+                aria-label="Načítání zápasů"
+              >
+                {[1, 2, 3].map((item) => (
+                  <div className="skeleton" key={item} />
+                ))}
+              </div>
+            )}
+            {matches.data?.data.items.length === 0 && (
+              <div className="empty-state">
+                <CalendarDays size={34} />
+                <h3>V tomto týdnu je na drahách klid.</h3>
+                <p>
+                  Pro zvolené filtry nejsou zveřejněné žádné zápasy. Zkuste jiný
+                  týden nebo soutěž.
+                </p>
                 <button
-                  key={item.id}
-                  className={String(item.id) === competitionId ? "chosen" : ""}
-                  onClick={() => {
-                    chooseCompetition(String(item.id));
-                    document
-                      .querySelector(".section-title")
-                      ?.scrollIntoView({ behavior: "smooth" });
-                  }}
+                  className="button"
+                  onClick={() => changeDay(shiftDay(day, 7))}
                 >
-                  {item.name}
-                  <ArrowUpRight size={15} />
+                  Následující týden <ArrowRight size={16} />
                 </button>
-              ))}
-          </div>
-        </section>
+              </div>
+            )}
+            {[...grouped].map(([name, items]) => (
+              <section key={name} className="competition-group">
+                <div className="competition-heading">
+                  <span>
+                    <Trophy size={16} />
+                    {name}
+                  </span>
+                  <span>
+                    {items.length} {items.length === 1 ? "zápas" : "zápasů"} na
+                    této stránce
+                  </span>
+                </div>
+                <div className="match-grid">
+                  {items.map((match) => (
+                    <MatchCard key={match.id} match={match} />
+                  ))}
+                </div>
+              </section>
+            ))}
+            {matches.data && matches.data.data.total > 24 && (
+              <div className="pagination">
+                <button
+                  className="button"
+                  disabled={offset === 0}
+                  onClick={() => setOffset(Math.max(0, offset - 24))}
+                >
+                  <ChevronLeft size={16} /> Předchozí
+                </button>
+                <span>
+                  {offset + 1}–{Math.min(offset + 24, matches.data.data.total)}{" "}
+                  z {matches.data.data.total}
+                </span>
+                <button
+                  className="button"
+                  disabled={offset + 24 >= matches.data.data.total}
+                  onClick={() => setOffset(offset + 24)}
+                >
+                  Další <ChevronRight size={16} />
+                </button>
+              </div>
+            )}
+            {selectedCompetition && (
+              <Standings
+                competition={selectedCompetition}
+                round={Math.max(
+                  1,
+                  ...(matches.data?.data.items ?? []).map(
+                    (match) => match.round ?? 1,
+                  ),
+                )}
+              />
+            )}
+          </>
+        )}
       </section>
       <MobileNavigation
         onChooseTeam={(id) => {
@@ -545,7 +506,7 @@ function Standings({
   const table = useQuery({
     queryKey: ["standings", competition.slug, selectedRound],
     queryFn: ({ signal }) =>
-      getData<Page<Standing>>(
+      getData<Page<Standing> & { round: number | null }>(
         { kind: "standings", slug: competition.slug, round: selectedRound },
         signal,
       ),
@@ -577,11 +538,19 @@ function Standings({
       {table.data && (
         <>
           <Freshness {...table.data} />
+          {table.data.data.round != null && (
+            <p className="empty-copy" role="status">
+              {table.data.data.round < selectedRound
+                ? `Pro ${selectedRound}. kolo tabulka zatím není zveřejněna. Zobrazujeme poslední dostupnou tabulku po ${table.data.data.round}. kole.`
+                : `Tabulka po ${table.data.data.round}. kole.`}
+            </p>
+          )}
           {table.data.data.items.length ? (
             <div className="table-scroll">
               <table>
                 <caption className="sr-only">
-                  Tabulka {competition.name}, {selectedRound}. kolo
+                  Tabulka {competition.name},{" "}
+                  {table.data.data.round ?? selectedRound}. kolo
                 </caption>
                 <thead>
                   <tr>
@@ -618,8 +587,7 @@ function Standings({
             </div>
           ) : (
             <p className="empty-copy">
-              Pro toto kolo zatím není tabulka zveřejněna. Zkuste předchozí
-              kolo.
+              Pro toto kolo ani předchozí kola zatím není tabulka zveřejněna.
             </p>
           )}
         </>

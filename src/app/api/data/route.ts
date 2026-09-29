@@ -3,6 +3,8 @@ import { z } from "zod";
 import {
   getCompetitions,
   getMatches,
+  getTeamSeasonMatches,
+  teamSeasonFilters,
   getSeasons,
   getStandings,
   matchFilters,
@@ -28,6 +30,9 @@ export async function GET(request: NextRequest) {
         result = await getCompetitions(input.seasonId, input.offset);
         break;
       }
+      case "team-season":
+        result = await getTeamSeasonMatches(teamSeasonFilters.parse(params));
+        break;
       case "matches":
         result = await getMatches(matchFilters.parse(params));
         break;
