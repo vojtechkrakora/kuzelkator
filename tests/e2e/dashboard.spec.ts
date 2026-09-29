@@ -83,12 +83,14 @@ test("competition filtering requests official standings", async ({ page }) => {
   await mockApi(page);
   await page.goto("/?date=2026-09-26");
   await page.locator("#competitions summary").click();
-  await expect(page.getByRole("button", { name: /2. KLM B/ })).toBeVisible();
+  await expect(
+    page.locator(".league-choice").filter({ hasText: "2. KLM B" }),
+  ).toBeVisible();
   const request = page.waitForRequest(
     (request) =>
       new URL(request.url()).searchParams.get("kind") === "standings",
   );
-  await page.getByRole("button", { name: /2. KLM B/ }).click();
+  await page.locator(".league-choice").filter({ hasText: "2. KLM B" }).click();
   await request;
   await expect(page).toHaveURL(/competition=17/);
   await expect(
@@ -173,11 +175,11 @@ for (const width of [320, 390, 430]) {
     ).toBe(true);
     await follow.click();
     const favorites = page.getByRole("button", {
-      name: "Moje týmy",
+      name: "Oblíbené",
       exact: false,
     });
     await favorites.click();
-    const dialog = page.getByRole("dialog", { name: "Moje týmy" });
+    const dialog = page.getByRole("dialog", { name: "Oblíbené" });
     await expect(dialog).toBeVisible();
     await dialog
       .getByRole("button", { name: "SK Podlužan Prušánky", exact: true })
@@ -238,14 +240,20 @@ test("phone league discovery remembers an area and respects a linked competition
   await page.goto("/?date=2026-09-26");
   await page.getByRole("link", { name: "Soutěže", exact: true }).click();
   await page.getByLabel("Oblast soutěží").selectOption("31");
-  await expect(page.getByRole("button", { name: /OP Tábor/ })).toBeVisible();
-  await expect(page.getByRole("button", { name: /Divize Jih/ })).toBeVisible();
   await expect(
-    page.getByRole("button", { name: /Jihomoravská divize/ }),
+    page.locator(".league-choice").filter({ hasText: "OP Tábor" }),
+  ).toBeVisible();
+  await expect(
+    page.locator(".league-choice").filter({ hasText: "Divize Jih" }),
+  ).toBeVisible();
+  await expect(
+    page.locator(".league-choice").filter({ hasText: "Jihomoravská divize" }),
   ).toHaveCount(0);
   await page.getByLabel("Hledat soutěž nebo okres").fill("tabor");
-  await expect(page.getByRole("button", { name: /Divize Jih/ })).toHaveCount(0);
-  await page.getByRole("button", { name: /OP Tábor/ }).click();
+  await expect(
+    page.locator(".league-choice").filter({ hasText: "Divize Jih" }),
+  ).toHaveCount(0);
+  await page.locator(".league-choice").filter({ hasText: "OP Tábor" }).click();
   await expect(page).toHaveURL(/competition=68/);
   await page.reload();
   await page.locator("#competitions summary").click();
@@ -332,7 +340,7 @@ test("favourite team shows the whole season with results, pins and future fixtur
   await page
     .getByRole("button", { name: "Sledovat SK Podlužan Prušánky", exact: true })
     .click();
-  await page.getByRole("button", { name: "Moje týmy", exact: false }).click();
+  await page.getByRole("button", { name: "Oblíbené", exact: false }).click();
   await page
     .getByRole("dialog")
     .getByRole("button", { name: "SK Podlužan Prušánky", exact: true })
@@ -359,4 +367,91 @@ test("favourite team shows the whole season with results, pins and future fixtur
   await expect(table.locator("tbody")).toHaveCount(2);
   await page.getByRole("button", { name: "Zrušit filtry" }).click();
   await expect(page.getByLabel("Datum v požadovaném týdnu")).toBeVisible();
+});
+
+test("favourite leagues persist alongside existing teams and reopen their saved season", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 320, height: 780 });
+  await mockApi(page);
+  await page.addInitScript(() => {
+    if (!localStorage.getItem("kuzelkator:preferences:v1"))
+      localStorage.setItem(
+        "kuzelkator:preferences:v1",
+        JSON.stringify({
+          version: 1,
+          teams: [{ id: 67, name: "SK Podlužan Prušánky" }],
+        }),
+      );
+  });
+  await page.route("**/api/data?kind=seasons", (route) =>
+    route.fulfill({
+      json: {
+        data: {
+          items: [
+            { id: 20, name: "2026/2027", active: true },
+            { id: 19, name: "2025/2026", active: false },
+          ],
+          total: 2,
+        },
+        checkedAt: "2026-09-28T18:00:00Z",
+        stale: false,
+      },
+    }),
+  );
+  await page.goto("/?date=2026-09-26");
+  await page.locator("#competitions summary").click();
+  await page
+    .getByRole("button", {
+      name: "Sledovat soutěž 2. KLM B, 2026/2027",
+      exact: true,
+    })
+    .click();
+  await expect(page).not.toHaveURL(/competition=/);
+  await page.reload();
+  await page.getByLabel("Sezóna soutěží").selectOption("19");
+  await page.getByRole("button", { name: "Oblíbené", exact: false }).click();
+  const dialog = page.getByRole("dialog", { name: "Oblíbené" });
+  await expect(
+    dialog.getByRole("button", { name: "SK Podlužan Prušánky", exact: true }),
+  ).toBeVisible();
+  await dialog.locator(".favorite-league-choice").click();
+  await expect(dialog).not.toBeVisible();
+  await expect(page).toHaveURL(/competition=17/);
+  await expect(page).toHaveURL(/season=20/);
+  await expect(page.getByLabel("Sezóna soutěží")).toHaveValue("20");
+  await page.getByRole("button", { name: "Oblíbené", exact: false }).click();
+  await dialog
+    .getByRole("button", {
+      name: "Přestat sledovat soutěž 2. KLM B, 2026/2027",
+      exact: true,
+    })
+    .click();
+  await expect(dialog.locator(".favorite-league-choice")).toHaveCount(0);
+  await page.reload();
+  await page.getByRole("button", { name: "Oblíbené", exact: false }).click();
+  await expect(dialog.locator(".favorite-league-choice")).toHaveCount(0);
+  await expect(
+    dialog.getByRole("button", { name: "SK Podlužan Prušánky", exact: true }),
+  ).toBeVisible();
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= innerWidth,
+    ),
+  ).toBe(true);
+});
+
+test("saved league is available from the desktop sidebar", async ({ page }) => {
+  await mockApi(page);
+  await page.goto("/?date=2026-09-26");
+  await page.locator("#competitions summary").click();
+  await page
+    .getByRole("button", {
+      name: "Sledovat soutěž 2. KLM B, 2026/2027",
+      exact: true,
+    })
+    .click();
+  await page.locator(".sidebar .favorite-league-choice").click();
+  await expect(page).toHaveURL(/competition=17/);
+  await expect(page).toHaveURL(/season=20/);
 });

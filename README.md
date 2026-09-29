@@ -63,6 +63,7 @@ References: [Render Docker services](https://render.com/docs/docker), [Blueprint
 - Weekly fixtures and results, with pagination and competition filters.
 - Region-first competition picker using official ČKA region assignments (including shared divisions), with district/regional/division/league shortcuts and accent-insensitive search. The selected area is remembered on this device. Area filters narrow the chooser; choosing a competition filters matches. Tier shortcuts are inferred from competition names/category; unfamiliar names remain available under all levels.
 - Up to 20 followed teams, saved on this device; choose a favourite from the sidebar or phone menu to see all its matches in the selected season. A compact table includes dates, home/away teams, points, total pins, and future fixtures. Team names link to match details; upcoming scores stay blank (dashes).
+- Up to 20 favourite leagues, saved with their season. Star a competition in the picker and reopen it from the desktop sidebar or the phone’s **Oblíbené** menu, alongside favourite teams. Existing saved teams are preserved.
 - Shareable date, competition, season-selector, and team filter URLs.
 - Match detail with team scores, totals, player names, and available substitute names alongside lineup positions.
 - Phone match details use player cards with full names and all scores, plus quick links to each team's results. Desktop keeps the tabular overview. Phone standings prioritise rank, team, matches played, and points.

@@ -20,6 +20,8 @@ import {
 import type { Competition, Match, Season, Standing } from "@/domain/models";
 import { resultFor, statusLabel } from "@/domain/models";
 import { dayLabel, shiftDay, todayPrague, weekRange } from "@/lib/dates";
+import { FavoriteLeagues } from "./favorite-leagues";
+import type { FavoriteLeague } from "./providers";
 import { usePreferences } from "./providers";
 import { ErrorNotice, FollowButton, Freshness } from "./common";
 import { getData } from "@/lib/client-api";
@@ -134,6 +136,22 @@ export function Dashboard() {
     setOffset(0);
   }
 
+  function chooseFavoriteLeague(league: FavoriteLeague) {
+    chooseTeam("");
+    setSeasonId(String(league.seasonId));
+    chooseCompetition(String(league.id));
+    if (String(league.seasonId) !== activeSeason) {
+      const season = seasons.data?.data.items.find(
+        (item) => item.id === league.seasonId,
+      );
+      changeDay(
+        season?.active
+          ? todayPrague()
+          : `${league.seasonName.slice(0, 4)}-09-15`,
+      );
+    }
+  }
+
   return (
     <main id="main" className="page dashboard">
       <aside className="sidebar">
@@ -176,6 +194,7 @@ export function Dashboard() {
             <p>Klikněte na hvězdičku u týmu. Příště ho najdete rovnou tady.</p>
           </div>
         )}
+        <FavoriteLeagues onChoose={chooseFavoriteLeague} />
         <div className="sidebar-note">
           <Heart size={17} />
           <span>
@@ -297,6 +316,12 @@ export function Dashboard() {
           )}
         </div>
         <CompetitionPicker
+          seasonId={activeSeason}
+          seasonName={
+            seasons.data?.data.items.find(
+              (item) => String(item.id) === activeSeason,
+            )?.name ?? ""
+          }
           items={competitions.data?.data.items ?? []}
           selected={competitionId}
           onChoose={(id) => {
@@ -427,6 +452,7 @@ export function Dashboard() {
         )}
       </section>
       <MobileNavigation
+        onChooseLeague={chooseFavoriteLeague}
         onChooseTeam={(id) => {
           chooseTeam(id);
           chooseCompetition("");

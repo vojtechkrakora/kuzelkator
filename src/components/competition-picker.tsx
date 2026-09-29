@@ -9,6 +9,8 @@ import {
   levels,
 } from "@/domain/competition-discovery";
 
+import { FollowLeagueButton } from "./favorite-leagues";
+
 const storageKey = "kuzelkator:competition-area:v1";
 export function CompetitionPicker({
   items,
@@ -16,8 +18,12 @@ export function CompetitionPicker({
   onChoose,
   loading,
   failed,
+  seasonId,
+  seasonName,
 }: {
   items: Competition[];
+  seasonId: string;
+  seasonName: string;
   selected: string;
   onChoose: (id: string) => void;
   loading: boolean;
@@ -148,24 +154,31 @@ export function CompetitionPicker({
           )}
           <div className="league-results">
             {results.map((item) => (
-              <button
-                key={item.id}
-                aria-pressed={selected === String(item.id)}
-                onClick={() => choose(String(item.id))}
-              >
-                <span>
-                  <strong>{item.name}</strong>
-                  <small>
-                    {levels.find(
-                      ([id]) => id === competitionLevel(item),
-                    )?.[1] ?? "Soutěž"}{" "}
-                    ·{" "}
-                    {item.regions?.map((region) => region.name).join(" / ") ||
-                      "Oblast neuvedena"}
-                  </small>
-                </span>
-                <ChevronRight size={18} />
-              </button>
+              <div className="league-result" key={item.id}>
+                <button
+                  className="league-choice"
+                  aria-pressed={selected === String(item.id)}
+                  onClick={() => choose(String(item.id))}
+                >
+                  <span>
+                    <strong>{item.name}</strong>
+                    <small>
+                      {levels.find(
+                        ([id]) => id === competitionLevel(item),
+                      )?.[1] ?? "Soutěž"}{" "}
+                      ·{" "}
+                      {item.regions?.map((region) => region.name).join(" / ") ||
+                        "Oblast neuvedena"}
+                    </small>
+                  </span>
+                  <ChevronRight size={18} />
+                </button>
+                {seasonId && (
+                  <FollowLeagueButton
+                    league={{ ...item, seasonId: Number(seasonId), seasonName }}
+                  />
+                )}
+              </div>
             ))}
           </div>
           <p className="league-footnote">

@@ -3,14 +3,18 @@
 import { useEffect, useRef } from "react";
 import { CalendarDays, Star, Trophy, X } from "lucide-react";
 import { usePreferences } from "./providers";
+import { FavoriteLeagues } from "./favorite-leagues";
+import type { FavoriteLeague } from "./providers";
 import { FollowButton } from "./common";
 
 export function MobileNavigation({
   onChooseTeam,
+  onChooseLeague,
 }: {
   onChooseTeam: (id: string) => void;
+  onChooseLeague: (league: FavoriteLeague) => void;
 }) {
-  const { teams, warning } = usePreferences();
+  const { teams, leagues, warning } = usePreferences();
   const dialog = useRef<HTMLDialogElement>(null);
   const previousOverflow = useRef("");
   function close() {
@@ -45,8 +49,10 @@ export function MobileNavigation({
         <button onClick={open} aria-haspopup="dialog">
           <Star size={21} />
           <span>
-            Moje týmy
-            {teams.length > 0 && <b className="nav-count">{teams.length}</b>}
+            Oblíbené
+            {teams.length + leagues.length > 0 && (
+              <b className="nav-count">{teams.length + leagues.length}</b>
+            )}
           </span>
         </button>
         <a
@@ -76,25 +82,36 @@ export function MobileNavigation({
           <div className="sheet-heading">
             <div>
               <span className="section-kicker">VAŠE KUŽELKY</span>
-              <h2 id="favorites-title">Moje týmy</h2>
+              <h2 id="favorites-title">Oblíbené</h2>
             </div>
             <button
               autoFocus
               className="icon-button"
-              aria-label="Zavřít moje týmy"
+              aria-label="Zavřít oblíbené"
               onClick={close}
             >
               <X size={22} />
             </button>
           </div>
           <p className="sheet-description">
-            Vyberte tým a zobrazte jeho zápasy.
+            Vaše týmy a soutěže na jednom místě.
           </p>
           {warning && (
             <p role="status" className="notice">
               {warning}
             </p>
           )}
+          <FavoriteLeagues
+            onChoose={(league) => {
+              onChooseLeague(league);
+              close();
+              document.getElementById("match-feed")?.scrollIntoView();
+            }}
+          />
+          <div className="side-heading">
+            <span>MOJE TÝMY</span>
+            <span className="counter">{teams.length}</span>
+          </div>
           {teams.length ? (
             <div className="sheet-teams">
               {teams.map((team) => (
