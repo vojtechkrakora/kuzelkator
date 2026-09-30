@@ -7,6 +7,7 @@ import {
   standingSchema,
   teamSchema,
 } from "../domain/models";
+import { orderMatchFeed } from "../domain/match-feed";
 import { pragueMidnight, shiftDay } from "../lib/dates";
 import { apiCache, UpstreamError } from "./cache";
 
@@ -25,6 +26,7 @@ export const matchFilters = z
     from: dateInput,
     to: dateInput,
     competitionId: optionalId,
+    daily: z.literal("1").optional(),
     favoriteCompetitionIds: z
       .string()
       .max(240)
@@ -60,7 +62,7 @@ export async function getMatches(filters: z.infer<typeof matchFilters>) {
     query.set("competitionId", String(filters.competitionId));
   if (filters.teamId) query.set("teamId", String(filters.teamId));
   const favourites = new Set(filters.favoriteCompetitionIds ?? []);
-  if (!favourites.size || filters.competitionId || filters.teamId)
+  if (filters.competitionId || filters.teamId)
     return apiCache.get(`/matches?${query}`, collection(matchSchema));
 
   // Order the whole date range before taking the requested page. Upstream
@@ -85,18 +87,15 @@ export async function getMatches(filters: z.infer<typeof matchFilters>) {
     stale ||= next.stale;
     if (next.checkedAt < checkedAt) checkedAt = next.checkedAt;
   }
-  const preferred = items.filter((match) =>
-    favourites.has(match.competition?.id ?? -1),
-  );
-  const other = items.filter(
-    (match) => !favourites.has(match.competition?.id ?? -1),
-  );
   return {
     data: {
-      items: [...preferred, ...other].slice(
-        filters.offset,
-        filters.offset + 24,
-      ),
+      items:
+        filters.daily === "1"
+          ? orderMatchFeed(items, favourites)
+          : orderMatchFeed(items, favourites).slice(
+              filters.offset,
+              filters.offset + 24,
+            ),
       total: first.data.total,
     },
     checkedAt,

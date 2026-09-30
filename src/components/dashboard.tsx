@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useId } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
   ArrowRight,
@@ -18,7 +18,18 @@ import {
 } from "lucide-react";
 import type { Competition, Match, Season, Standing } from "@/domain/models";
 import { resultFor, statusLabel } from "@/domain/models";
-import { dayLabel, shiftDay, todayPrague, weekRange } from "@/lib/dates";
+import {
+  groupMatchFeed,
+  isFavouriteMatch,
+  sampleDayMatches,
+} from "@/domain/match-feed";
+import {
+  feedDayLabel,
+  dayLabel,
+  shiftDay,
+  todayPrague,
+  weekRange,
+} from "@/lib/dates";
 import { TeamLogo } from "./team-logo";
 import { FavoriteLeagues } from "./favorite-leagues";
 import type { FavoriteLeague } from "./providers";
@@ -114,6 +125,7 @@ export function Dashboard() {
           kind: "matches",
           ...range,
           offset,
+          ...(!competitionId ? { daily: "1" } : {}),
           ...(favoriteCompetitionIds ? { favoriteCompetitionIds } : {}),
           ...(competitionId ? { competitionId } : {}),
           ...(teamId ? { teamId } : {}),
@@ -127,14 +139,10 @@ export function Dashboard() {
     (item) => String(item.id) === competitionId,
   );
   const selectedTeam = teams.find((item) => String(item.id) === teamId);
-  const grouped = useMemo(() => {
-    const result = new Map<string, Match[]>();
-    for (const match of matches.data?.data.items ?? []) {
-      const key = match.competition?.name ?? "Ostatní soutěže";
-      result.set(key, [...(result.get(key) ?? []), match]);
-    }
-    return result;
-  }, [matches.data]);
+  const grouped = useMemo(
+    () => groupMatchFeed(matches.data?.data.items ?? []),
+    [matches.data],
+  );
   const filtersActive = !!competitionId || !!teamId;
   function changeDay(value: string) {
     if (validDay(value)) {
@@ -411,26 +419,19 @@ export function Dashboard() {
                 </button>
               </div>
             )}
-            {[...grouped].map(([name, items]) => (
-              <section key={name} className="competition-group">
-                <div className="competition-heading">
-                  <span>
-                    <Trophy size={16} />
-                    {name}
-                  </span>
-                  <span>
-                    {items.length} {items.length === 1 ? "zápas" : "zápasů"} na
-                    této stránce
-                  </span>
-                </div>
-                <div className="match-grid">
-                  {items.map((match) => (
-                    <MatchCard key={match.id} match={match} />
-                  ))}
-                </div>
-              </section>
+            {[...grouped].map(([date, competitions]) => (
+              <MatchDay
+                key={`${date}:${competitionId}:${favoriteCompetitionIds}:${teams.map((team) => team.id).join(",")}`}
+                date={date}
+                items={[...competitions.values()].flatMap(
+                  (league) => league.items,
+                )}
+                favouriteLeagues={new Set(leagues.map((league) => league.id))}
+                favouriteTeams={new Set(teams.map((team) => team.id))}
+                personalise={!competitionId}
+              />
             ))}
-            {matches.data && matches.data.data.total > 24 && (
+            {competitionId && matches.data && matches.data.data.total > 24 && (
               <div className="pagination">
                 <button
                   className="button"
@@ -477,11 +478,114 @@ export function Dashboard() {
   );
 }
 
+function MatchDay({
+  date,
+  items,
+  favouriteLeagues,
+  favouriteTeams,
+  personalise,
+}: {
+  date: string;
+  items: Match[];
+  favouriteLeagues: ReadonlySet<number>;
+  favouriteTeams: ReadonlySet<number>;
+  personalise: boolean;
+}) {
+  const [expanded, setExpanded] = useState(false);
+  const contentId = useId();
+  const [sampleSeed] = useState(() => Math.floor(Math.random() * 0x100000000));
+  const favourites = items.filter((match) =>
+    isFavouriteMatch(match, favouriteLeagues, favouriteTeams),
+  );
+  const preview = favourites.length
+    ? favourites
+    : sampleDayMatches(items, sampleSeed);
+  const hiddenCount = personalise ? items.length - preview.length : 0;
+  const shown = personalise && !expanded ? preview : items;
+  const competitions = groupMatchFeed(shown).get(date);
+  return (
+    <section
+      className="match-day"
+      aria-label={feedDayLabel(date, todayPrague())}
+    >
+      <h3 className="match-day-heading">
+        <CalendarDays size={20} />
+        <time dateTime={date || undefined}>
+          {feedDayLabel(date, todayPrague())}
+        </time>
+      </h3>
+      <div id={contentId}>
+        {[...(competitions ?? [])].map(
+          ([id, { name, items: leagueMatches }]) => (
+            <section key={id} className="competition-group" aria-label={name}>
+              <div className="competition-heading">
+                <h4>
+                  <Trophy size={16} />
+                  {name}
+                </h4>
+                <span>
+                  {leagueMatches.length}{" "}
+                  {leagueMatches.length === 1 ? "zápas" : "zápasů"}
+                </span>
+              </div>
+              <div className="match-grid">
+                {leagueMatches.map((match) => (
+                  <MatchCard key={match.id} match={match} />
+                ))}
+              </div>
+            </section>
+          ),
+        )}
+      </div>
+      {hiddenCount > 0 && (
+        <div className="day-disclosure">
+          {!favourites.length && !expanded && (
+            <p>
+              Žádný oblíbený tým ani soutěž tento den nehraje. Zobrazujeme
+              náhodný výběr zápasů.
+            </p>
+          )}
+          <button
+            className="button"
+            aria-expanded={expanded}
+            aria-controls={contentId}
+            onClick={() => setExpanded(!expanded)}
+          >
+            {expanded
+              ? "Skrýt ostatní zápasy"
+              : `Zobrazit ostatní zápasy (${hiddenCount})`}
+          </button>
+        </div>
+      )}
+    </section>
+  );
+}
+
 export function MatchCard({ match }: { match: Match }) {
+  const { teams, leagues } = usePreferences();
+  const favouriteTeam = teams.some(
+    (team) => team.id === match.homeTeam?.id || team.id === match.awayTeam?.id,
+  );
+  const favouriteLeague = leagues.some(
+    (league) => league.id === match.competition?.id,
+  );
+  const favourite = favouriteTeam || favouriteLeague;
   const home = resultFor(match, true),
     away = resultFor(match, false);
   return (
-    <article className="match-card">
+    <article className={`match-card${favourite ? " favourite-match" : ""}`}>
+      {favourite && (
+        <div className="favourite-match-label">
+          <Star size={14} fill="currentColor" aria-hidden="true" />
+          <span>
+            {favouriteTeam && favouriteLeague
+              ? "Váš tým · Vaše soutěž"
+              : favouriteTeam
+                ? "Váš tým"
+                : "Vaše soutěž"}
+          </span>
+        </div>
+      )}
       <div className="match-top">
         <span>
           {dayLabel(match.date)}

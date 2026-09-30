@@ -36,3 +36,16 @@ export function dayLabel(day: string | null, long = false) {
     timeZone: "UTC",
   }).format(new Date(`${day.slice(0, 10)}T12:00:00Z`));
 }
+
+export function feedDayLabel(day: string, today: string) {
+  if (!day) return "Termín bude upřesněn";
+  const relative =
+    day === today
+      ? "Dnes"
+      : day === shiftDay(today, -1)
+        ? "Včera"
+        : day === shiftDay(today, 1)
+          ? "Zítra"
+          : "";
+  return `${relative ? `${relative} · ` : ""}${dayLabel(day, true)}`;
+}

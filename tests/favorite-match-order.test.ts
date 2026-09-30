@@ -51,12 +51,12 @@ describe("favourite matches before pagination", () => {
     );
     expect(new Set(all).size).toBe(125);
   });
-  it("keeps direct pagination for explicit competition filters and users without favourites", async () => {
+  it("keeps direct pagination for explicit competition and team filters", async () => {
     const get = mockPages();
     await getMatches({ ...filters, competitionId: 17, offset: 24 });
     await getMatches({
       ...filters,
-      favoriteCompetitionIds: undefined,
+      teamId: 67,
       offset: 24,
     });
     expect(get).toHaveBeenCalledTimes(2);
@@ -84,4 +84,13 @@ describe("favourite matches before pagination", () => {
     });
     await expect(getMatches(filters)).rejects.toMatchObject({ status: 502 });
   });
+});
+
+it("returns complete days for the overview, including favourites beyond the first page", async () => {
+  mockPages();
+  const result = await getMatches({ ...filters, daily: "1" });
+  expect(result.data.items).toHaveLength(125);
+  expect(
+    result.data.items.filter((match) => match.competition?.id === 22),
+  ).toHaveLength(25);
 });

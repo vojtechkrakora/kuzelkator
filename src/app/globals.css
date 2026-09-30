@@ -2164,3 +2164,77 @@ tfoot {
   min-width: 0;
   overflow-wrap: anywhere;
 }
+
+.match-day {
+  margin: 28px 0;
+}
+.match-day-heading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 18px;
+  line-height: 1.4;
+  margin: 0 0 16px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid #dbe5d2;
+  color: var(--ink);
+}
+.competition-heading h4 {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font: inherit;
+  margin: 0;
+  min-width: 0;
+}
+.competition-heading h4 svg {
+  flex-shrink: 0;
+}
+@media (max-width: 740px) {
+  .match-day-heading {
+    font-size: 16px;
+  }
+}
+.day-disclosure {
+  margin: 0 0 16px;
+  padding: 14px;
+  border: 1px solid #dce5d5;
+  border-radius: 10px;
+  background: #f5f8f0;
+}
+.day-disclosure p {
+  margin: 0 0 10px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+.day-disclosure .button {
+  min-height: 44px;
+  white-space: normal;
+  text-align: left;
+  line-height: 1.5;
+}
+
+.match-card.favourite-match {
+  border-color: #9ab887;
+  background: linear-gradient(130deg, #f0f6e9, #ffffff 75%);
+  box-shadow:
+    inset 3px 0 0 #658c47,
+    0 3px 14px #23371d05;
+}
+.match-card.favourite-match:hover {
+  border-color: #658c47;
+}
+.favourite-match-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 10px;
+  color: #3e6327;
+  font-size: 12px;
+  line-height: 1.5;
+  font-weight: 700;
+}
+.favourite-match-label svg {
+  flex-shrink: 0;
+}

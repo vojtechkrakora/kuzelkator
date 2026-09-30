@@ -583,7 +583,7 @@ test("weekly feed sends saved favourite leagues and resets pagination when favou
       params.get("favoriteCompetitionIds") === "22"
     );
   });
-  await page.goto("/?date=2026-09-26");
+  await page.goto("/?date=2026-09-26&competition=17");
   await first;
   await expect(page.locator(".home-favorite-leagues")).toHaveCount(0);
   const next = page.waitForRequest(
@@ -610,4 +610,147 @@ test("weekly feed sends saved favourite leagues and resets pagination when favou
   await expect(
     page.getByRole("button", { name: "Předchozí", exact: true }),
   ).toBeDisabled();
+});
+
+test("overview groups each day into league sections on phones without favourites", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 320, height: 780 });
+  await page.clock.setFixedTime(new Date("2026-09-30T10:00:00Z"));
+  await mockApi(page);
+  await page.route("**/api/data?kind=matches**", (route) =>
+    route.fulfill({
+      json: {
+        data: {
+          items: [
+            { ...match, id: 1, date: "2026-09-29" },
+            { ...match, id: 2, date: "2026-09-30" },
+            {
+              ...match,
+              id: 3,
+              date: "2026-09-30",
+              competition: { id: 68, name: "OP Tábor", slug: "op-tabor" },
+            },
+            {
+              ...match,
+              id: 4,
+              date: "2026-10-01",
+              status: "SCHEDULED",
+              results: [],
+            },
+          ],
+          total: 4,
+        },
+        checkedAt: "2026-09-30T10:00:00Z",
+        stale: false,
+      },
+    }),
+  );
+  await page.goto("/?date=2026-09-30");
+  const days = page.locator(".match-day");
+  await expect(days).toHaveCount(3);
+  await expect(days.nth(0).getByRole("heading", { level: 3 })).toContainText(
+    "Včera",
+  );
+  await expect(days.nth(1).getByRole("heading", { level: 3 })).toContainText(
+    "Dnes",
+  );
+  await expect(days.nth(2).getByRole("heading", { level: 3 })).toContainText(
+    "Zítra",
+  );
+  await expect(days.nth(1).getByRole("heading", { level: 4 })).toHaveText([
+    "2. KLM B",
+    "OP Tábor",
+  ]);
+  await expect(days.nth(0).locator(".match-card")).toHaveCount(1);
+  await expect(days.nth(1).locator(".match-card")).toHaveCount(2);
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= innerWidth,
+    ),
+  ).toBe(true);
+});
+
+test("days show favourite teams or leagues and reveal other matches independently", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 320, height: 780 });
+  await mockApi(page);
+  await page.addInitScript(() =>
+    localStorage.setItem(
+      "kuzelkator:preferences:v1",
+      JSON.stringify({
+        version: 1,
+        teams: [{ id: 67, name: "SK Podlužan Prušánky" }],
+        leagues: [
+          {
+            id: 22,
+            name: "Moje liga",
+            slug: "moje-liga",
+            seasonId: 20,
+            seasonName: "2026/2027",
+          },
+        ],
+      }),
+    ),
+  );
+  const otherTeams = {
+    homeTeam: { id: 101, name: "Jiný domácí", club: null },
+    awayTeam: { id: 102, name: "Jiný host", club: null },
+  };
+  await page.route("**/api/data?kind=matches**", (route) => {
+    expect(new URL(route.request().url()).searchParams.get("daily")).toBe("1");
+    return route.fulfill({
+      json: {
+        data: {
+          items: [
+            {
+              ...match,
+              id: 1,
+              date: "2026-09-29",
+              ...otherTeams,
+              competition: { id: 22, name: "Moje liga", slug: "moje-liga" },
+            },
+            { ...match, id: 2, date: "2026-09-29" },
+            { ...match, id: 3, date: "2026-09-29", ...otherTeams },
+            { ...match, id: 4, date: "2026-09-30", ...otherTeams },
+            { ...match, id: 5, date: "2026-09-30", ...otherTeams },
+            { ...match, id: 6, date: "2026-09-30", ...otherTeams },
+          ],
+          total: 6,
+        },
+        checkedAt: "2026-09-30T10:00:00Z",
+        stale: false,
+      },
+    });
+  });
+  await page.goto("/?date=2026-09-30");
+  const days = page.locator(".match-day");
+  await expect(days).toHaveCount(2);
+  await expect(days.nth(0).locator(".match-card")).toHaveCount(2);
+  await expect(days.nth(1).locator(".match-card")).toHaveCount(2);
+  await expect(days.nth(1)).toContainText(
+    "Žádný oblíbený tým ani soutěž tento den nehraje.",
+  );
+  await days
+    .nth(1)
+    .getByRole("button", { name: "Zobrazit ostatní zápasy (1)" })
+    .click();
+  await expect(days.nth(1).locator(".match-card")).toHaveCount(3);
+  await expect(days.nth(0).locator(".match-card")).toHaveCount(2);
+  await days
+    .nth(0)
+    .getByRole("button", { name: "Zobrazit ostatní zápasy (1)" })
+    .click();
+  await expect(days.nth(0).locator(".match-card")).toHaveCount(3);
+  await days
+    .nth(0)
+    .getByRole("button", { name: "Skrýt ostatní zápasy" })
+    .click();
+  await expect(days.nth(0).locator(".match-card")).toHaveCount(2);
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= innerWidth,
+    ),
+  ).toBe(true);
 });
