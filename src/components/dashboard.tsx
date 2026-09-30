@@ -40,7 +40,7 @@ function validDay(value: string | null) {
 
 export function Dashboard() {
   const params = useSearchParams();
-  const { teams, warning } = usePreferences();
+  const { teams, leagues, ready, warning } = usePreferences();
   const [day, setDay] = useState(() =>
     validDay(params.get("date")) ? params.get("date")! : todayPrague(),
   );
@@ -91,15 +91,30 @@ export function Dashboard() {
       return { ...first, data: { items, total: first.data.total } };
     },
   });
+  const favoriteCompetitionIds = [
+    ...new Set(leagues.map((league) => league.id)),
+  ]
+    .sort((a, b) => a - b)
+    .join(",");
+  useEffect(() => setOffset(0), [favoriteCompetitionIds]);
   const matches = useQuery({
-    queryKey: ["matches", range.from, range.to, competitionId, teamId, offset],
-    enabled: !teamId,
+    queryKey: [
+      "matches",
+      range.from,
+      range.to,
+      competitionId,
+      teamId,
+      offset,
+      favoriteCompetitionIds,
+    ],
+    enabled: !teamId && ready,
     queryFn: ({ signal }) =>
       getData<Page<Match>>(
         {
           kind: "matches",
           ...range,
           offset,
+          ...(favoriteCompetitionIds ? { favoriteCompetitionIds } : {}),
           ...(competitionId ? { competitionId } : {}),
           ...(teamId ? { teamId } : {}),
         },

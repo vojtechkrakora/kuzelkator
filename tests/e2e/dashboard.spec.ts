@@ -544,3 +544,70 @@ test("club logos use optimized images, persist in favourites and fall back when 
     ),
   ).toBe(true);
 });
+
+test("weekly feed sends saved favourite leagues and resets pagination when favourites change", async ({
+  page,
+}) => {
+  await mockApi(page);
+  await page.addInitScript(() =>
+    localStorage.setItem(
+      "kuzelkator:preferences:v1",
+      JSON.stringify({
+        version: 1,
+        teams: [],
+        leagues: [
+          {
+            id: 22,
+            name: "Moje liga",
+            slug: "moje-liga",
+            seasonId: 20,
+            seasonName: "2026/2027",
+          },
+        ],
+      }),
+    ),
+  );
+  await page.route("**/api/data?kind=matches**", (route) =>
+    route.fulfill({
+      json: {
+        data: { items: [match], total: 49 },
+        checkedAt: "2026-09-28T18:00:00Z",
+        stale: false,
+      },
+    }),
+  );
+  const first = page.waitForRequest((request) => {
+    const params = new URL(request.url()).searchParams;
+    return (
+      params.get("kind") === "matches" &&
+      params.get("favoriteCompetitionIds") === "22"
+    );
+  });
+  await page.goto("/?date=2026-09-26");
+  await first;
+  await expect(page.locator(".home-favorite-leagues")).toHaveCount(0);
+  const next = page.waitForRequest(
+    (request) => new URL(request.url()).searchParams.get("offset") === "24",
+  );
+  await page.getByRole("button", { name: "Další", exact: true }).click();
+  await next;
+  await page.locator("#competitions summary").click();
+  const reset = page.waitForRequest((request) => {
+    const params = new URL(request.url()).searchParams;
+    return (
+      params.get("kind") === "matches" &&
+      params.get("favoriteCompetitionIds") === "17,22" &&
+      params.get("offset") === "0"
+    );
+  });
+  await page
+    .getByRole("button", {
+      name: "Sledovat soutěž 2. KLM B, 2026/2027",
+      exact: true,
+    })
+    .click();
+  await reset;
+  await expect(
+    page.getByRole("button", { name: "Předchozí", exact: true }),
+  ).toBeDisabled();
+});

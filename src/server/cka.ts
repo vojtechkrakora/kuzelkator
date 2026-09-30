@@ -25,6 +25,13 @@ export const matchFilters = z
     from: dateInput,
     to: dateInput,
     competitionId: optionalId,
+    favoriteCompetitionIds: z
+      .string()
+      .max(240)
+      .regex(/^\d+(,\d+)*$/)
+      .transform((value) => value.split(",").map(Number))
+      .pipe(z.array(z.number().int().positive()).max(20))
+      .optional(),
     teamId: optionalId,
     offset: z.coerce.number().int().min(0).max(10000).default(0),
   })
@@ -33,7 +40,7 @@ export const matchFilters = z
     return days >= 0 && days <= 30;
   }, "Choose a date range of at most 31 days.");
 
-export function getMatches(filters: z.infer<typeof matchFilters>) {
+export async function getMatches(filters: z.infer<typeof matchFilters>) {
   // ČKA accepts whole seconds with an explicit offset, not JS fractional-second ISO strings.
   const apiDate = (value: string) => value.replace(/\.\d{3}Z$/, "+00:00");
   const query = new URLSearchParams({
@@ -52,7 +59,49 @@ export function getMatches(filters: z.infer<typeof matchFilters>) {
   if (filters.competitionId)
     query.set("competitionId", String(filters.competitionId));
   if (filters.teamId) query.set("teamId", String(filters.teamId));
-  return apiCache.get(`/matches?${query}`, collection(matchSchema));
+  const favourites = new Set(filters.favoriteCompetitionIds ?? []);
+  if (!favourites.size || filters.competitionId || filters.teamId)
+    return apiCache.get(`/matches?${query}`, collection(matchSchema));
+
+  // Order the whole date range before taking the requested page. Upstream
+  // date-sorted pages are shared in cache across users with different favourites.
+  query.set("limit", "100");
+  query.set("offset", "0");
+  const first = await apiCache.get(
+    `/matches?${query}`,
+    collection(matchSchema),
+  );
+  const items = [...first.data.items];
+  let stale = first.stale;
+  let checkedAt = first.checkedAt;
+  while (items.length < first.data.total) {
+    query.set("offset", String(items.length));
+    const next = await apiCache.get(
+      `/matches?${query}`,
+      collection(matchSchema),
+    );
+    if (!next.data.items.length) throw new UpstreamError(502);
+    items.push(...next.data.items);
+    stale ||= next.stale;
+    if (next.checkedAt < checkedAt) checkedAt = next.checkedAt;
+  }
+  const preferred = items.filter((match) =>
+    favourites.has(match.competition?.id ?? -1),
+  );
+  const other = items.filter(
+    (match) => !favourites.has(match.competition?.id ?? -1),
+  );
+  return {
+    data: {
+      items: [...preferred, ...other].slice(
+        filters.offset,
+        filters.offset + 24,
+      ),
+      total: first.data.total,
+    },
+    checkedAt,
+    stale,
+  };
 }
 export const teamSeasonFilters = z.object({
   teamId: z.coerce.number().int().positive(),
