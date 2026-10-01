@@ -51,6 +51,16 @@ const resultSchema = z.object({
   totalErrors: score,
   totalSetPoints: score,
   playerResults: z.array(playerResultSchema).optional(),
+  substitutions: z
+    .array(
+      z.object({
+        id: z.number().int(),
+        throwNumber: z.number().int().nullish(),
+        playerOut: playerSchema.nullish(),
+        playerIn: playerSchema.nullish(),
+      }),
+    )
+    .optional(),
 });
 export const matchSchema = z.object({
   id: z.number().int(),

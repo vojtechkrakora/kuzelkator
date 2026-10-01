@@ -7,6 +7,7 @@ import {
   resultFor,
 } from "../src/domain/models";
 import { PlayerIdentity } from "../src/components/player-identity";
+import { MatchSubstitutions } from "../src/components/match-substitutions";
 import { getMatch } from "../src/server/cka";
 import { apiCache } from "../src/server/cache";
 
@@ -94,11 +95,94 @@ describe("player identities", () => {
         expect.arrayContaining([
           "results.playerResults.player",
           "results.playerResults.substitute",
+          "results.substitutions",
+          "results.substitutions.playerOut",
+          "results.substitutions.playerIn",
         ]),
       );
       expect(request).toHaveBeenCalledTimes(1);
     } finally {
       request.mockRestore();
+    }
+  });
+});
+
+describe("match substitutions", () => {
+  it("marks only the outgoing player by ID", () => {
+    const substitutions = [
+      {
+        id: 1,
+        throwNumber: 35,
+        playerOut: identity,
+        playerIn: { id: 2, firstName: "Jan", lastName: "Novák" },
+      },
+    ];
+    for (const [player, isEmpty, marked] of [
+      [identity, false, true],
+      [{ ...identity, id: 3 }, false, false],
+      [null, false, false],
+      [identity, true, false],
+    ] as const) {
+      const html = renderToStaticMarkup(
+        createElement(PlayerIdentity, {
+          result: { position: 1, player, isEmpty },
+          substitutions,
+        }),
+      );
+      expect(html.includes("substituted-player-badge")).toBe(marked);
+    }
+  });
+  it("keeps substitutions on their team, sanitizes identities and renders multiple changes", () => {
+    const match = matchSchema.parse({
+      id: 1,
+      slug: "test",
+      date: null,
+      time: null,
+      round: null,
+      status: "FINISHED",
+      results: [
+        { isHome: false, substitutions: [] },
+        {
+          isHome: true,
+          substitutions: [
+            {
+              id: 12,
+              throwNumber: 35,
+              playerOut: { ...identity, age: 42 },
+              playerIn: { id: 2, firstName: "Blanka", lastName: "Sedláková" },
+            },
+            { id: 13, throwNumber: 50, playerOut: null, playerIn: null },
+          ],
+        },
+      ],
+    });
+    const home = resultFor(match, true);
+    expect(home?.substitutions?.[0].playerOut).toEqual(identity);
+    const html = renderToStaticMarkup(
+      createElement(MatchSubstitutions, { result: home }),
+    );
+    expect(html).toContain("Od 35. hodu");
+    expect(html).toContain('<details class="match-substitutions">');
+    expect(html).toContain("Střídání (2)");
+    expect(html).not.toContain(" open=");
+    expect(html).toContain("Od 50. hodu");
+    expect(html).toContain("<dt>Odchází</dt><dd>Martin Tesařík</dd>");
+    expect(html).toContain("<dt>Nastupuje</dt><dd>Blanka Sedláková</dd>");
+    expect(html).toContain("Jméno není k dispozici");
+    expect(
+      renderToStaticMarkup(
+        createElement(MatchSubstitutions, {
+          result: resultFor(match, false),
+        }),
+      ),
+    ).toBe("");
+  });
+
+  it("does not claim a substitution when data is unavailable", () => {
+    for (const result of [undefined, { isHome: true }]) {
+      expect(
+        renderToStaticMarkup(createElement(MatchSubstitutions, { result })),
+      ).toBe("");
     }
   });
 });

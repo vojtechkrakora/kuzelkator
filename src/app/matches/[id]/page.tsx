@@ -7,6 +7,7 @@ import { UpstreamError } from "@/server/cache";
 import { resultFor, statusLabel } from "@/domain/models";
 import { PlayerIdentity } from "@/components/player-identity";
 import { MobilePlayerResults } from "@/components/mobile-player-results";
+import { MatchSubstitutions } from "@/components/match-substitutions";
 import { dayLabel } from "@/lib/dates";
 import { FollowButton, Freshness } from "@/components/common";
 
@@ -101,6 +102,7 @@ export default async function MatchDetail({
             id={index ? "away-results" : "home-results"}
           >
             <h3>{team?.name ?? (index ? "Hosté" : "Domácí")}</h3>
+            <MatchSubstitutions result={result} />
             {result?.playerResults?.length ? (
               <>
                 <MobilePlayerResults result={result} />
@@ -121,7 +123,10 @@ export default async function MatchDetail({
                       {result.playerResults.map((player, i) => (
                         <tr key={`${player.position}-${i}`}>
                           <th scope="row" className="player-cell">
-                            <PlayerIdentity result={player} />
+                            <PlayerIdentity
+                              result={player}
+                              substitutions={result.substitutions}
+                            />
                           </th>
                           <td>{player.totalFull ?? "—"}</td>
                           <td>{player.totalSpare ?? "—"}</td>

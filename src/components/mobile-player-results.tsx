@@ -11,7 +11,10 @@ export function MobilePlayerResults({ result }: { result: Result }) {
           <li className="player-card" key={`${player.position}-${index}`}>
             <div className="player-card-heading">
               <h4>
-                <PlayerIdentity result={player} />
+                <PlayerIdentity
+                  result={player}
+                  substitutions={result.substitutions}
+                />
               </h4>
               <div className="player-total">
                 <strong>{player.totalPerformance ?? "—"}</strong>
