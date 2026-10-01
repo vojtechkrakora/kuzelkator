@@ -28,6 +28,15 @@ export default async function MatchDetail({
     throw error;
   }
   const match = resource.data;
+  const teamHref = (teamId: number) => ({
+    pathname: "/",
+    query: {
+      team: String(teamId),
+      ...(match.competition?.season
+        ? { season: String(match.competition.season.id) }
+        : {}),
+    },
+  });
   const home = resultFor(match, true),
     away = resultFor(match, false);
   return (
@@ -49,8 +58,21 @@ export default async function MatchDetail({
         </p>
         <div className="scoreboard-teams">
           <div>
-            <TeamLogo team={match.homeTeam} size={48} />
-            <h1>{match.homeTeam?.name ?? "Domácí"}</h1>
+            {match.homeTeam ? (
+              <Link
+                className="scoreboard-team-link"
+                href={teamHref(match.homeTeam.id)}
+                aria-label={`Zápasy týmu ${match.homeTeam.name}`}
+              >
+                <TeamLogo team={match.homeTeam} size={48} />
+                <h1>{match.homeTeam.name}</h1>
+              </Link>
+            ) : (
+              <>
+                <TeamLogo team={match.homeTeam} size={48} />
+                <h1>Domácí</h1>
+              </>
+            )}
             {match.homeTeam && <FollowButton team={match.homeTeam} />}
             <span>DOMÁCÍ</span>
           </div>
@@ -64,8 +86,21 @@ export default async function MatchDetail({
             </span>
           </div>
           <div>
-            <TeamLogo team={match.awayTeam} size={48} />
-            <h2>{match.awayTeam?.name ?? "Hosté"}</h2>
+            {match.awayTeam ? (
+              <Link
+                className="scoreboard-team-link"
+                href={teamHref(match.awayTeam.id)}
+                aria-label={`Zápasy týmu ${match.awayTeam.name}`}
+              >
+                <TeamLogo team={match.awayTeam} size={48} />
+                <h2>{match.awayTeam.name}</h2>
+              </Link>
+            ) : (
+              <>
+                <TeamLogo team={match.awayTeam} size={48} />
+                <h2>Hosté</h2>
+              </>
+            )}
             {match.awayTeam && <FollowButton team={match.awayTeam} />}
             <span>HOSTÉ</span>
           </div>

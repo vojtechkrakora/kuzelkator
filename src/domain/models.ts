@@ -9,6 +9,7 @@ export const teamSchema = z.object({
     .nullish(),
 });
 export const competitionSchema = z.object({
+  season: z.object({ id: z.number().int() }).nullish(),
   id: z.number().int(),
   name: z.string(),
   slug: z.string(),

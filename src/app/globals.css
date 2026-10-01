@@ -2310,3 +2310,22 @@ tfoot {
   overflow-wrap: anywhere;
   font-weight: 600;
 }
+
+.scoreboard-team-link {
+  display: block;
+  border-radius: 8px;
+}
+.scoreboard-team-link > .club-logo {
+  display: inline-flex;
+  margin: 0 auto 10px;
+  padding: 0;
+}
+.scoreboard-team-link:hover h1,
+.scoreboard-team-link:hover h2 {
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+.scoreboard-team-link:focus-visible {
+  outline: 2px solid #375627;
+  outline-offset: 4px;
+}
