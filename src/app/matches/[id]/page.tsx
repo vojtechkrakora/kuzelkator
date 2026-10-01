@@ -137,7 +137,9 @@ export default async function MatchDetail({
             id={index ? "away-results" : "home-results"}
           >
             <h3>{team?.name ?? (index ? "Hosté" : "Domácí")}</h3>
-            <MatchSubstitutions result={result} />
+            <div className="result-substitutions">
+              <MatchSubstitutions result={result} />
+            </div>
             {result?.playerResults?.length ? (
               <>
                 <MobilePlayerResults result={result} />

@@ -962,6 +962,25 @@ tfoot {
   margin: 15px 0;
   font-size: 15px;
 }
+@media (min-width: 1101px) {
+  .result-panel {
+    display: grid;
+    grid-row: span 3;
+    grid-template-rows: subgrid;
+    row-gap: 0;
+    align-items: start;
+  }
+  .result-panel > h3 {
+    grid-row: 1;
+  }
+  .result-substitutions {
+    grid-row: 2;
+  }
+  .result-panel > .desktop-player-table,
+  .result-panel > .empty-copy {
+    grid-row: 3;
+  }
+}
 .result-panel th,
 .result-panel td {
   padding: 13px 10px;
