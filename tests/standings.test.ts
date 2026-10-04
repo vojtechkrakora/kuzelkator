@@ -83,3 +83,22 @@ describe("latest available standings", () => {
     expect(get.mock.calls[1][0]).toContain("offset=1");
   });
 });
+
+it("finds the latest published table without relying on matches in the date window", async () => {
+  const paths: string[] = [];
+  vi.spyOn(apiCache, "get").mockImplementation(async (path) => {
+    paths.push(path);
+    if (path.endsWith("/rounds")) return resource([1, 2, 3, 4, 5]);
+    return resource({
+      items: path.includes("/4/table") ? [row] : [],
+      total: path.includes("/4/table") ? 1 : 0,
+    });
+  });
+  expect((await getStandings("league")).data.round).toBe(4);
+  expect(paths.filter((path) => path.endsWith("/rounds"))).toHaveLength(1);
+  expect(
+    paths
+      .filter((path) => path.includes("/table"))
+      .map((path) => path.match(/rounds\/(\d+)/)?.[1]),
+  ).toEqual(["5", "4"]);
+});

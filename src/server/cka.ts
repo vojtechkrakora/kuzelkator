@@ -208,7 +208,16 @@ async function getRoundStandings(slug: string, round: number) {
   return { ...first, stale, checkedAt, data: { ...first.data, items } };
 }
 
-export async function getStandings(slug: string, round: number) {
+export async function getStandings(slug: string, round?: number) {
+  const availableRounds =
+    round == null
+      ? await apiCache.get(
+          `/competitions/${encodeURIComponent(slug)}/rounds`,
+          z.array(z.number().int().positive()),
+          300000,
+        )
+      : null;
+  round ??= Math.max(1, ...(availableRounds?.data ?? []));
   async function read(candidate: number) {
     try {
       return await getRoundStandings(slug, candidate);
@@ -225,11 +234,12 @@ export async function getStandings(slug: string, round: number) {
   // Use the official round list rather than probing arbitrary round numbers.
   const rounds =
     round > 1
-      ? await apiCache.get(
+      ? (availableRounds ??
+        (await apiCache.get(
           `/competitions/${encodeURIComponent(slug)}/rounds`,
           z.array(z.number().int().positive()),
           300000,
-        )
+        )))
       : null;
   const previous = [...new Set(rounds?.data ?? [])]
     .filter((value) => value < round)

@@ -309,7 +309,8 @@ test("standings label an earlier available table and show its teams", async ({
     });
   });
   await page.goto("/?date=2026-09-26&competition=17");
-  await expect(page.getByLabel("Kolo tabulky")).toHaveValue("3");
+  await expect(page.getByLabel("Kolo tabulky")).toHaveValue("2");
+  await page.getByLabel("Kolo tabulky").fill("3");
   await expect(
     page.getByText(
       "Pro 3. kolo tabulka zatím není zveřejněna. Zobrazujeme poslední dostupnou tabulku po 2. kole.",
@@ -798,4 +799,57 @@ test("empty today defaults to latest match day but explicit dates remain selecte
   await page.goto("/?date=2026-10-04");
   await expect(page.getByLabel("Datum zápasů")).toHaveValue("2026-10-04");
   await expect(page.getByText("V tento den je na drahách klid.")).toBeVisible();
+});
+
+test("league view spans past 7 and future 14 days and keeps standings when there are no fixtures", async ({
+  page,
+}) => {
+  await mockApi(page);
+  const requested: string[] = [];
+  await page.route("**/api/data?kind=matches**", (route) => {
+    const q = new URL(route.request().url()).searchParams;
+    requested.push(`${q.get("from")}:${q.get("to")}`);
+    return route.fulfill({
+      json: {
+        data: { items: [], total: 0 },
+        checkedAt: "2026-10-04T12:00:00Z",
+        stale: false,
+      },
+    });
+  });
+  await page.route("**/api/data?kind=standings**", (route) => {
+    expect(new URL(route.request().url()).searchParams.has("round")).toBe(
+      false,
+    );
+    return route.fulfill({
+      json: {
+        data: {
+          round: 4,
+          items: [
+            {
+              position: 1,
+              team: { id: 101, name: "TJ Tábor" },
+              matches: 4,
+              wins: 4,
+              draws: 0,
+              losses: 0,
+              tablePoints: 8,
+              averagePerformance: 3200,
+            },
+          ],
+          total: 1,
+        },
+        checkedAt: "2026-10-04T12:00:00Z",
+        stale: false,
+      },
+    });
+  });
+  await page.goto("/?date=2026-10-04&competition=17&favourites=1");
+  await expect(page.getByRole("table")).toContainText("TJ Tábor");
+  await expect(page.getByLabel("Kolo tabulky")).toHaveValue("4");
+  await expect(
+    page.getByText("V tomto období je na drahách klid."),
+  ).toBeVisible();
+  expect(requested).toContain("2026-09-27:2026-10-18");
+  await expect(page.getByLabel("Jen oblíbené")).toHaveCount(0);
 });

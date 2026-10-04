@@ -63,7 +63,9 @@ export function Dashboard() {
   );
   const [lastMatchDay, setLastMatchDay] = useState(false);
   const [seasonId, setSeasonId] = useState(params.get("season") ?? "");
-  const range = { from: day, to: day };
+  const range = competitionId
+    ? { from: shiftDay(day, -7), to: shiftDay(day, 14) }
+    : { from: day, to: day };
   useEffect(() => {
     const url = new URL(window.location.href);
     url.search = "";
@@ -422,6 +424,17 @@ export function Dashboard() {
           />
         ) : (
           <>
+            {selectedCompetition && (
+              <Standings
+                key={selectedCompetition.id}
+                competition={selectedCompetition}
+              />
+            )}
+            {competitionId && (
+              <p className="league-window-note">
+                Zápasy 7 dní před a 14 dní po vybraném datu, včetně dohrávek.
+              </p>
+            )}
             <div className="day-navigation">
               {matchDays.data?.data.previous && (
                 <button
@@ -439,7 +452,7 @@ export function Dashboard() {
                   Následující zápasy · {dayLabel(matchDays.data.data.next)}
                 </button>
               )}
-              {(teams.length > 0 || leagues.length > 0) && (
+              {!competitionId && (teams.length > 0 || leagues.length > 0) && (
                 <label>
                   <input
                     type="checkbox"
@@ -455,7 +468,10 @@ export function Dashboard() {
             <div className="feed-meta">
               <span>
                 {lastMatchDay ? "Poslední zápasy · " : ""}
-                {dayLabel(day, true)} <span className="meta-divider">/</span>{" "}
+                {competitionId
+                  ? `${dayLabel(range.from)} – ${dayLabel(range.to)}`
+                  : dayLabel(day, true)}{" "}
+                <span className="meta-divider">/</span>{" "}
                 {matches.data
                   ? `${matches.data.data.total} zápasů`
                   : "Načítání zápasů"}
@@ -482,7 +498,11 @@ export function Dashboard() {
             {matches.data?.data.items.length === 0 && (
               <div className="empty-state">
                 <CalendarDays size={34} />
-                <h3>V tento den je na drahách klid.</h3>
+                <h3>
+                  {competitionId
+                    ? "V tomto období je na drahách klid."
+                    : "V tento den je na drahách klid."}
+                </h3>
                 <p>
                   Pro zvolené filtry nejsou zveřejněné žádné zápasy. Zkuste jiný
                   den nebo soutěž.
@@ -505,7 +525,9 @@ export function Dashboard() {
                 favouriteLeagues={new Set(leagues.map((league) => league.id))}
                 favouriteTeams={new Set(teams.map((team) => team.id))}
                 onlyFavourites={
-                  onlyFavourites && (teams.length > 0 || leagues.length > 0)
+                  !competitionId &&
+                  onlyFavourites &&
+                  (teams.length > 0 || leagues.length > 0)
                 }
               />
             ))}
@@ -530,17 +552,6 @@ export function Dashboard() {
                   Další <ChevronRight size={16} />
                 </button>
               </div>
-            )}
-            {selectedCompetition && (
-              <Standings
-                competition={selectedCompetition}
-                round={Math.max(
-                  1,
-                  ...(matches.data?.data.items ?? []).map(
-                    (match) => match.round ?? 1,
-                  ),
-                )}
-              />
             )}
           </>
         )}
@@ -703,20 +714,17 @@ function MatchCard({ match }: { match: Match }) {
   );
 }
 
-function Standings({
-  competition,
-  round,
-}: {
-  competition: Competition;
-  round: number;
-}) {
-  const [selectedRound, setSelectedRound] = useState(round);
-  useEffect(() => setSelectedRound(round), [round, competition.id]);
+function Standings({ competition }: { competition: Competition }) {
+  const [selectedRound, setSelectedRound] = useState<number | undefined>();
   const table = useQuery({
     queryKey: ["standings", competition.slug, selectedRound],
     queryFn: ({ signal }) =>
       getData<Page<Standing> & { round: number | null }>(
-        { kind: "standings", slug: competition.slug, round: selectedRound },
+        {
+          kind: "standings",
+          slug: competition.slug,
+          ...(selectedRound != null ? { round: selectedRound } : {}),
+        },
         signal,
       ),
   });
@@ -734,12 +742,22 @@ function Standings({
             type="number"
             min={1}
             max={1000}
-            value={selectedRound}
+            value={selectedRound ?? table.data?.data.round ?? ""}
+            placeholder="Aktuální"
             onChange={(event) => {
               const value = Number(event.target.value);
               if (value >= 1 && value <= 1000) setSelectedRound(value);
             }}
           />
+          {selectedRound != null && (
+            <button
+              type="button"
+              className="button"
+              onClick={() => setSelectedRound(undefined)}
+            >
+              Aktuální tabulka
+            </button>
+          )}
         </label>
       </div>
       {table.isPending && <p role="status">Načítání tabulky…</p>}
@@ -749,7 +767,7 @@ function Standings({
           <Freshness {...table.data} />
           {table.data.data.round != null && (
             <p className="empty-copy" role="status">
-              {table.data.data.round < selectedRound
+              {selectedRound != null && table.data.data.round < selectedRound
                 ? `Pro ${selectedRound}. kolo tabulka zatím není zveřejněna. Zobrazujeme poslední dostupnou tabulku po ${table.data.data.round}. kole.`
                 : `Tabulka po ${table.data.data.round}. kole.`}
             </p>
