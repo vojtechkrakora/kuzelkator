@@ -1,5 +1,6 @@
 "use client";
 
+import { useFeedReturn } from "./feed-navigation";
 import { TeamLogo } from "./team-logo";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
@@ -42,6 +43,7 @@ export function TeamSeason({
     refetchInterval: 60000,
     refetchIntervalInBackground: false,
   });
+  useFeedReturn(!!matches.data);
   const items = matches.data?.data.items ?? [];
   const team = items
     .flatMap((match) => [match.homeTeam, match.awayTeam])

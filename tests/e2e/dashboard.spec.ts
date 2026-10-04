@@ -21,6 +21,16 @@ async function mockApi(page: Page, failFirst = false) {
   await page.route("**/api/data?**", async (route) => {
     const params = new URL(route.request().url()).searchParams;
     const kind = params.get("kind");
+    if (kind === "match-days") {
+      await route.fulfill({
+        json: {
+          data: { previous: null, next: null },
+          checkedAt: "2026-10-04T12:00:00Z",
+          stale: false,
+        },
+      });
+      return;
+    }
     if (kind === "matches" && failFirst && !failed) {
       failed = true;
       await route.fulfill({
@@ -357,7 +367,7 @@ test("favourite team shows the whole season with results, pins and future fixtur
   await expect(
     table.locator("tbody").last().locator(".season-score").first(),
   ).toHaveText("—");
-  await expect(page.getByLabel("Datum v požadovaném týdnu")).toHaveCount(0);
+  await expect(page.getByLabel("Datum zápasů")).toHaveCount(0);
   expect(
     await page.evaluate(
       () => document.documentElement.scrollWidth <= innerWidth,
@@ -366,7 +376,7 @@ test("favourite team shows the whole season with results, pins and future fixtur
   await page.reload();
   await expect(table.locator("tbody")).toHaveCount(2);
   await page.getByRole("button", { name: "Zrušit filtry" }).click();
-  await expect(page.getByLabel("Datum v požadovaném týdnu")).toBeVisible();
+  await expect(page.getByLabel("Datum zápasů")).toBeVisible();
 });
 
 test("favourite leagues persist alongside existing teams and reopen their saved season", async ({
@@ -545,7 +555,7 @@ test("club logos use optimized images, persist in favourites and fall back when 
   ).toBe(true);
 });
 
-test("weekly feed sends saved favourite leagues and resets pagination when favourites change", async ({
+test("daily feed sends saved favourite leagues and resets pagination when favourites change", async ({
   page,
 }) => {
   await mockApi(page);
@@ -612,58 +622,79 @@ test("weekly feed sends saved favourite leagues and resets pagination when favou
   ).toBeDisabled();
 });
 
-test("overview groups each day into league sections on phones without favourites", async ({
+test("region map and national shortcut filter leagues and remember selection", async ({
   page,
 }) => {
   await page.setViewportSize({ width: 320, height: 780 });
-  await page.clock.setFixedTime(new Date("2026-09-30T10:00:00Z"));
   await mockApi(page);
-  await page.route("**/api/data?kind=matches**", (route) =>
-    route.fulfill({
+  await page.route("**/api/data?kind=competitions**", async (route) => {
+    const items = [
+      {
+        id: 1,
+        name: "Mistrovství Prahy 1",
+        slug: "praha",
+        regions: [{ id: 10, name: "Hlavní město Praha" }],
+      },
+      {
+        id: 2,
+        name: "Divize AS",
+        slug: "as",
+        regions: [
+          { id: 10, name: "Hlavní město Praha" },
+          { id: 20, name: "Středočeský kraj" },
+        ],
+      },
+      {
+        id: 3,
+        name: "2. KLM A",
+        slug: "a",
+        regions: [{ id: 1, name: "Celá ČR" }],
+      },
+      {
+        id: 4,
+        name: "2. KLM B",
+        slug: "b",
+        regions: [{ id: 1, name: "Celá ČR" }],
+      },
+    ];
+    await route.fulfill({
       json: {
-        data: {
-          items: [
-            { ...match, id: 1, date: "2026-09-29" },
-            { ...match, id: 2, date: "2026-09-30" },
-            {
-              ...match,
-              id: 3,
-              date: "2026-09-30",
-              competition: { id: 68, name: "OP Tábor", slug: "op-tabor" },
-            },
-            {
-              ...match,
-              id: 4,
-              date: "2026-10-01",
-              status: "SCHEDULED",
-              results: [],
-            },
-          ],
-          total: 4,
-        },
-        checkedAt: "2026-09-30T10:00:00Z",
+        data: { items, total: items.length },
+        checkedAt: "2026-10-04T12:00:00Z",
         stale: false,
       },
-    }),
+    });
+  });
+  await page.goto("/");
+  await page.locator("#competitions summary").click();
+  const prague = page.getByRole("button", {
+    name: "Hlavní město Praha",
+    exact: true,
+  });
+  await prague.focus();
+  await page.keyboard.press("Enter");
+  await expect(prague).toHaveAttribute("aria-pressed", "true");
+  await expect(page.locator(".league-choice")).toHaveCount(2);
+  await expect(page.locator(".league-choice").first()).toContainText(
+    "Mistrovství Prahy 1",
   );
-  await page.goto("/?date=2026-09-30");
-  const days = page.locator(".match-day");
-  await expect(days).toHaveCount(3);
-  await expect(days.nth(0).getByRole("heading", { level: 3 })).toContainText(
-    "Včera",
+  await page.getByLabel("Hledat soutěž nebo okres").fill("prahy");
+  await page
+    .getByRole("button", { name: "Celostátní ligy", exact: true })
+    .click();
+  await expect(page.getByLabel("Hledat soutěž nebo okres")).toHaveValue("");
+  await expect(page.locator(".league-choice")).toHaveCount(2);
+  await expect(page.locator(".league-choice").first()).toContainText(
+    "2. KLM A",
   );
-  await expect(days.nth(1).getByRole("heading", { level: 3 })).toContainText(
-    "Dnes",
-  );
-  await expect(days.nth(2).getByRole("heading", { level: 3 })).toContainText(
-    "Zítra",
-  );
-  await expect(days.nth(1).getByRole("heading", { level: 4 })).toHaveText([
-    "2. KLM B",
-    "OP Tábor",
-  ]);
-  await expect(days.nth(0).locator(".match-card")).toHaveCount(1);
-  await expect(days.nth(1).locator(".match-card")).toHaveCount(2);
+  await expect(page.locator(".league-choice").last()).toContainText("2. KLM B");
+  await page.reload();
+  await page.locator("#competitions summary").click();
+  await expect(
+    page.getByRole("button", { name: "Celostátní ligy", exact: true }),
+  ).toHaveAttribute("aria-pressed", "true");
+  await page.getByRole("button", { name: "Celé Česko", exact: true }).click();
+  await expect(page.locator(".league-choice")).toHaveCount(4);
   expect(
     await page.evaluate(
       () => document.documentElement.scrollWidth <= innerWidth,
@@ -671,7 +702,7 @@ test("overview groups each day into league sections on phones without favourites
   ).toBe(true);
 });
 
-test("days show favourite teams or leagues and reveal other matches independently", async ({
+test("daily overview shows all matches, favourites first, and moves one day at a time", async ({
   page,
 }) => {
   await page.setViewportSize({ width: 320, height: 780 });
@@ -681,12 +712,12 @@ test("days show favourite teams or leagues and reveal other matches independentl
       "kuzelkator:preferences:v1",
       JSON.stringify({
         version: 1,
-        teams: [{ id: 67, name: "SK Podlužan Prušánky" }],
+        teams: [],
         leagues: [
           {
             id: 22,
-            name: "Moje liga",
-            slug: "moje-liga",
+            name: "Z oblíbená",
+            slug: "fav",
             seasonId: 20,
             seasonName: "2026/2027",
           },
@@ -694,63 +725,77 @@ test("days show favourite teams or leagues and reveal other matches independentl
       }),
     ),
   );
-  const otherTeams = {
-    homeTeam: { id: 101, name: "Jiný domácí", club: null },
-    awayTeam: { id: 102, name: "Jiný host", club: null },
-  };
+  const dates: string[] = [];
   await page.route("**/api/data?kind=matches**", (route) => {
-    expect(new URL(route.request().url()).searchParams.get("daily")).toBe("1");
+    const query = new URL(route.request().url()).searchParams;
+    expect(query.get("from")).toBe(query.get("to"));
+    dates.push(query.get("from")!);
+    const items = [
+      { ...match, date: query.get("from") },
+      {
+        ...match,
+        id: 641,
+        date: query.get("from"),
+        competition: { id: 22, name: "Z oblíbená", slug: "fav" },
+      },
+      { ...match, id: 642, date: query.get("from") },
+    ];
     return route.fulfill({
       json: {
-        data: {
-          items: [
-            {
-              ...match,
-              id: 1,
-              date: "2026-09-29",
-              ...otherTeams,
-              competition: { id: 22, name: "Moje liga", slug: "moje-liga" },
-            },
-            { ...match, id: 2, date: "2026-09-29" },
-            { ...match, id: 3, date: "2026-09-29", ...otherTeams },
-            { ...match, id: 4, date: "2026-09-30", ...otherTeams },
-            { ...match, id: 5, date: "2026-09-30", ...otherTeams },
-            { ...match, id: 6, date: "2026-09-30", ...otherTeams },
-          ],
-          total: 6,
-        },
-        checkedAt: "2026-09-30T10:00:00Z",
+        data: { items, total: items.length },
+        checkedAt: "2026-10-04T12:00:00Z",
         stale: false,
       },
     });
   });
-  await page.goto("/?date=2026-09-30");
-  const days = page.locator(".match-day");
-  await expect(days).toHaveCount(2);
-  await expect(days.nth(0).locator(".match-card")).toHaveCount(2);
-  await expect(days.nth(1).locator(".match-card")).toHaveCount(2);
-  await expect(days.nth(1)).toContainText(
-    "Žádný oblíbený tým ani soutěž tento den nehraje.",
+  await page.goto("/?date=2026-10-04");
+  await expect(page.locator(".match-day")).toHaveCount(1);
+  await expect(page.locator(".match-card")).toHaveCount(3);
+  await expect(page.locator(".competition-group").first()).toContainText(
+    "Z oblíbená",
   );
-  await days
-    .nth(1)
-    .getByRole("button", { name: "Zobrazit ostatní zápasy (1)" })
+  await page.getByLabel("Jen oblíbené").check();
+  await expect(page.locator(".match-card")).toHaveCount(1);
+  await page.getByLabel("Jen oblíbené").uncheck();
+  await expect(page.locator(".match-card")).toHaveCount(3);
+  await page
+    .getByRole("button", { name: "Předchozí den", exact: true })
     .click();
-  await expect(days.nth(1).locator(".match-card")).toHaveCount(3);
-  await expect(days.nth(0).locator(".match-card")).toHaveCount(2);
-  await days
-    .nth(0)
-    .getByRole("button", { name: "Zobrazit ostatní zápasy (1)" })
-    .click();
-  await expect(days.nth(0).locator(".match-card")).toHaveCount(3);
-  await days
-    .nth(0)
-    .getByRole("button", { name: "Skrýt ostatní zápasy" })
-    .click();
-  await expect(days.nth(0).locator(".match-card")).toHaveCount(2);
-  expect(
-    await page.evaluate(
-      () => document.documentElement.scrollWidth <= innerWidth,
-    ),
-  ).toBe(true);
+  await expect(page.getByLabel("Datum zápasů")).toHaveValue("2026-10-03");
+  await expect.poll(() => dates.includes("2026-10-03")).toBe(true);
+});
+
+test("empty today defaults to latest match day but explicit dates remain selected", async ({
+  page,
+}) => {
+  await page.clock.setFixedTime(new Date("2026-10-04T12:00:00Z"));
+  await mockApi(page);
+  await page.route("**/api/data?kind=match-days**", (route) =>
+    route.fulfill({
+      json: {
+        data: { previous: "2026-10-03", next: "2026-10-10" },
+        checkedAt: "2026-10-04T12:00:00Z",
+        stale: false,
+      },
+    }),
+  );
+  await page.route("**/api/data?kind=matches**", (route) => {
+    const date = new URL(route.request().url()).searchParams.get("from");
+    const items = date === "2026-10-03" ? [{ ...match, date }] : [];
+    return route.fulfill({
+      json: {
+        data: { items, total: items.length },
+        checkedAt: "2026-10-04T12:00:00Z",
+        stale: false,
+      },
+    });
+  });
+  await page.goto("/");
+  await expect(page.getByLabel("Datum zápasů")).toHaveValue("2026-10-03");
+  await expect(page.locator(".feed-meta")).toContainText("Poslední zápasy");
+  await page.getByRole("button", { name: /Následující zápasy/ }).click();
+  await expect(page.getByLabel("Datum zápasů")).toHaveValue("2026-10-10");
+  await page.goto("/?date=2026-10-04");
+  await expect(page.getByLabel("Datum zápasů")).toHaveValue("2026-10-04");
+  await expect(page.getByText("V tento den je na drahách klid.")).toBeVisible();
 });

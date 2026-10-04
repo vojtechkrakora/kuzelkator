@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import {
   getCompetitions,
+  getMatchDays,
+  dateInput,
   getMatches,
   getTeamSeasonMatches,
   teamSeasonFilters,
@@ -38,6 +40,17 @@ export async function GET(request: NextRequest) {
       }
       case "team-season":
         result = await getTeamSeasonMatches(teamSeasonFilters.parse(params));
+        break;
+      case "match-days":
+        result = await getMatchDays(
+          dateInput.parse(params.day),
+          z.coerce
+            .number()
+            .int()
+            .positive()
+            .optional()
+            .parse(params.competitionId),
+        );
         break;
       case "matches":
         result = await getMatches(matchFilters.parse(params));

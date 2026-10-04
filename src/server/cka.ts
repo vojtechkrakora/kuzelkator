@@ -102,6 +102,37 @@ export async function getMatches(filters: z.infer<typeof matchFilters>) {
     stale,
   };
 }
+export async function getMatchDays(day: string, competitionId?: number) {
+  const query = new URLSearchParams({
+    limit: "1",
+    sort: "-date,-time,-id",
+    dateTo: new Date(Date.parse(pragueMidnight(day)) - 1000)
+      .toISOString()
+      .replace(/\.\d{3}Z$/, "+00:00"),
+  });
+  if (competitionId) query.set("competitionId", String(competitionId));
+  const previous = await apiCache.get(
+    `/matches?${query}`,
+    collection(matchSchema),
+  );
+  query.delete("dateTo");
+  query.set(
+    "dateFrom",
+    pragueMidnight(shiftDay(day, 1)).replace(/\.\d{3}Z$/, "+00:00"),
+  );
+  query.set("sort", "date,time,id");
+  const next = await apiCache.get(`/matches?${query}`, collection(matchSchema));
+  return {
+    data: {
+      previous: previous.data.items[0]?.date?.slice(0, 10) ?? null,
+      next: next.data.items[0]?.date?.slice(0, 10) ?? null,
+    },
+    checkedAt:
+      previous.checkedAt < next.checkedAt ? previous.checkedAt : next.checkedAt,
+    stale: previous.stale || next.stale,
+  };
+}
+
 export const teamSeasonFilters = z.object({
   teamId: z.coerce.number().int().positive(),
   seasonId: z.coerce.number().int().positive(),

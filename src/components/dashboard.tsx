@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { useEffect, useMemo, useState, useId } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
   ArrowRight,
@@ -18,18 +18,9 @@ import {
 } from "lucide-react";
 import type { Competition, Match, Season, Standing } from "@/domain/models";
 import { resultFor, statusLabel } from "@/domain/models";
-import {
-  groupMatchFeed,
-  isFavouriteMatch,
-  sampleDayMatches,
-} from "@/domain/match-feed";
-import {
-  feedDayLabel,
-  dayLabel,
-  shiftDay,
-  todayPrague,
-  weekRange,
-} from "@/lib/dates";
+import { groupMatchFeed, isFavouriteMatch } from "@/domain/match-feed";
+import { feedDayLabel, dayLabel, shiftDay, todayPrague } from "@/lib/dates";
+import { useFeedReturn } from "./feed-navigation";
 import { TeamLogo } from "./team-logo";
 import { FavoriteLeagues } from "./favorite-leagues";
 import type { FavoriteLeague } from "./providers";
@@ -59,9 +50,20 @@ export function Dashboard() {
     params.get("competition") ?? "",
   );
   const [teamId, setTeamId] = useState(params.get("team") ?? "");
-  const [offset, setOffset] = useState(0);
+  const [offset, setOffset] = useState(() =>
+    Math.max(0, Math.min(10000, Number(params.get("offset")) || 0)),
+  );
+  const [onlyFavourites, setOnlyFavourites] = useState(
+    params.get("favourites") === "1",
+  );
+  const autoDay = useRef(
+    !validDay(params.get("date")) &&
+      !params.get("team") &&
+      !params.get("competition"),
+  );
+  const [lastMatchDay, setLastMatchDay] = useState(false);
   const [seasonId, setSeasonId] = useState(params.get("season") ?? "");
-  const range = weekRange(day);
+  const range = { from: day, to: day };
   useEffect(() => {
     const url = new URL(window.location.href);
     url.search = "";
@@ -69,8 +71,10 @@ export function Dashboard() {
     if (competitionId) url.searchParams.set("competition", competitionId);
     if (teamId) url.searchParams.set("team", teamId);
     if (seasonId) url.searchParams.set("season", seasonId);
+    if (offset) url.searchParams.set("offset", String(offset));
+    if (onlyFavourites) url.searchParams.set("favourites", "1");
     window.history.replaceState(null, "", url);
-  }, [day, competitionId, teamId, seasonId]);
+  }, [day, competitionId, teamId, seasonId, offset, onlyFavourites]);
   const seasons = useQuery({
     queryKey: ["seasons"],
     queryFn: ({ signal }) => getData<Page<Season>>({ kind: "seasons" }, signal),
@@ -107,7 +111,17 @@ export function Dashboard() {
   ]
     .sort((a, b) => a - b)
     .join(",");
-  useEffect(() => setOffset(0), [favoriteCompetitionIds]);
+
+  const previousFavourites = useRef<string | null>(null);
+  useEffect(() => {
+    if (!ready) return;
+    if (
+      previousFavourites.current !== null &&
+      previousFavourites.current !== favoriteCompetitionIds
+    )
+      setOffset(0);
+    previousFavourites.current = favoriteCompetitionIds;
+  }, [favoriteCompetitionIds, ready]);
   const matches = useQuery({
     queryKey: [
       "matches",
@@ -135,6 +149,34 @@ export function Dashboard() {
     refetchInterval: 60000,
     refetchIntervalInBackground: false,
   });
+  const matchDays = useQuery({
+    queryKey: ["match-days", day, competitionId],
+    enabled: !teamId && ready,
+    queryFn: ({ signal }) =>
+      getData<{ previous: string | null; next: string | null }>(
+        {
+          kind: "match-days",
+          day,
+          ...(competitionId ? { competitionId } : {}),
+        },
+        signal,
+      ),
+  });
+  useEffect(() => {
+    if (!autoDay.current || !matches.data) return;
+    if (matches.data.data.total > 0) {
+      autoDay.current = false;
+      return;
+    }
+    if (matchDays.data) {
+      autoDay.current = false;
+      if (matchDays.data.data.previous) {
+        setDay(matchDays.data.data.previous);
+        setLastMatchDay(true);
+      }
+    }
+  }, [matches.data, matchDays.data]);
+  useFeedReturn(!teamId && !!matches.data && !!competitions.data);
   const selectedCompetition = competitions.data?.data.items.find(
     (item) => String(item.id) === competitionId,
   );
@@ -146,11 +188,15 @@ export function Dashboard() {
   const filtersActive = !!competitionId || !!teamId;
   function changeDay(value: string) {
     if (validDay(value)) {
+      autoDay.current = false;
+      setLastMatchDay(false);
       setDay(value);
       setOffset(0);
     }
   }
   function chooseCompetition(id: string) {
+    autoDay.current = false;
+    setLastMatchDay(false);
     setCompetitionId(id);
     setOffset(0);
   }
@@ -265,22 +311,22 @@ export function Dashboard() {
             <h2>
               {teamId
                 ? (selectedTeam?.name ?? "Sezóna týmu")
-                : "Týden v kuželkách"}
+                : "Přehled zápasů"}
             </h2>
           </div>
           {!teamId && (
             <div className="week-controls">
               <button
                 className="icon-button"
-                aria-label="Předchozí týden"
-                onClick={() => changeDay(shiftDay(day, -7))}
+                aria-label="Předchozí den"
+                onClick={() => changeDay(shiftDay(day, -1))}
               >
                 <ChevronLeft size={18} />
               </button>
               <label className="date-control">
                 <CalendarDays size={16} />
                 <input
-                  aria-label="Datum v požadovaném týdnu"
+                  aria-label="Datum zápasů"
                   type="date"
                   value={day}
                   onChange={(event) => changeDay(event.target.value)}
@@ -288,8 +334,8 @@ export function Dashboard() {
               </label>
               <button
                 className="icon-button"
-                aria-label="Následující týden"
-                onClick={() => changeDay(shiftDay(day, 7))}
+                aria-label="Následující den"
+                onClick={() => changeDay(shiftDay(day, 1))}
               >
                 <ChevronRight size={18} />
               </button>
@@ -376,10 +422,40 @@ export function Dashboard() {
           />
         ) : (
           <>
+            <div className="day-navigation">
+              {matchDays.data?.data.previous && (
+                <button
+                  className="button"
+                  onClick={() => changeDay(matchDays.data!.data.previous!)}
+                >
+                  Předchozí zápasy · {dayLabel(matchDays.data.data.previous)}
+                </button>
+              )}
+              {matchDays.data?.data.next && (
+                <button
+                  className="button"
+                  onClick={() => changeDay(matchDays.data!.data.next!)}
+                >
+                  Následující zápasy · {dayLabel(matchDays.data.data.next)}
+                </button>
+              )}
+              {(teams.length > 0 || leagues.length > 0) && (
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={onlyFavourites}
+                    onChange={(event) =>
+                      setOnlyFavourites(event.target.checked)
+                    }
+                  />{" "}
+                  Jen oblíbené
+                </label>
+              )}
+            </div>
             <div className="feed-meta">
               <span>
-                {dayLabel(range.from)} — {dayLabel(range.to)}{" "}
-                <span className="meta-divider">/</span>{" "}
+                {lastMatchDay ? "Poslední zápasy · " : ""}
+                {dayLabel(day, true)} <span className="meta-divider">/</span>{" "}
                 {matches.data
                   ? `${matches.data.data.total} zápasů`
                   : "Načítání zápasů"}
@@ -406,16 +482,16 @@ export function Dashboard() {
             {matches.data?.data.items.length === 0 && (
               <div className="empty-state">
                 <CalendarDays size={34} />
-                <h3>V tomto týdnu je na drahách klid.</h3>
+                <h3>V tento den je na drahách klid.</h3>
                 <p>
                   Pro zvolené filtry nejsou zveřejněné žádné zápasy. Zkuste jiný
-                  týden nebo soutěž.
+                  den nebo soutěž.
                 </p>
                 <button
                   className="button"
-                  onClick={() => changeDay(shiftDay(day, 7))}
+                  onClick={() => changeDay(shiftDay(day, 1))}
                 >
-                  Následující týden <ArrowRight size={16} />
+                  Následující den <ArrowRight size={16} />
                 </button>
               </div>
             )}
@@ -428,7 +504,9 @@ export function Dashboard() {
                 )}
                 favouriteLeagues={new Set(leagues.map((league) => league.id))}
                 favouriteTeams={new Set(teams.map((team) => team.id))}
-                personalise={!competitionId}
+                onlyFavourites={
+                  onlyFavourites && (teams.length > 0 || leagues.length > 0)
+                }
               />
             ))}
             {competitionId && matches.data && matches.data.data.total > 24 && (
@@ -483,26 +561,23 @@ function MatchDay({
   items,
   favouriteLeagues,
   favouriteTeams,
-  personalise,
+  onlyFavourites,
 }: {
   date: string;
   items: Match[];
   favouriteLeagues: ReadonlySet<number>;
   favouriteTeams: ReadonlySet<number>;
-  personalise: boolean;
+  onlyFavourites: boolean;
 }) {
-  const [expanded, setExpanded] = useState(false);
-  const contentId = useId();
-  const [sampleSeed] = useState(() => Math.floor(Math.random() * 0x100000000));
-  const favourites = items.filter((match) =>
-    isFavouriteMatch(match, favouriteLeagues, favouriteTeams),
+  const favourite = (match: Match) =>
+    isFavouriteMatch(match, favouriteLeagues, favouriteTeams);
+  const favourites = items.filter(favourite);
+  const shown = onlyFavourites ? favourites : items;
+  const groups = [...(groupMatchFeed(shown).get(date) ?? [])].sort(
+    (a, b) =>
+      Number(b[1].items.some(favourite)) - Number(a[1].items.some(favourite)) ||
+      a[1].name.localeCompare(b[1].name, "cs", { numeric: true }),
   );
-  const preview = favourites.length
-    ? favourites
-    : sampleDayMatches(items, sampleSeed);
-  const hiddenCount = personalise ? items.length - preview.length : 0;
-  const shown = personalise && !expanded ? preview : items;
-  const competitions = groupMatchFeed(shown).get(date);
   return (
     <section
       className="match-day"
@@ -514,54 +589,45 @@ function MatchDay({
           {feedDayLabel(date, todayPrague())}
         </time>
       </h3>
-      <div id={contentId}>
-        {[...(competitions ?? [])].map(
-          ([id, { name, items: leagueMatches }]) => (
-            <section key={id} className="competition-group" aria-label={name}>
-              <div className="competition-heading">
-                <h4>
-                  <Trophy size={16} />
-                  {name}
-                </h4>
-                <span>
-                  {leagueMatches.length}{" "}
-                  {leagueMatches.length === 1 ? "zápas" : "zápasů"}
-                </span>
-              </div>
-              <div className="match-grid">
-                {leagueMatches.map((match) => (
-                  <MatchCard key={match.id} match={match} />
-                ))}
-              </div>
-            </section>
-          ),
+      {!favourites.length &&
+        (favouriteTeams.size > 0 || favouriteLeagues.size > 0) && (
+          <p className="empty-copy">
+            Tento den nehrají žádné oblíbené týmy ani soutěže.
+            {onlyFavourites
+              ? " Vypněte filtr Jen oblíbené pro ostatní zápasy."
+              : " Zde jsou ostatní zápasy."}
+          </p>
         )}
-      </div>
-      {hiddenCount > 0 && (
-        <div className="day-disclosure">
-          {!favourites.length && !expanded && (
-            <p>
-              Žádný oblíbený tým ani soutěž tento den nehraje. Zobrazujeme
-              náhodný výběr zápasů.
-            </p>
-          )}
-          <button
-            className="button"
-            aria-expanded={expanded}
-            aria-controls={contentId}
-            onClick={() => setExpanded(!expanded)}
-          >
-            {expanded
-              ? "Skrýt ostatní zápasy"
-              : `Zobrazit ostatní zápasy (${hiddenCount})`}
-          </button>
-        </div>
-      )}
+      {groups.map(([id, { name, items: leagueMatches }]) => (
+        <details
+          key={id}
+          id={`league-${date}-${id}`}
+          className="competition-group"
+          open
+        >
+          <summary className="competition-heading">
+            <h4>
+              <Trophy size={16} />
+              {name}
+            </h4>
+            <span>
+              {leagueMatches.length} zápasů <ChevronRight size={16} />
+            </span>
+          </summary>
+          <div className="match-grid">
+            {[...leagueMatches]
+              .sort((a, b) => Number(favourite(b)) - Number(favourite(a)))
+              .map((match) => (
+                <MatchCard key={match.id} match={match} />
+              ))}
+          </div>
+        </details>
+      ))}
     </section>
   );
 }
 
-export function MatchCard({ match }: { match: Match }) {
+function MatchCard({ match }: { match: Match }) {
   const { teams, leagues } = usePreferences();
   const favouriteTeam = teams.some(
     (team) => team.id === match.homeTeam?.id || team.id === match.awayTeam?.id,

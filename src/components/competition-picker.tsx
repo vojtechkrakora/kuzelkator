@@ -9,6 +9,7 @@ import {
   levels,
 } from "@/domain/competition-discovery";
 
+import { RegionMap } from "./region-map";
 import { FollowLeagueButton } from "./favorite-leagues";
 
 const storageKey = "kuzelkator:competition-area:v1";
@@ -49,7 +50,11 @@ export function CompetitionPicker({
         .map((region) => [String(region.id), region]),
     ).values(),
   ].sort((a, b) => a.name.localeCompare(b.name, "cs"));
-  const areaName = regions.find((region) => String(region.id) === area)?.name;
+  const nationalRegion = regions.find((region) => region.name === "Celá ČR");
+  const areaName =
+    area === String(nationalRegion?.id)
+      ? "Celostátní ligy"
+      : regions.find((region) => String(region.id) === area)?.name;
   const results = discoverCompetitions(items, area, level, query);
   const current = items.find((item) => String(item.id) === selected);
   function changeArea(value: string) {
@@ -91,7 +96,32 @@ export function CompetitionPicker({
           <ChevronRight className="picker-chevron" size={20} />
         </summary>
         <div className="league-picker-body">
-          <p>Vyberte kraj a pak soutěž. Oblast si zapamatujeme pro příště.</p>
+          <p>
+            Vyberte kraj na mapě nebo celostátní ligy. Oblast si zapamatujeme
+            pro příště.
+          </p>
+          <div className="region-shortcuts" aria-label="Rozsah soutěží">
+            <button
+              type="button"
+              aria-pressed={area === ""}
+              onClick={() => changeArea("")}
+            >
+              Celé Česko
+            </button>
+            <button
+              type="button"
+              disabled={!nationalRegion}
+              aria-pressed={
+                !!nationalRegion && area === String(nationalRegion.id)
+              }
+              onClick={() =>
+                nationalRegion && changeArea(String(nationalRegion.id))
+              }
+            >
+              Celostátní ligy
+            </button>
+          </div>
+          <RegionMap selected={area} onChoose={changeArea} />
           <label className="area-select">
             Kde sledujete kuželky?
             <select

@@ -1,7 +1,8 @@
+import { BackToFeed } from "@/components/feed-navigation";
 import { TeamLogo } from "@/components/team-logo";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, MapPin, Trophy } from "lucide-react";
+import { MapPin, Trophy } from "lucide-react";
 import { getMatch } from "@/server/cka";
 import { UpstreamError } from "@/server/cache";
 import { resultFor, statusLabel } from "@/domain/models";
@@ -41,9 +42,7 @@ export default async function MatchDetail({
     away = resultFor(match, false);
   return (
     <main id="main" className="page detail-page">
-      <Link href="/" className="back-link">
-        <ArrowLeft size={17} /> Zpět na přehled
-      </Link>
+      <BackToFeed />
       <div className="detail-heading">
         <div className="eyebrow">
           <Trophy size={15} /> {match.competition?.name ?? "Zápas"} ·{" "}

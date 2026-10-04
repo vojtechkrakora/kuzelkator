@@ -1251,7 +1251,8 @@ tfoot {
   .week-controls {
     display: grid;
     width: 100%;
-    grid-template-columns: 44px minmax(0, 1fr) 44px 52px;
+    grid-template-columns: 48px minmax(0, 1fr) 48px;
+    grid-template-areas: "date date date" "previous today next";
     gap: 6px;
   }
   .icon-button {
@@ -1259,9 +1260,24 @@ tfoot {
     height: 44px;
     border-radius: 10px;
   }
+  .week-controls > .icon-button:first-child {
+    grid-area: previous;
+  }
+  .week-controls > .icon-button {
+    width: 48px;
+    height: 48px;
+  }
+  .week-controls > .icon-button:nth-of-type(2) {
+    grid-area: next;
+  }
+  .week-controls > .today-button {
+    grid-area: today;
+    min-height: 48px;
+  }
   .date-control {
+    grid-area: date;
     padding: 0 7px;
-    min-height: 44px;
+    min-height: 50px;
     min-width: 0;
     border-radius: 10px;
   }
@@ -1271,7 +1287,7 @@ tfoot {
   .date-control input {
     width: 100%;
     min-width: 0;
-    min-height: 42px;
+    min-height: 48px;
     font-size: 16px;
     text-align: center;
   }
@@ -2509,4 +2525,118 @@ tfoot {
   .player-detail-trigger {
     min-height: 44px;
   }
+}
+
+.region-shortcuts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.region-shortcuts button {
+  min-height: 44px;
+  padding: 10px 16px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: white;
+  color: var(--green);
+  font-weight: 600;
+}
+.region-shortcuts button[aria-pressed="true"] {
+  background: var(--green);
+  color: white;
+}
+.region-shortcuts button:disabled {
+  opacity: 0.5;
+}
+.region-map {
+  max-width: 680px;
+  margin: 12px auto 20px;
+}
+.region-map svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.region-map g[role="button"] {
+  cursor: pointer;
+  outline: none;
+}
+.region-map path {
+  fill: #e7eedf;
+  stroke: white;
+  stroke-width: 2;
+  stroke-linejoin: round;
+}
+.region-map g:hover path {
+  fill: #c7dfa9;
+}
+.region-map g[aria-pressed="true"] path {
+  fill: var(--green);
+}
+.region-map g:focus-visible path {
+  stroke: var(--ink);
+  stroke-width: 3;
+}
+.region-map text {
+  font-size: 10px;
+  font-weight: 600;
+  text-anchor: middle;
+  dominant-baseline: middle;
+  fill: var(--ink);
+  pointer-events: none;
+}
+.region-map g[aria-pressed="true"] text {
+  fill: white;
+}
+.map-attribution {
+  display: block;
+  text-align: right;
+  font-size: 10px;
+  color: var(--muted);
+}
+.map-attribution a {
+  text-decoration: underline;
+}
+@media (max-width: 740px) {
+  .region-map text {
+    font-size: 12px;
+  }
+  .region-map {
+    margin: 8px auto 16px;
+  }
+}
+
+.day-navigation {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin: 12px 0;
+}
+.day-navigation label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  cursor: pointer;
+}
+.day-navigation input {
+  width: 18px;
+  height: 18px;
+}
+details.competition-group > summary {
+  cursor: pointer;
+  min-height: 44px;
+  list-style: none;
+}
+details.competition-group > summary::-webkit-details-marker {
+  display: none;
+}
+details.competition-group > summary > span {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+details.competition-group[open] > summary > span > svg {
+  transform: rotate(90deg);
 }
