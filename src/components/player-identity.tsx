@@ -1,4 +1,5 @@
 import { playerName, type Match } from "../domain/models";
+import { PlayerDetail } from "./player-detail";
 import { ArrowDownUp } from "lucide-react";
 
 type PlayerResult = NonNullable<
@@ -8,8 +9,10 @@ type PlayerResult = NonNullable<
 export function PlayerIdentity({
   result,
   substitutions,
+  opponents,
 }: {
   result: PlayerResult;
+  opponents?: PlayerResult[];
   substitutions?: NonNullable<Match["results"]>[number]["substitutions"];
 }) {
   const substituted =
@@ -22,7 +25,15 @@ export function PlayerIdentity({
   return (
     <>
       <span className="player-position">{result.position}.</span>{" "}
-      {result.isEmpty ? "Neobsazená pozice" : playerName(result.player)}
+      {result.isEmpty ? (
+        "Neobsazená pozice"
+      ) : (
+        <PlayerDetail
+          result={result}
+          opponents={opponents}
+          substitutions={substitutions}
+        />
+      )}
       {substituted && (
         <span className="substituted-player-badge">
           <ArrowDownUp size={12} aria-hidden="true" /> Střídání

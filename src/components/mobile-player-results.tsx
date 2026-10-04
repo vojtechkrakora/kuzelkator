@@ -3,7 +3,13 @@ import { PlayerIdentity } from "./player-identity";
 
 type Result = NonNullable<Match["results"]>[number];
 
-export function MobilePlayerResults({ result }: { result: Result }) {
+export function MobilePlayerResults({
+  result,
+  opponents,
+}: {
+  result: Result;
+  opponents?: Result["playerResults"];
+}) {
   return (
     <div className="mobile-player-results">
       <ol className="player-cards">
@@ -13,6 +19,7 @@ export function MobilePlayerResults({ result }: { result: Result }) {
               <h4>
                 <PlayerIdentity
                   result={player}
+                  opponents={opponents}
                   substitutions={result.substitutions}
                 />
               </h4>

@@ -94,6 +94,7 @@ describe("player identities", () => {
       expect(url.searchParams.get("include")?.split(",")).toEqual(
         expect.arrayContaining([
           "results.playerResults.player",
+          "results.playerResults.laneResults",
           "results.playerResults.substitute",
           "results.substitutions",
           "results.substitutions.playerOut",

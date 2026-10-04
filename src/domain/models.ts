@@ -42,6 +42,18 @@ export const playerResultSchema = z.object({
   player: playerSchema.nullish(),
   substitute: playerSchema.nullish(),
   substituteAtThrow: z.number().int().nullish(),
+  laneResults: z
+    .array(
+      z.object({
+        laneNumber: z.number().int(),
+        full: score,
+        spare: score,
+        errors: score,
+        total: score,
+        setPoints: score,
+      }),
+    )
+    .optional(),
 });
 const resultSchema = z.object({
   isHome: z.boolean(),

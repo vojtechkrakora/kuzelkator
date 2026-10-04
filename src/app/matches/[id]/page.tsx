@@ -142,7 +142,10 @@ export default async function MatchDetail({
             </div>
             {result?.playerResults?.length ? (
               <>
-                <MobilePlayerResults result={result} />
+                <MobilePlayerResults
+                  result={result}
+                  opponents={(index ? home : away)?.playerResults}
+                />
                 <div className="table-scroll desktop-player-table">
                   <table>
                     <caption className="sr-only">Výsledky {team?.name}</caption>
@@ -162,6 +165,7 @@ export default async function MatchDetail({
                           <th scope="row" className="player-cell">
                             <PlayerIdentity
                               result={player}
+                              opponents={(index ? home : away)?.playerResults}
                               substitutions={result.substitutions}
                             />
                           </th>
