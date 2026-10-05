@@ -89,6 +89,38 @@ export async function findPlayers(input: z.infer<typeof playerSearchInput>) {
 export function getPlayer(id: number) {
   return apiCache.get(`/members/${id}?include=club`, profileSchema, 3600000);
 }
+/** Small season-specific lookup; no match histories or nationwide directory scan. */
+export async function getPlayerTeams(id: number, seasonId: number) {
+  const query = new URLSearchParams({
+    seasonId: String(seasonId),
+    type: "ALL",
+    limit: "100",
+    offset: "0",
+    sort: "team.id,competition.id",
+    include: "team",
+  });
+  const schema = collection(directoryRowSchema.pick({ team: true }));
+  const teamIds = new Set<number>();
+  let offset = 0,
+    total = 1,
+    stale = false,
+    checkedAt = "";
+  while (offset < total) {
+    query.set("offset", String(offset));
+    const page = await apiCache.get(
+      `/members/${id}/player-stats?${query}`,
+      schema,
+      3600000,
+    );
+    total = page.data.total;
+    if (!page.data.items.length && offset < total) throw new UpstreamError(502);
+    for (const row of page.data.items) if (row.team) teamIds.add(row.team.id);
+    offset += page.data.items.length;
+    stale ||= page.stale;
+    if (!checkedAt || page.checkedAt < checkedAt) checkedAt = page.checkedAt;
+  }
+  return { data: { teamIds: [...teamIds] }, stale, checkedAt };
+}
 export async function getPlayerHistory(id: number, seasonId: number) {
   const query = new URLSearchParams({
     seasonFromId: String(seasonId),

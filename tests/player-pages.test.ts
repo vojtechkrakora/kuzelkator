@@ -3,6 +3,7 @@ import { apiCache } from "../src/server/cache";
 import {
   findPlayers,
   getPlayerHistory,
+  getPlayerTeams,
   playerSearchInput,
 } from "../src/server/players";
 import {
@@ -16,6 +17,44 @@ const resource = (data: unknown) => ({
   data,
   checkedAt: "2026-10-05T10:00:00Z",
   stale: false,
+});
+it("looks up only season team IDs, deduplicates all pages and caches for an hour", async () => {
+  const get = vi
+    .spyOn(apiCache, "get")
+    .mockResolvedValueOnce(
+      resource({ items: [{ team: { id: 67, name: "Prušánky" } }], total: 3 }),
+    )
+    .mockResolvedValueOnce({
+      ...resource({
+        items: [
+          { team: { id: 67, name: "Prušánky" } },
+          { team: { id: 68, name: "Prušánky B" } },
+        ],
+        total: 3,
+      }),
+      stale: true,
+    });
+  const result = await getPlayerTeams(3130, 20);
+  expect(result.data.teamIds).toEqual([67, 68]);
+  expect(result.stale).toBe(true);
+  const url = new URL(get.mock.calls[0][0], "https://example.test");
+  expect(url.pathname).toBe("/members/3130/player-stats");
+  expect(url.searchParams.get("seasonId")).toBe("20");
+  expect(url.searchParams.get("include")).toBe("team");
+  expect(get.mock.calls[0][2]).toBe(3600000);
+  expect(get.mock.calls[1][0]).toContain("offset=1");
+});
+it("returns no inferred team when a player has no published season stats", async () => {
+  vi.spyOn(apiCache, "get").mockResolvedValue(
+    resource({ items: [], total: 0 }),
+  );
+  expect((await getPlayerTeams(3130, 21)).data.teamIds).toEqual([]);
+});
+it("rejects an incomplete player team lookup instead of silently dropping teams", async () => {
+  vi.spyOn(apiCache, "get").mockResolvedValue(
+    resource({ items: [], total: 1 }),
+  );
+  await expect(getPlayerTeams(3130, 20)).rejects.toThrow();
 });
 it("migrates existing favourites without losing teams or leagues", () => {
   const saved = {

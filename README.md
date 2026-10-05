@@ -146,3 +146,11 @@ Player histories use the member match-results endpoint with both season bounds,
 fetch all pages, and label published substitutions. Combined substitution scores
 are not presented as personal records, and the app does not infer future player
 appearances from team fixtures. Search pagination uses 20 players per page.
+
+The match overview also treats teams from favourite players' published statistics
+in the selected season as favourites, including upcoming fixtures. These cards are
+labelled **Tým oblíbeného hráče**; this does not confirm the player's nomination.
+Small per-player team lookups run after the match list loads and are cached for
+one hour in the browser and server. No lookup runs without favourite players.
+Players without published season statistics cannot yet contribute teams; transfers
+or appearances for multiple teams can leave more than one team included that season.

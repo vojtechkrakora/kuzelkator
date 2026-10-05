@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState, useRef } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueries } from "@tanstack/react-query";
 import {
   ArrowRight,
   ArrowUpRight,
@@ -43,7 +43,9 @@ function validDay(value: string | null) {
 
 export function Dashboard() {
   const params = useSearchParams();
-  const { teams, leagues, ready, warning } = usePreferences();
+  const { teams, leagues, players, ready, warning } = usePreferences();
+  const hasFavourites =
+    teams.length > 0 || leagues.length > 0 || players.length > 0;
   const [day, setDay] = useState(() =>
     validDay(params.get("date")) ? params.get("date")! : todayPrague(),
   );
@@ -165,6 +167,31 @@ export function Dashboard() {
         signal,
       ),
   });
+  const playerTeams = useQueries({
+    queries: players.map((player) => ({
+      queryKey: ["player-teams", player.id, activeSeason],
+      enabled: ready && !!activeSeason && !teamId && !!matches.data,
+      queryFn: ({ signal }: { signal: AbortSignal }) =>
+        getData<{ teamIds: number[] }>(
+          { kind: "player-teams", id: player.id, seasonId: activeSeason },
+          signal,
+        ),
+      staleTime: 3600000,
+    })),
+  });
+  const playerTeamIds = new Set(
+    playerTeams.flatMap((query) => query.data?.data.teamIds ?? []),
+  );
+  const favouriteTeamIds = new Set([
+    ...teams.map((team) => team.id),
+    ...playerTeamIds,
+  ]);
+  const loadingPlayerTeams =
+    players.length > 0 &&
+    (!activeSeason || playerTeams.some((query) => query.isPending));
+  const failedPlayerTeams = playerTeams.some(
+    (query) => query.isError || query.data?.stale,
+  );
   useEffect(() => {
     if (!autoDay.current || !matches.data) return;
     if (matches.data.data.total > 0) {
@@ -464,7 +491,7 @@ export function Dashboard() {
                   Následující zápasy · {dayLabel(matchDays.data.data.next)}
                 </button>
               )}
-              {!competitionId && (teams.length > 0 || leagues.length > 0) && (
+              {!competitionId && hasFavourites && (
                 <label>
                   <input
                     type="checkbox"
@@ -477,6 +504,27 @@ export function Dashboard() {
                 </label>
               )}
             </div>
+            {loadingPlayerTeams && (
+              <p className="empty-copy" role="status">
+                Načítání týmů oblíbených hráčů…
+              </p>
+            )}
+            {failedPlayerTeams && (
+              <p className="empty-copy" role="status">
+                Týmy některých oblíbených hráčů se nepodařilo aktualizovat.
+                Jejich zápasy mohou v oblíbených chybět.{" "}
+                <button
+                  className="button"
+                  onClick={() =>
+                    void Promise.all(
+                      playerTeams.map((query) => query.refetch()),
+                    )
+                  }
+                >
+                  Zkusit znovu
+                </button>
+              </p>
+            )}
             <div className="feed-meta">
               <span>
                 {lastMatchDay ? "Poslední zápasy · " : ""}
@@ -535,11 +583,12 @@ export function Dashboard() {
                   (league) => league.items,
                 )}
                 favouriteLeagues={new Set(leagues.map((league) => league.id))}
-                favouriteTeams={new Set(teams.map((team) => team.id))}
+                favouriteTeams={favouriteTeamIds}
+                playerTeams={playerTeamIds}
+                hasFavourites={hasFavourites}
+                loadingPlayerTeams={loadingPlayerTeams || failedPlayerTeams}
                 onlyFavourites={
-                  !competitionId &&
-                  onlyFavourites &&
-                  (teams.length > 0 || leagues.length > 0)
+                  !competitionId && onlyFavourites && hasFavourites
                 }
               />
             ))}
@@ -585,12 +634,18 @@ function MatchDay({
   items,
   favouriteLeagues,
   favouriteTeams,
+  playerTeams,
+  hasFavourites,
+  loadingPlayerTeams,
   onlyFavourites,
 }: {
   date: string;
   items: Match[];
   favouriteLeagues: ReadonlySet<number>;
   favouriteTeams: ReadonlySet<number>;
+  playerTeams: ReadonlySet<number>;
+  hasFavourites: boolean;
+  loadingPlayerTeams: boolean;
   onlyFavourites: boolean;
 }) {
   const favourite = (match: Match) =>
@@ -613,15 +668,15 @@ function MatchDay({
           {feedDayLabel(date, todayPrague())}
         </time>
       </h3>
-      {!favourites.length &&
-        (favouriteTeams.size > 0 || favouriteLeagues.size > 0) && (
-          <p className="empty-copy">
-            Tento den nehrají žádné oblíbené týmy ani soutěže.
-            {onlyFavourites
-              ? " Vypněte filtr Jen oblíbené pro ostatní zápasy."
-              : " Zde jsou ostatní zápasy."}
-          </p>
-        )}
+      {!favourites.length && hasFavourites && !loadingPlayerTeams && (
+        <p className="empty-copy">
+          Tento den nejsou zápasy oblíbených týmů, soutěží ani známých týmů
+          oblíbených hráčů.
+          {onlyFavourites
+            ? " Vypněte filtr Jen oblíbené pro ostatní zápasy."
+            : " Zde jsou ostatní zápasy."}
+        </p>
+      )}
       {groups.map(([id, { name, items: leagueMatches }]) => (
         <details
           key={id}
@@ -642,7 +697,11 @@ function MatchDay({
             {[...leagueMatches]
               .sort((a, b) => Number(favourite(b)) - Number(favourite(a)))
               .map((match) => (
-                <MatchCard key={match.id} match={match} />
+                <MatchCard
+                  key={match.id}
+                  match={match}
+                  playerTeams={playerTeams}
+                />
               ))}
           </div>
         </details>
@@ -651,7 +710,13 @@ function MatchDay({
   );
 }
 
-function MatchCard({ match }: { match: Match }) {
+function MatchCard({
+  match,
+  playerTeams,
+}: {
+  match: Match;
+  playerTeams: ReadonlySet<number>;
+}) {
   const { teams, leagues } = usePreferences();
   const favouriteTeam = teams.some(
     (team) => team.id === match.homeTeam?.id || team.id === match.awayTeam?.id,
@@ -659,7 +724,10 @@ function MatchCard({ match }: { match: Match }) {
   const favouriteLeague = leagues.some(
     (league) => league.id === match.competition?.id,
   );
-  const favourite = favouriteTeam || favouriteLeague;
+  const favouritePlayerTeam =
+    playerTeams.has(match.homeTeam?.id ?? -1) ||
+    playerTeams.has(match.awayTeam?.id ?? -1);
+  const favourite = favouriteTeam || favouriteLeague || favouritePlayerTeam;
   const home = resultFor(match, true),
     away = resultFor(match, false);
   return (
@@ -668,11 +736,13 @@ function MatchCard({ match }: { match: Match }) {
         <div className="favourite-match-label">
           <Star size={14} fill="currentColor" aria-hidden="true" />
           <span>
-            {favouriteTeam && favouriteLeague
-              ? "Váš tým · Vaše soutěž"
-              : favouriteTeam
-                ? "Váš tým"
-                : "Vaše soutěž"}
+            {[
+              favouriteTeam && "Váš tým",
+              favouriteLeague && "Vaše soutěž",
+              favouritePlayerTeam && "Tým oblíbeného hráče",
+            ]
+              .filter(Boolean)
+              .join(" · ")}
           </span>
         </div>
       )}
