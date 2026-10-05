@@ -853,3 +853,43 @@ test("league view spans past 7 and future 14 days and keeps standings when there
   expect(requested).toContain("2026-09-27:2026-10-18");
   await expect(page.getByLabel("Jen oblíbené")).toHaveCount(0);
 });
+
+for (const width of [390, 1280]) {
+  test(`overview resets active filters at ${width}px and keeps saved favourites`, async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width, height: 850 });
+    await page.clock.setFixedTime(new Date("2026-10-05T12:00:00Z"));
+    await mockApi(page);
+    await page.addInitScript(() =>
+      localStorage.setItem(
+        "kuzelkator:preferences:v1",
+        JSON.stringify({
+          version: 1,
+          teams: [{ id: 67, name: "SK Podlužan Prušánky" }],
+          leagues: [],
+        }),
+      ),
+    );
+    await page.goto(
+      "/?date=2026-09-26&competition=17&team=67&season=19&favourites=1&offset=24",
+    );
+    if (width < 741)
+      await page.getByRole("link", { name: "Zápasy", exact: true }).click();
+    else
+      await page
+        .getByRole("button", { name: "Přehled zápasů", exact: false })
+        .click();
+    await expect(page.getByLabel("Datum zápasů")).toHaveValue("2026-10-05");
+    await expect(page.getByLabel("Jen oblíbené")).not.toBeChecked();
+    await expect
+      .poll(() => new URL(page.url()).search)
+      .toBe("?date=2026-10-05");
+    expect(
+      await page.evaluate(
+        () =>
+          JSON.parse(localStorage.getItem("kuzelkator:preferences:v1")!).teams,
+      ),
+    ).toHaveLength(1);
+  });
+}

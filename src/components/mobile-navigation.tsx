@@ -10,8 +10,10 @@ import { FollowButton } from "./common";
 
 export function MobileNavigation({
   onChooseTeam,
+  onOverview,
   onChooseLeague,
 }: {
+  onOverview: () => void;
   onChooseTeam: (id: string) => void;
   onChooseLeague: (league: FavoriteLeague) => void;
 }) {
@@ -43,7 +45,7 @@ export function MobileNavigation({
   return (
     <>
       <nav className="mobile-navigation" aria-label="Rychlá navigace">
-        <a href="#match-feed">
+        <a href="#match-feed" onClick={onOverview}>
           <CalendarDays size={21} />
           <span>Zápasy</span>
         </a>

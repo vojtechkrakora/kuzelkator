@@ -223,16 +223,26 @@ export function Dashboard() {
     }
   }
 
+  function resetOverview() {
+    chooseTeam("");
+    chooseCompetition("");
+    setSeasonId("");
+    setOnlyFavourites(false);
+    changeDay(todayPrague());
+    try {
+      sessionStorage.removeItem("kuzelkator:feed-return:v1");
+    } catch {
+      /* Storage is optional. */
+    }
+  }
+
   return (
     <main id="main" className="page dashboard">
       <aside className="sidebar">
         <div className="nav-label">VAŠE KUŽELKY</div>
         <button
-          className={`side-link ${!teamId ? "active" : ""}`}
-          onClick={() => {
-            chooseTeam("");
-            chooseCompetition("");
-          }}
+          className={`side-link ${!teamId && !competitionId ? "active" : ""}`}
+          onClick={resetOverview}
         >
           <LayoutGrid size={18} /> Přehled zápasů <ArrowUpRight size={16} />
         </button>
@@ -557,6 +567,7 @@ export function Dashboard() {
         )}
       </section>
       <MobileNavigation
+        onOverview={resetOverview}
         onChooseLeague={chooseFavoriteLeague}
         onChooseTeam={(id) => {
           chooseTeam(id);
