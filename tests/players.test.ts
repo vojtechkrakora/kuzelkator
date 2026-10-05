@@ -91,6 +91,7 @@ describe("player identities", () => {
     try {
       await getMatch(640);
       const url = new URL(request.mock.calls[0][0], "https://example.test");
+      expect(url.searchParams.get("fullLineup")).toBe("true");
       expect(url.searchParams.get("include")?.split(",")).toEqual(
         expect.arrayContaining([
           "results.playerResults.player",

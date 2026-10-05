@@ -171,10 +171,9 @@ export async function getTeamSeasonMatches(
 }
 
 export function getMatch(id: number) {
-  // Nested player relations work on the public endpoint, although the OpenAPI
-  // include enum currently stops at results.playerResults (verified 2026-09-28).
+  // Include nominated players before they record their first score.
   return apiCache.get(
-    `/matches/${id}?include=homeTeam,homeTeam.club,awayTeam,awayTeam.club,competition,competition.season,results,results.playerResults,results.playerResults.player,results.playerResults.laneResults,results.playerResults.substitute,results.substitutions,results.substitutions.playerOut,results.substitutions.playerIn,venue`,
+    `/matches/${id}?fullLineup=true&include=homeTeam,homeTeam.club,awayTeam,awayTeam.club,competition,competition.season,results,results.playerResults,results.playerResults.player,results.playerResults.laneResults,results.playerResults.substitute,results.substitutions,results.substitutions.playerOut,results.substitutions.playerIn,venue`,
     matchSchema,
   );
 }
