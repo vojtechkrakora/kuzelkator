@@ -14,12 +14,31 @@ import {
 } from "@/server/cka";
 import { UpstreamError } from "@/server/cache";
 
+import {
+  findPlayers,
+  getPlayerHistory,
+  playerSearchInput,
+} from "@/server/players";
+
 export const dynamic = "force-dynamic";
 export async function GET(request: NextRequest) {
   const params = Object.fromEntries(request.nextUrl.searchParams);
   try {
     let result;
     switch (params.kind) {
+      case "player-search":
+        result = await findPlayers(playerSearchInput.parse(params));
+        break;
+      case "player-history": {
+        const input = z
+          .object({
+            id: z.coerce.number().int().positive(),
+            seasonId: z.coerce.number().int().positive(),
+          })
+          .parse(params);
+        result = await getPlayerHistory(input.id, input.seasonId);
+        break;
+      }
       case "team":
         result = await getTeam(
           z.coerce.number().int().positive().parse(params.id),

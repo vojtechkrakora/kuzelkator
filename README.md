@@ -126,3 +126,23 @@ The Docker build uses a pinned npm lockfile, a multi-stage build, a non-root run
 Architecture and future scope: [ARCHITECTURE.md](ARCHITECTURE.md). API reference: [ČKA public OpenAPI](https://kuzelky.cz/api/v1/public/openapi?variant=public).
 
 The competition picker includes a clickable Czech region map, a phone-friendly region dropdown, and separate **Celé Česko** / **Celostátní ligy** shortcuts. Region selection filters the league list using official ČKA assignments; selecting a league filters matches. Map attribution is documented in [MAP-DATA.md](docs/MAP-DATA.md).
+
+## Individual players
+
+Open **Hráči** from the phone navigation or desktop sidebar to search by name or
+team (diacritics optional). Player profiles show published season results,
+match links and expandable lane scores. Match player dialogs also link to the
+profile. Up to 50 favourite players are saved in the existing browser preferences,
+without changing saved teams or leagues.
+
+The public API does not expose a member-search endpoint. Search therefore uses
+players present in the selected season's official `ALL` player tables. The server
+builds a shared, deduplicated directory on demand and caches it for one hour;
+concurrent searches share the build. The first search can take longer. Players
+without a table entry can still be reached from a match. The directory retains
+only public names, IDs and team names; profiles additionally retain the club name.
+
+Player histories use the member match-results endpoint with both season bounds,
+fetch all pages, and label published substitutions. Combined substitution scores
+are not presented as personal records, and the app does not infer future player
+appearances from team fixtures. Search pagination uses 20 players per page.

@@ -9,7 +9,7 @@ import {
   type ReactNode,
 } from "react";
 import { z } from "zod";
-import { teamSchema, type Team } from "@/domain/models";
+import { playerSchema, teamSchema, type Team } from "../domain/models";
 
 export const favoriteLeagueSchema = z.object({
   id: z.number().int().positive(),
@@ -19,13 +19,16 @@ export const favoriteLeagueSchema = z.object({
   seasonName: z.string(),
 });
 export type FavoriteLeague = z.infer<typeof favoriteLeagueSchema>;
-const preferencesSchema = z.object({
+export const preferencesSchema = z.object({
+  players: z.array(playerSchema).max(50).default([]),
   version: z.literal(1),
   teams: z.array(teamSchema).max(20),
   leagues: z.array(favoriteLeagueSchema).max(20).default([]),
 });
 const key = "kuzelkator:preferences:v1";
 const Preferences = createContext<{
+  players: z.infer<typeof playerSchema>[];
+  togglePlayer: (player: z.infer<typeof playerSchema>) => void;
   teams: Team[];
   leagues: FavoriteLeague[];
   toggleLeague: (league: FavoriteLeague) => void;
@@ -34,6 +37,8 @@ const Preferences = createContext<{
   toggle: (team: Team) => void;
 }>({
   teams: [],
+  players: [],
+  togglePlayer: () => {},
   leagues: [],
   ready: false,
   warning: "",
@@ -57,6 +62,7 @@ export function Providers({ children }: { children: ReactNode }) {
         },
       }),
   );
+  const [players, setPlayers] = useState<z.infer<typeof playerSchema>[]>([]);
   const [teams, setTeams] = useState<Team[]>([]);
   const [leagues, setLeagues] = useState<FavoriteLeague[]>([]);
   const [ready, setReady] = useState(false);
@@ -67,7 +73,8 @@ export function Providers({ children }: { children: ReactNode }) {
         const raw = localStorage.getItem(key);
         const saved = raw
           ? preferencesSchema.parse(JSON.parse(raw))
-          : { teams: [], leagues: [] };
+          : { teams: [], leagues: [], players: [] };
+        setPlayers(saved.players);
         setTeams(saved.teams);
         setLeagues(saved.leagues);
       } catch {
@@ -97,7 +104,7 @@ export function Providers({ children }: { children: ReactNode }) {
     try {
       localStorage.setItem(
         key,
-        JSON.stringify({ version: 1, teams: next, leagues }),
+        JSON.stringify({ version: 1, teams: next, leagues, players }),
       );
       setWarning("");
     } catch {
@@ -124,7 +131,30 @@ export function Providers({ children }: { children: ReactNode }) {
     try {
       localStorage.setItem(
         key,
-        JSON.stringify({ version: 1, teams, leagues: next }),
+        JSON.stringify({ version: 1, teams, leagues: next, players }),
+      );
+      setWarning("");
+    } catch {
+      setWarning(
+        "Prohlížeč nepovoluje ukládání. Výběr zůstane jen do zavření stránky.",
+      );
+    }
+  }
+  function togglePlayer(player: z.infer<typeof playerSchema>) {
+    if (!ready) return;
+    const exists = players.some((p) => p.id === player.id);
+    if (!exists && players.length >= 50) {
+      setWarning("Můžete sledovat nejvýše 50 hráčů.");
+      return;
+    }
+    const next = exists
+      ? players.filter((p) => p.id !== player.id)
+      : [...players, playerSchema.parse(player)];
+    setPlayers(next);
+    try {
+      localStorage.setItem(
+        key,
+        JSON.stringify({ version: 1, teams, leagues, players: next }),
       );
       setWarning("");
     } catch {
@@ -136,7 +166,16 @@ export function Providers({ children }: { children: ReactNode }) {
   return (
     <QueryClientProvider client={client}>
       <Preferences.Provider
-        value={{ teams, leagues, ready, warning, toggle, toggleLeague }}
+        value={{
+          teams,
+          leagues,
+          players,
+          togglePlayer,
+          ready,
+          warning,
+          toggle,
+          toggleLeague,
+        }}
       >
         {children}
       </Preferences.Provider>

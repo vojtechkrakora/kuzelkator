@@ -1,7 +1,9 @@
 "use client";
 
+import Link from "next/link";
+import { FavouritePlayers } from "./player-pages";
 import { useEffect, useRef } from "react";
-import { CalendarDays, Star, Trophy, X } from "lucide-react";
+import { CalendarDays, Star, Trophy, Users, X } from "lucide-react";
 import { usePreferences } from "./providers";
 import { TeamLogo } from "./team-logo";
 import { FavoriteLeagues } from "./favorite-leagues";
@@ -17,7 +19,7 @@ export function MobileNavigation({
   onChooseTeam: (id: string) => void;
   onChooseLeague: (league: FavoriteLeague) => void;
 }) {
-  const { teams, leagues, warning } = usePreferences();
+  const { teams, leagues, players, warning } = usePreferences();
   const dialog = useRef<HTMLDialogElement>(null);
   const previousOverflow = useRef("");
   function close() {
@@ -49,12 +51,18 @@ export function MobileNavigation({
           <CalendarDays size={21} />
           <span>Zápasy</span>
         </a>
+        <Link href="/players">
+          <Users size={21} />
+          <span>Hráči</span>
+        </Link>
         <button onClick={open} aria-haspopup="dialog">
           <Star size={21} />
           <span>
             Oblíbené
-            {teams.length + leagues.length > 0 && (
-              <b className="nav-count">{teams.length + leagues.length}</b>
+            {teams.length + leagues.length + players.length > 0 && (
+              <b className="nav-count">
+                {teams.length + leagues.length + players.length}
+              </b>
             )}
           </span>
         </button>
@@ -104,6 +112,7 @@ export function MobileNavigation({
               {warning}
             </p>
           )}
+          <FavouritePlayers />
           <FavoriteLeagues
             onChoose={(league) => {
               onChooseLeague(league);

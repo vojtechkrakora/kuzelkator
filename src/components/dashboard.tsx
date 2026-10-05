@@ -21,6 +21,7 @@ import { resultFor, statusLabel } from "@/domain/models";
 import { groupMatchFeed, isFavouriteMatch } from "@/domain/match-feed";
 import { feedDayLabel, dayLabel, shiftDay, todayPrague } from "@/lib/dates";
 import { useFeedReturn } from "./feed-navigation";
+import { FavouritePlayers } from "./player-pages";
 import { TeamLogo } from "./team-logo";
 import { FavoriteLeagues } from "./favorite-leagues";
 import type { FavoriteLeague } from "./providers";
@@ -276,6 +277,7 @@ export function Dashboard() {
           </div>
         )}
         <FavoriteLeagues onChoose={chooseFavoriteLeague} />
+        <FavouritePlayers sidebar />
         <div className="sidebar-note">
           <Heart size={17} />
           <span>

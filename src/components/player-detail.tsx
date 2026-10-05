@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useId, useRef, useState } from "react";
+import Link from "next/link";
 import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 import { playerName, type Match } from "../domain/models";
@@ -148,6 +149,14 @@ function PlayerDialog({
           ? `${result.position}. dvojice`
           : "Výsledek soupeře na této pozici zatím není k dispozici."}
       </p>
+      {result.player && (
+        <Link
+          className="button player-profile-link"
+          href={`/players/${result.player.id}`}
+        >
+          Profil hráče a výsledky sezóny →
+        </Link>
+      )}
       <div className="lane-comparison-names">
         <strong>{playerName(result.player)}</strong>
         {opponent && <strong>{playerName(opponent.player)}</strong>}
