@@ -14,6 +14,10 @@ export const playerSearchInput = z.object({
   q: z.string().trim().min(2).max(100),
   offset: z.coerce.number().int().min(0).max(10000).default(0),
 });
+export const teamRosterInput = z.object({
+  teamId: z.coerce.number().int().positive(),
+  seasonId: z.coerce.number().int().positive(),
+});
 const directories = new Map<
   number,
   { expires: number; value: Promise<Resource<DirectoryPlayer[]>> }
@@ -88,6 +92,45 @@ export async function findPlayers(input: z.infer<typeof playerSearchInput>) {
 }
 export function getPlayer(id: number) {
   return apiCache.get(`/members/${id}?include=club`, profileSchema, 3600000);
+}
+export async function getTeamRoster(input: z.infer<typeof teamRosterInput>) {
+  const query = new URLSearchParams({
+    seasonId: String(input.seasonId),
+    teamId: String(input.teamId),
+    type: "ALL",
+    limit: "100",
+    offset: "0",
+    sort: "player.lastName,player.firstName,player.id",
+    include: "player",
+  });
+  const schema = collection(directoryRowSchema.pick({ player: true }));
+  const players = new Map<number, Omit<DirectoryPlayer, "teams">>();
+  let offset = 0,
+    total = 1,
+    stale = false,
+    checkedAt = "";
+  while (offset < total) {
+    query.set("offset", String(offset));
+    const page = await apiCache.get(
+      `/team-competition-player-table?${query}`,
+      schema,
+      3600000,
+    );
+    total = page.data.total;
+    if (!page.data.items.length && offset < total) throw new UpstreamError(502);
+    for (const row of page.data.items) players.set(row.player.id, row.player);
+    offset += page.data.items.length;
+    stale ||= page.stale;
+    if (!checkedAt || page.checkedAt < checkedAt) checkedAt = page.checkedAt;
+  }
+  const items = [...players.values()].sort(
+    (a, b) =>
+      `${a.lastName ?? ""} ${a.firstName ?? ""}`.localeCompare(
+        `${b.lastName ?? ""} ${b.firstName ?? ""}`,
+        "cs",
+      ) || a.id - b.id,
+  );
+  return { data: { items, total: items.length }, stale, checkedAt };
 }
 /** Small season-specific lookup; no match histories or nationwide directory scan. */
 export async function getPlayerTeams(id: number, seasonId: number) {

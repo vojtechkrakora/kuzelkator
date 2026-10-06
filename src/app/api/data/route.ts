@@ -17,8 +17,10 @@ import { UpstreamError } from "@/server/cache";
 import {
   findPlayers,
   getPlayerHistory,
+  getTeamRoster,
   getPlayerTeams,
   playerSearchInput,
+  teamRosterInput,
 } from "@/server/players";
 
 export const dynamic = "force-dynamic";
@@ -29,6 +31,9 @@ export async function GET(request: NextRequest) {
     switch (params.kind) {
       case "player-search":
         result = await findPlayers(playerSearchInput.parse(params));
+        break;
+      case "team-roster":
+        result = await getTeamRoster(teamRosterInput.parse(params));
         break;
       case "player-teams":
       case "player-history": {

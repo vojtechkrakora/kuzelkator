@@ -1992,6 +1992,68 @@ tfoot {
   font-size: 13px;
   line-height: 1.6;
 }
+.team-roster {
+  margin-bottom: 24px;
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--soft);
+}
+.team-roster-heading {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.team-roster-heading h4 {
+  margin: 5px 0 0;
+  font-size: 18px;
+}
+.team-roster-count {
+  color: var(--muted);
+  font-size: 12px;
+}
+.team-roster-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.team-roster-list li {
+  display: flex;
+  min-width: 0;
+  min-height: 48px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 4px 4px 4px 12px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: white;
+}
+.team-roster-list li > a {
+  min-width: 0;
+  padding: 9px 0;
+  overflow-wrap: anywhere;
+  font-weight: 650;
+}
+.team-roster-list li > a:hover,
+.team-roster-list li > a:focus-visible {
+  color: var(--green);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+@media (max-width: 740px) {
+  .team-roster {
+    padding: 14px;
+  }
+  .team-roster-list {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
 .season-matches {
   white-space: normal;
   overflow-wrap: anywhere;
