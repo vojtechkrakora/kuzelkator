@@ -128,17 +128,6 @@ svg {
   display: grid;
   place-items: center;
 }
-.beta {
-  font-size: 9px;
-  letter-spacing: 1px;
-  font-weight: 700;
-  background: #edf1e8;
-  color: var(--green);
-  padding: 4px 5px;
-  border-radius: 4px;
-  align-self: flex-start;
-  margin: 3px 0 0 3px;
-}
 .header-caption {
   font-size: 12px;
   color: var(--muted);
@@ -856,6 +845,9 @@ tfoot {
 .footer > span:first-child .muted {
   font-weight: 400;
   margin-left: 8px;
+}
+.build-info {
+  white-space: nowrap;
 }
 .skeleton {
   height: 164px;
