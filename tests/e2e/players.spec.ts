@@ -169,3 +169,45 @@ test("player search and favourites persist without removing existing teams", asy
     ),
   ).toBe(true);
 });
+
+test("player pages keep the desktop favourites sidebar", async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 850 });
+  await page.addInitScript(() =>
+    localStorage.setItem(
+      "kuzelkator:preferences:v1",
+      JSON.stringify({
+        version: 1,
+        teams: [{ id: 67, name: "Prušánky" }],
+        leagues: [
+          {
+            id: 17,
+            name: "2. KLM B",
+            slug: "2-klm-b",
+            seasonId: 20,
+            seasonName: "2026/2027",
+          },
+        ],
+        players: [{ id: 3130, firstName: "Martin", lastName: "Tesařík" }],
+      }),
+    ),
+  );
+  await page.route("**/api/data?**", (route) => {
+    const kind = new URL(route.request().url()).searchParams.get("kind");
+    const data =
+      kind === "seasons"
+        ? { items: [{ id: 20, name: "2026/2027", active: true }], total: 1 }
+        : { items: [], total: 0 };
+    return route.fulfill({
+      json: { data, checkedAt: "2026-10-05T10:00:00Z", stale: false },
+    });
+  });
+  await page.goto("/players");
+  const sidebar = page.locator(".player-dashboard .sidebar");
+  await expect(sidebar).toBeVisible();
+  await expect(sidebar).toContainText("Prušánky");
+  await expect(sidebar).toContainText("2. KLM B");
+  await expect(sidebar).toContainText("Martin Tesařík");
+  await expect(
+    sidebar.getByRole("button", { name: "Přehled zápasů" }),
+  ).toBeVisible();
+});
