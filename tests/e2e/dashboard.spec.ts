@@ -44,9 +44,14 @@ async function mockApi(page: Page, failFirst = false) {
         ? [{ id: 20, name: "2026/2027", active: true }]
         : kind === "competitions"
           ? [match.competition]
-          : kind === "matches" || kind === "team-season"
-            ? [match]
-            : [];
+          : kind === "team-roster"
+            ? [
+                { id: 3130, firstName: "Martin", lastName: "Tesařík" },
+                { id: 3338, firstName: "Jan", lastName: "Zálešák" },
+              ]
+            : kind === "matches" || kind === "team-season"
+              ? [match]
+              : [];
     await route.fulfill({
       json: {
         data: { items, total: items.length },
@@ -112,6 +117,17 @@ test("team names on match cards open team season details", async ({ page }) => {
   await expect(page).toHaveURL(/team=67/);
   await expect(page).toHaveURL(/season=20/);
   await expect(page.locator(".team-season")).toBeVisible();
+  const roster = page.locator(".team-roster");
+  await expect(roster).toContainText("2 hráčů");
+  await expect(
+    roster.getByRole("link", { name: "Martin Tesařík", exact: true }),
+  ).toHaveAttribute("href", "/players/3130");
+  await expect(
+    roster.getByRole("button", {
+      name: "Sledovat hráče Martin Tesařík",
+      exact: true,
+    }),
+  ).toBeVisible();
 });
 test("competition filtering requests official standings", async ({ page }) => {
   await mockApi(page);

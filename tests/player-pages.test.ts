@@ -3,6 +3,7 @@ import { apiCache } from "../src/server/cache";
 import {
   findPlayers,
   getPlayerHistory,
+  getTeamRoster,
   getPlayerTeams,
   playerSearchInput,
 } from "../src/server/players";
@@ -17,6 +18,37 @@ const resource = (data: unknown) => ({
   data,
   checkedAt: "2026-10-05T10:00:00Z",
   stale: false,
+});
+it("loads and deduplicates the complete team roster for one season", async () => {
+  const get = vi
+    .spyOn(apiCache, "get")
+    .mockResolvedValueOnce(
+      resource({
+        items: [
+          { player: { id: 2, firstName: "Petr", lastName: "Žák" } },
+          { player: { id: 1, firstName: "Adam", lastName: "Novák" } },
+        ],
+        total: 3,
+      }),
+    )
+    .mockResolvedValueOnce({
+      ...resource({
+        items: [{ player: { id: 1, firstName: "Adam", lastName: "Novák" } }],
+        total: 3,
+      }),
+      stale: true,
+    });
+  const result = await getTeamRoster({ teamId: 67, seasonId: 20 });
+  expect(result.data.items.map((player) => player.id)).toEqual([1, 2]);
+  expect(result.data.total).toBe(2);
+  expect(result.stale).toBe(true);
+  const url = new URL(get.mock.calls[0][0], "https://example.test");
+  expect(url.pathname).toBe("/team-competition-player-table");
+  expect(url.searchParams.get("teamId")).toBe("67");
+  expect(url.searchParams.get("seasonId")).toBe("20");
+  expect(url.searchParams.get("type")).toBe("ALL");
+  expect(url.searchParams.get("include")).toBe("player");
+  expect(get.mock.calls[1][0]).toContain("offset=2");
 });
 it("looks up only season team IDs, deduplicates all pages and caches for an hour", async () => {
   const get = vi
