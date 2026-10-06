@@ -14,3 +14,12 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - Do not commit or push until the user has verified the current changes and explicitly approved committing and/or pushing them.
 - Approval for an earlier change does not authorize committing or pushing subsequent changes. If more changes are made after approval, wait for renewed verification and approval.
 - This rule applies to every commit and push, including documentation and agent-instruction changes.
+
+## Branches, pull requests, and independent review
+
+- Make all changes on a dedicated `feature/<description>` or `bug/<description>` branch, including documentation and workflow changes. Do not commit or push directly to `main`.
+- After the user verifies the changes and approves committing and pushing, push the branch and open a pull request targeting `main`.
+- Every PR must be reviewed by an independent agent using a different model from the implementing agent. Review the actual PR diff, relevant context, and validation results for correctness, regressions, and missing tests.
+- Record the review outcome in the PR. Address any blocking findings and have the updated changes reviewed again. Any changes made after user approval also require renewed user verification before committing or pushing, as specified above.
+- Merge the PR into `main` only after the reviewing agent approves the current revision and all required checks pass. A successful review authorizes completing the merge; do not bypass the PR workflow.
+- If a reviewer using a different model is unavailable, leave the PR unmerged and explain the blocker. Do not substitute self-review for the required independent review.
