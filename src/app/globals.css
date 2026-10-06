@@ -2751,6 +2751,10 @@ details.competition-group[open] > summary > span > svg {
 .players-page {
   max-width: 900px;
 }
+.player-dashboard .players-page {
+  min-width: 0;
+  width: 100%;
+}
 .players-page h1 {
   font-size: 30px;
 }

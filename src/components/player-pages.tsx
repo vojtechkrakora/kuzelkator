@@ -16,8 +16,17 @@ import { ErrorNotice, Freshness } from "./common";
 import { dayLabel } from "../lib/dates";
 import { teamSeasonHref } from "../lib/team-navigation";
 import { LaneScore } from "./player-detail";
+import { DesktopSidebar } from "./desktop-sidebar";
 
 type Page<T> = { items: T[]; total: number };
+function PlayerPageLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <main id="main" className="page dashboard player-dashboard">
+      <DesktopSidebar playerFavorites={<FavouritePlayers sidebar />} />
+      <section className="dashboard-main players-page">{children}</section>
+    </main>
+  );
+}
 export function FollowPlayerButton({
   player,
   iconOnly = false,
@@ -127,7 +136,7 @@ export function PlayerSearchPage() {
     staleTime: 3600000,
   });
   return (
-    <main id="main" className="page players-page">
+    <PlayerPageLayout>
       <Link className="back-link" href="/">
         <ArrowLeft size={17} /> Přehled zápasů
       </Link>
@@ -222,7 +231,7 @@ export function PlayerSearchPage() {
           </div>
         </>
       )}
-    </main>
+    </PlayerPageLayout>
   );
 }
 export function PlayerSeasonPage({
@@ -244,7 +253,7 @@ export function PlayerSeasonPage({
       ),
   });
   return (
-    <main id="main" className="page players-page">
+    <PlayerPageLayout>
       <Link href="/players" className="back-link">
         <ArrowLeft size={17} /> Hráči
       </Link>
@@ -368,6 +377,6 @@ export function PlayerSeasonPage({
           </ol>
         </>
       )}
-    </main>
+    </PlayerPageLayout>
   );
 }

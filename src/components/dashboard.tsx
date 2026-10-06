@@ -6,12 +6,9 @@ import { useEffect, useMemo, useState, useRef } from "react";
 import { useQuery, useQueries } from "@tanstack/react-query";
 import {
   ArrowRight,
-  ArrowUpRight,
   CalendarDays,
   ChevronLeft,
   ChevronRight,
-  Heart,
-  LayoutGrid,
   Star,
   Trophy,
   X,
@@ -23,7 +20,6 @@ import { feedDayLabel, dayLabel, shiftDay, todayPrague } from "@/lib/dates";
 import { useFeedReturn } from "./feed-navigation";
 import { FavouritePlayers } from "./player-pages";
 import { TeamLogo } from "./team-logo";
-import { FavoriteLeagues } from "./favorite-leagues";
 import type { FavoriteLeague } from "./providers";
 import { usePreferences } from "./providers";
 import { ErrorNotice, FollowButton, Freshness } from "./common";
@@ -32,6 +28,7 @@ import { TeamSeason } from "./team-season";
 import { CompetitionPicker } from "./competition-picker";
 import { MobileNavigation } from "./mobile-navigation";
 import { teamSeasonHref } from "@/lib/team-navigation";
+import { DesktopSidebar } from "./desktop-sidebar";
 
 type Page<T> = { items: T[]; total: number };
 function validDay(value: string | null) {
@@ -272,54 +269,14 @@ export function Dashboard() {
 
   return (
     <main id="main" className="page dashboard">
-      <aside className="sidebar">
-        <div className="nav-label">VAŠE KUŽELKY</div>
-        <button
-          className={`side-link ${!teamId && !competitionId ? "active" : ""}`}
-          onClick={resetOverview}
-        >
-          <LayoutGrid size={18} /> Přehled zápasů <ArrowUpRight size={16} />
-        </button>
-        <div className="side-heading">
-          <span>MOJE TÝMY</span>
-          <span className="counter">{teams.length}</span>
-        </div>
-        {teams.length ? (
-          <div className="favourite-list">
-            {teams.map((team) => (
-              <div className="favourite-item" key={team.id}>
-                <button
-                  className={teamId === String(team.id) ? "selected-team" : ""}
-                  onClick={() => {
-                    showTeam(String(team.id));
-                  }}
-                >
-                  <TeamLogo team={team} size={24} />
-                  {team.name}
-                </button>
-                <FollowButton team={team} />
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="follow-empty">
-            <Star size={23} />
-            <strong>Váš tým, na prvním místě.</strong>
-            <p>Klikněte na hvězdičku u týmu. Příště ho najdete rovnou tady.</p>
-          </div>
-        )}
-        <FavoriteLeagues onChoose={chooseFavoriteLeague} />
-        <FavouritePlayers sidebar />
-        <div className="sidebar-note">
-          <Heart size={17} />
-          <span>
-            Vaše oblíbené zůstávají v tomto prohlížeči. Bez registrace.
-          </span>
-        </div>
-        <div className="sidebar-bottom">
-          <span className="green-dot" /> Napojeno na veřejné API ČKA
-        </div>
-      </aside>
+      <DesktopSidebar
+        selectedTeamId={teamId}
+        overviewActive={!teamId && !competitionId}
+        onOverview={resetOverview}
+        onChooseTeam={showTeam}
+        onChooseLeague={chooseFavoriteLeague}
+        playerFavorites={<FavouritePlayers sidebar />}
+      />
       <section className="dashboard-main">
         <div className="eyebrow">VÁŠ OSOBNÍ VÝSLEDKOVÝ SERVIS</div>
         <div className="intro">
