@@ -828,6 +828,16 @@ tfoot {
   justify-content: space-between;
   gap: 10px;
 }
+.table-team-link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+.table-team-link > span:last-child {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
 .footer {
   max-width: 1460px;
   margin: 15px auto 0;
@@ -2022,6 +2032,39 @@ tfoot {
   min-height: 44px;
   align-items: center;
   overflow-wrap: anywhere;
+}
+.season-matches .season-match-link {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0;
+  color: inherit;
+}
+.season-team-link {
+  display: flex;
+  min-height: 44px;
+  align-items: center;
+  gap: 6px;
+}
+.team-name:hover,
+.team-name:focus-visible,
+.table-team-link:hover,
+.table-team-link:focus-visible,
+.season-team-link:hover,
+.season-team-link:focus-visible,
+.season-match-link:hover,
+.season-match-link:focus-visible {
+  color: var(--green);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.player-history-team {
+  color: var(--green);
+  font-weight: 650;
+}
+.player-history-team:hover,
+.player-history-team:focus-visible {
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 .season-matches tbody tr:first-child th,
 .season-matches tbody tr:first-child td:not([rowspan]) {
