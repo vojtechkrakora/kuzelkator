@@ -1,8 +1,14 @@
 import type { NextConfig } from "next";
+import packageInfo from "./package.json";
 
 const config: NextConfig = {
   output: "standalone",
   poweredByHeader: false,
+  env: {
+    KUZELKATOR_VERSION: packageInfo.version,
+    KUZELKATOR_COMMIT: process.env.RENDER_GIT_COMMIT?.trim().slice(0, 7) ?? "",
+    KUZELKATOR_BUILT_AT: new Date().toISOString(),
+  },
   images: {
     remotePatterns: [
       {

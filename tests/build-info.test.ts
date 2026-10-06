@@ -3,13 +3,11 @@ import { getBuildInfo } from "../src/lib/build-info";
 
 it("identifies an exact Render build with its app version and commit", () => {
   expect(
-    getBuildInfo(
-      {
-        npm_package_version: "0.2.0",
-        RENDER_GIT_COMMIT: "1234567890abcdef",
-      },
-      new Date("2026-10-06T12:34:00Z"),
-    ),
+    getBuildInfo({
+      KUZELKATOR_VERSION: "0.2.0",
+      KUZELKATOR_COMMIT: "1234567",
+      KUZELKATOR_BUILT_AT: "2026-10-06T12:34:00Z",
+    }),
   ).toEqual({
     version: "0.2.0 · 1234567",
     builtAt: "2026-10-06T12:34:00.000Z",
@@ -19,9 +17,17 @@ it("identifies an exact Render build with its app version and commit", () => {
 
 it("uses the package version when running outside Render", () => {
   expect(
-    getBuildInfo(
-      { npm_package_version: "0.2.0" },
-      new Date("2026-10-06T12:34:00Z"),
-    ).version,
+    getBuildInfo({
+      KUZELKATOR_VERSION: "0.2.0",
+      KUZELKATOR_BUILT_AT: "2026-10-06T12:34:00Z",
+    }).version,
   ).toBe("0.2.0");
+});
+
+it("does not substitute a runtime start time when build metadata is absent", () => {
+  expect(getBuildInfo({})).toEqual({
+    version: "dev",
+    builtAt: undefined,
+    builtLabel: "čas sestavení není dostupný",
+  });
 });

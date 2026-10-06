@@ -5,7 +5,11 @@ import { Providers } from "@/components/providers";
 import { getBuildInfo } from "@/lib/build-info";
 import "./globals.css";
 
-const buildInfo = getBuildInfo();
+const buildInfo = getBuildInfo({
+  KUZELKATOR_VERSION: process.env.KUZELKATOR_VERSION,
+  KUZELKATOR_COMMIT: process.env.KUZELKATOR_COMMIT,
+  KUZELKATOR_BUILT_AT: process.env.KUZELKATOR_BUILT_AT,
+});
 
 export const metadata: Metadata = {
   title: "Kuželkátor · Vaše hra. Vaše výsledky.",
@@ -65,7 +69,11 @@ export default function RootLayout({
             <span className="muted">Časy v zóně Europe/Prague</span>
             <span className="build-info">
               Verze {buildInfo.version} · sestaveno{" "}
-              <time dateTime={buildInfo.builtAt}>{buildInfo.builtLabel}</time>
+              {buildInfo.builtAt ? (
+                <time dateTime={buildInfo.builtAt}>{buildInfo.builtLabel}</time>
+              ) : (
+                buildInfo.builtLabel
+              )}
             </span>
           </footer>
         </Providers>

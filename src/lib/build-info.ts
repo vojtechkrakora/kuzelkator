@@ -1,23 +1,25 @@
 type BuildEnvironment = {
   [key: string]: string | undefined;
-  RENDER_GIT_COMMIT?: string;
-  npm_package_version?: string;
+  KUZELKATOR_VERSION?: string;
+  KUZELKATOR_COMMIT?: string;
+  KUZELKATOR_BUILT_AT?: string;
 };
 
-export function getBuildInfo(
-  environment: BuildEnvironment = process.env,
-  builtAt = new Date(),
-) {
-  const appVersion = environment.npm_package_version?.trim() || "dev";
-  const commit = environment.RENDER_GIT_COMMIT?.trim().slice(0, 7);
+export function getBuildInfo(environment: BuildEnvironment) {
+  const appVersion = environment.KUZELKATOR_VERSION?.trim() || "dev";
+  const commit = environment.KUZELKATOR_COMMIT?.trim();
+  const parsedBuiltAt = new Date(environment.KUZELKATOR_BUILT_AT ?? "");
+  const hasBuildTime = !Number.isNaN(parsedBuiltAt.getTime());
 
   return {
     version: commit ? `${appVersion} · ${commit}` : appVersion,
-    builtAt: builtAt.toISOString(),
-    builtLabel: new Intl.DateTimeFormat("cs-CZ", {
-      dateStyle: "short",
-      timeStyle: "short",
-      timeZone: "Europe/Prague",
-    }).format(builtAt),
+    builtAt: hasBuildTime ? parsedBuiltAt.toISOString() : undefined,
+    builtLabel: hasBuildTime
+      ? new Intl.DateTimeFormat("cs-CZ", {
+          dateStyle: "short",
+          timeStyle: "short",
+          timeZone: "Europe/Prague",
+        }).format(parsedBuiltAt)
+      : "čas sestavení není dostupný",
   };
 }
