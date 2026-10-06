@@ -8,6 +8,7 @@ import type { Match } from "@/domain/models";
 import { resultFor, statusLabel } from "@/domain/models";
 import { getData } from "@/lib/client-api";
 import { ErrorNotice, FollowButton, Freshness } from "./common";
+import { teamSeasonHref } from "@/lib/team-navigation";
 
 function matchDate(value: string | null) {
   if (!value) return "Termín neurčen";
@@ -26,11 +27,13 @@ export function TeamSeason({
   seasonId,
   teamName,
   seasonName,
+  onChooseTeam,
 }: {
   teamId: string;
   seasonId: string;
   teamName?: string;
   seasonName?: string;
+  onChooseTeam: (id: string) => void;
 }) {
   const matches = useQuery({
     queryKey: ["team-season", teamId, seasonId],
@@ -110,40 +113,54 @@ export function TeamSeason({
                     <tr key={String(isHome)}>
                       {isHome && (
                         <td rowSpan={2}>
-                          <time dateTime={match.date ?? undefined}>
-                            {matchDate(match.date)}
-                          </time>
-                          <small>{match.time?.slice(0, 5)}</small>
-                          <small>
-                            {match.round ? `${match.round}. kolo · ` : ""}
-                            {statusLabel(match.status)}
-                          </small>
-                          {multipleCompetitions && (
-                            <small>{match.competition?.name}</small>
-                          )}
+                          <Link
+                            prefetch={false}
+                            href={`/matches/${match.id}`}
+                            className="season-match-link"
+                            aria-label={`Detail zápasu ${match.homeTeam?.name ?? "Domácí"} – ${match.awayTeam?.name ?? "Hosté"}`}
+                          >
+                            <time dateTime={match.date ?? undefined}>
+                              {matchDate(match.date)}
+                            </time>
+                            <small>{match.time?.slice(0, 5)}</small>
+                            <small>
+                              {match.round ? `${match.round}. kolo · ` : ""}
+                              {statusLabel(match.status)}
+                            </small>
+                            {multipleCompetitions && (
+                              <small>{match.competition?.name}</small>
+                            )}
+                          </Link>
                         </td>
                       )}
                       <th scope="row">
-                        <Link
-                          prefetch={false}
-                          href={`/matches/${match.id}`}
-                          aria-label={
-                            isHome
-                              ? `Detail zápasu ${match.homeTeam?.name ?? "Domácí"} – ${match.awayTeam?.name ?? "Hosté"}`
-                              : undefined
-                          }
-                          className={
-                            String(side?.id) === teamId ? "followed-side" : ""
-                          }
-                        >
-                          <TeamLogo team={side} size={22} />
-                          <span>
-                            {side?.name ??
-                              (isHome
+                        {side ? (
+                          <Link
+                            prefetch={false}
+                            href={teamSeasonHref(side.id, seasonId)}
+                            onNavigate={(event) => {
+                              event.preventDefault();
+                              onChooseTeam(String(side.id));
+                            }}
+                            className={
+                              String(side.id) === teamId
+                                ? "followed-side season-team-link"
+                                : "season-team-link"
+                            }
+                          >
+                            <TeamLogo team={side} size={22} />
+                            <span>{side.name}</span>
+                          </Link>
+                        ) : (
+                          <span className="season-team-link">
+                            <TeamLogo team={side} size={22} />
+                            <span>
+                              {isHome
                                 ? "Domácí tým neuveden"
-                                : "Hostující tým neuveden")}
+                                : "Hostující tým neuveden"}
+                            </span>
                           </span>
-                        </Link>
+                        )}
                       </th>
                       <td className="season-score">
                         {hasScore ? (result?.teamPoints ?? "—") : "—"}

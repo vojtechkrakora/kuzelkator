@@ -11,6 +11,7 @@ import { MobilePlayerResults } from "@/components/mobile-player-results";
 import { MatchSubstitutions } from "@/components/match-substitutions";
 import { dayLabel } from "@/lib/dates";
 import { FollowButton, Freshness } from "@/components/common";
+import { teamSeasonHref } from "@/lib/team-navigation";
 
 export const dynamic = "force-dynamic";
 export default async function MatchDetail({
@@ -29,15 +30,7 @@ export default async function MatchDetail({
     throw error;
   }
   const match = resource.data;
-  const teamHref = (teamId: number) => ({
-    pathname: "/",
-    query: {
-      team: String(teamId),
-      ...(match.competition?.season
-        ? { season: String(match.competition.season.id) }
-        : {}),
-    },
-  });
+  const seasonId = match.competition?.season?.id;
   const home = resultFor(match, true),
     away = resultFor(match, false);
   return (
@@ -60,7 +53,10 @@ export default async function MatchDetail({
             {match.homeTeam ? (
               <Link
                 className="scoreboard-team-link"
-                href={teamHref(match.homeTeam.id)}
+                href={teamSeasonHref(
+                  match.homeTeam.id,
+                  seasonId ? String(seasonId) : undefined,
+                )}
                 aria-label={`Zápasy týmu ${match.homeTeam.name}`}
               >
                 <TeamLogo team={match.homeTeam} size={48} />
@@ -88,7 +84,10 @@ export default async function MatchDetail({
             {match.awayTeam ? (
               <Link
                 className="scoreboard-team-link"
-                href={teamHref(match.awayTeam.id)}
+                href={teamSeasonHref(
+                  match.awayTeam.id,
+                  seasonId ? String(seasonId) : undefined,
+                )}
                 aria-label={`Zápasy týmu ${match.awayTeam.name}`}
               >
                 <TeamLogo team={match.awayTeam} size={48} />

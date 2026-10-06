@@ -14,6 +14,7 @@ import type {
 import { usePreferences } from "./providers";
 import { ErrorNotice, Freshness } from "./common";
 import { dayLabel } from "../lib/dates";
+import { teamSeasonHref } from "../lib/team-navigation";
 import { LaneScore } from "./player-detail";
 
 type Page<T> = { items: T[]; total: number };
@@ -284,6 +285,7 @@ export function PlayerSeasonPage({
           <ol className="player-history">
             {results.data.data.items.map((r, index) => {
               const match = r.teamMatchResult?.teamMatch;
+              const resultTeam = r.teamMatchResult?.team;
               const changes =
                 r.teamMatchResult?.substitutions?.filter(
                   (c) =>
@@ -318,9 +320,18 @@ export function PlayerSeasonPage({
                     </strong>
                   </div>
                   <p>
-                    {r.teamMatchResult?.team?.name} · Plné {r.totalFull ?? "—"}{" "}
-                    · Dorážka {r.totalSpare ?? "—"} · Chyby{" "}
-                    {r.totalErrors ?? "—"} · Body {r.teamPoints ?? "—"}
+                    {resultTeam ? (
+                      <Link
+                        className="player-history-team"
+                        href={teamSeasonHref(resultTeam.id, id)}
+                      >
+                        {resultTeam.name}
+                      </Link>
+                    ) : (
+                      "Tým neuveden"
+                    )}{" "}
+                    · Plné {r.totalFull ?? "—"} · Dorážka {r.totalSpare ?? "—"}{" "}
+                    · Chyby {r.totalErrors ?? "—"} · Body {r.teamPoints ?? "—"}
                   </p>
                   {substituted && (
                     <p className="player-history-sub">

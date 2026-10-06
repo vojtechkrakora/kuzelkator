@@ -31,6 +31,7 @@ import { getData } from "@/lib/client-api";
 import { TeamSeason } from "./team-season";
 import { CompetitionPicker } from "./competition-picker";
 import { MobileNavigation } from "./mobile-navigation";
+import { teamSeasonHref } from "@/lib/team-navigation";
 
 type Page<T> = { items: T[]; total: number };
 function validDay(value: string | null) {
@@ -234,6 +235,11 @@ export function Dashboard() {
     setTeamId(id);
     setOffset(0);
   }
+  function showTeam(id: string) {
+    if (activeSeason) setSeasonId(activeSeason);
+    chooseTeam(id);
+    chooseCompetition("");
+  }
 
   function chooseFavoriteLeague(league: FavoriteLeague) {
     chooseTeam("");
@@ -285,8 +291,7 @@ export function Dashboard() {
                 <button
                   className={teamId === String(team.id) ? "selected-team" : ""}
                   onClick={() => {
-                    chooseTeam(String(team.id));
-                    chooseCompetition("");
+                    showTeam(String(team.id));
                   }}
                 >
                   <TeamLogo team={team} size={24} />
@@ -460,6 +465,7 @@ export function Dashboard() {
                 (item) => String(item.id) === activeSeason,
               )?.name
             }
+            onChooseTeam={showTeam}
           />
         ) : (
           <>
@@ -467,6 +473,8 @@ export function Dashboard() {
               <Standings
                 key={selectedCompetition.id}
                 competition={selectedCompetition}
+                seasonId={activeSeason}
+                onChooseTeam={showTeam}
               />
             )}
             {competitionId && (
@@ -590,6 +598,8 @@ export function Dashboard() {
                 onlyFavourites={
                   !competitionId && onlyFavourites && hasFavourites
                 }
+                seasonId={activeSeason}
+                onChooseTeam={showTeam}
               />
             ))}
             {competitionId && matches.data && matches.data.data.total > 24 && (
@@ -620,10 +630,7 @@ export function Dashboard() {
       <MobileNavigation
         onOverview={resetOverview}
         onChooseLeague={chooseFavoriteLeague}
-        onChooseTeam={(id) => {
-          chooseTeam(id);
-          chooseCompetition("");
-        }}
+        onChooseTeam={showTeam}
       />
     </main>
   );
@@ -638,6 +645,8 @@ function MatchDay({
   hasFavourites,
   loadingPlayerTeams,
   onlyFavourites,
+  seasonId,
+  onChooseTeam,
 }: {
   date: string;
   items: Match[];
@@ -647,6 +656,8 @@ function MatchDay({
   hasFavourites: boolean;
   loadingPlayerTeams: boolean;
   onlyFavourites: boolean;
+  seasonId: string;
+  onChooseTeam: (id: string) => void;
 }) {
   const favourite = (match: Match) =>
     isFavouriteMatch(match, favouriteLeagues, favouriteTeams);
@@ -701,6 +712,8 @@ function MatchDay({
                   key={match.id}
                   match={match}
                   playerTeams={playerTeams}
+                  seasonId={seasonId}
+                  onChooseTeam={onChooseTeam}
                 />
               ))}
           </div>
@@ -713,9 +726,13 @@ function MatchDay({
 function MatchCard({
   match,
   playerTeams,
+  seasonId,
+  onChooseTeam,
 }: {
   match: Match;
   playerTeams: ReadonlySet<number>;
+  seasonId: string;
+  onChooseTeam: (id: string) => void;
 }) {
   const { teams, leagues } = usePreferences();
   const favouriteTeam = teams.some(
@@ -766,14 +783,25 @@ function MatchCard({
         const score = result as typeof home;
         return (
           <div className="team-row" key={index}>
-            <Link
-              prefetch={false}
-              href={`/matches/${match.id}`}
-              className="team-name"
-            >
-              <TeamLogo team={entry} size={24} />
-              <span>{entry?.name ?? "Tým bude upřesněn"}</span>
-            </Link>
+            {entry ? (
+              <Link
+                prefetch={false}
+                href={teamSeasonHref(entry.id, seasonId)}
+                className="team-name"
+                onNavigate={(event) => {
+                  event.preventDefault();
+                  onChooseTeam(String(entry.id));
+                }}
+              >
+                <TeamLogo team={entry} size={24} />
+                <span>{entry.name}</span>
+              </Link>
+            ) : (
+              <span className="team-name">
+                <TeamLogo team={entry} size={24} />
+                <span>Tým bude upřesněn</span>
+              </span>
+            )}
             {entry && <FollowButton team={entry} />}
             <span className="pins-score">{score?.totalPerformance ?? "—"}</span>
             <strong className="team-score">{score?.teamPoints ?? "—"}</strong>
@@ -797,7 +825,15 @@ function MatchCard({
   );
 }
 
-function Standings({ competition }: { competition: Competition }) {
+function Standings({
+  competition,
+  seasonId,
+  onChooseTeam,
+}: {
+  competition: Competition;
+  seasonId: string;
+  onChooseTeam: (id: string) => void;
+}) {
   const [selectedRound, setSelectedRound] = useState<number | undefined>();
   const table = useQuery({
     queryKey: ["standings", competition.slug, selectedRound],
@@ -879,8 +915,18 @@ function Standings({ competition }: { competition: Competition }) {
                       <td>{row.position}</td>
                       <th scope="row">
                         <span className="table-team">
-                          <TeamLogo team={row.team} size={24} />
-                          {row.team.name}
+                          <Link
+                            prefetch={false}
+                            href={teamSeasonHref(row.team.id, seasonId)}
+                            className="table-team-link"
+                            onNavigate={(event) => {
+                              event.preventDefault();
+                              onChooseTeam(String(row.team.id));
+                            }}
+                          >
+                            <TeamLogo team={row.team} size={24} />
+                            <span>{row.team.name}</span>
+                          </Link>
                           <FollowButton team={row.team} />
                         </span>
                       </th>

@@ -89,6 +89,30 @@ test("follow, persist, filter by team, and unfollow", async ({ page }) => {
     }),
   ).toBeVisible();
 });
+test("team names on match cards open team season details", async ({ page }) => {
+  await mockApi(page);
+  await page.goto("/?date=2026-09-26");
+  const card = page.locator(".match-card").first();
+  const team = card.getByRole("link", {
+    name: "SK Podlužan Prušánky",
+    exact: true,
+  });
+  await expect(team).toHaveAttribute("href", "/?team=67&season=20");
+  await expect(
+    card.getByRole("link", {
+      name: "Detail zápasu SK Podlužan Prušánky – KK Blansko",
+    }),
+  ).toHaveAttribute("href", "/matches/640");
+  const request = page.waitForRequest((request) => {
+    const query = new URL(request.url()).searchParams;
+    return query.get("kind") === "team-season" && query.get("teamId") === "67";
+  });
+  await team.click();
+  await request;
+  await expect(page).toHaveURL(/team=67/);
+  await expect(page).toHaveURL(/season=20/);
+  await expect(page.locator(".team-season")).toBeVisible();
+});
 test("competition filtering requests official standings", async ({ page }) => {
   await mockApi(page);
   await page.goto("/?date=2026-09-26");
@@ -320,6 +344,16 @@ test("standings label an earlier available table and show its teams", async ({
     "Tabulka 2. KLM B, 2. kolo",
   );
   await expect(page.getByRole("table")).toContainText("TJ Tábor");
+  const team = page.getByRole("link", { name: "TJ Tábor", exact: true });
+  await expect(team).toHaveAttribute("href", "/?team=101&season=20");
+  const request = page.waitForRequest((request) => {
+    const query = new URL(request.url()).searchParams;
+    return query.get("kind") === "team-season" && query.get("teamId") === "101";
+  });
+  await team.click();
+  await request;
+  await expect(page).toHaveURL(/team=101/);
+  await expect(page.locator(".team-season")).toBeVisible();
 });
 
 test("favourite team shows the whole season with results, pins and future fixtures on phones", async ({
@@ -368,6 +402,16 @@ test("favourite team shows the whole season with results, pins and future fixtur
   await expect(
     table.locator("tbody").last().locator(".season-score").first(),
   ).toHaveText("—");
+  await expect(
+    table.getByRole("link", { name: "KK Blansko", exact: true }).first(),
+  ).toHaveAttribute("href", "/?team=64&season=20");
+  await expect(
+    table
+      .getByRole("link", {
+        name: "Detail zápasu SK Podlužan Prušánky – KK Blansko",
+      })
+      .first(),
+  ).toHaveAttribute("href", "/matches/640");
   await expect(page.getByLabel("Datum zápasů")).toHaveCount(0);
   expect(
     await page.evaluate(
