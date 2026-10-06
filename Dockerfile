@@ -5,6 +5,8 @@ RUN npm ci
 
 FROM node:22-alpine AS build
 WORKDIR /app
+ARG RENDER_GIT_COMMIT
+ENV RENDER_GIT_COMMIT=$RENDER_GIT_COMMIT
 ENV NEXT_TELEMETRY_DISABLED=1
 COPY --from=dependencies /app/node_modules ./node_modules
 COPY . .

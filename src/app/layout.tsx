@@ -2,7 +2,10 @@ import type { Metadata, Viewport } from "next";
 import Link from "next/link";
 import { ArrowUpRight, CircleDot } from "lucide-react";
 import { Providers } from "@/components/providers";
+import { getBuildInfo } from "@/lib/build-info";
 import "./globals.css";
+
+const buildInfo = getBuildInfo();
 
 export const metadata: Metadata = {
   title: "Kuželkátor · Vaše hra. Vaše výsledky.",
@@ -33,7 +36,7 @@ export default function RootLayout({
                 <span className="brand-icon">
                   <CircleDot size={27} strokeWidth={2.5} />
                 </span>
-                Kuželkátor<span className="beta">POC</span>
+                Kuželkátor
               </Link>
               <span className="header-caption">Kuželky. Blíž k vám.</span>
               <a
@@ -60,6 +63,10 @@ export default function RootLayout({
               Oficiální data ČKA ↗
             </a>
             <span className="muted">Časy v zóně Europe/Prague</span>
+            <span className="build-info">
+              Verze {buildInfo.version} · sestaveno{" "}
+              <time dateTime={buildInfo.builtAt}>{buildInfo.builtLabel}</time>
+            </span>
           </footer>
         </Providers>
       </body>
