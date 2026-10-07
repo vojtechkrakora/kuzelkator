@@ -2142,15 +2142,18 @@ tfoot {
   font-weight: 800;
   border: 1px solid transparent;
 }
-.team-form-win {
+.team-form-win,
+.season-outcome-win .season-score {
   background: #dcf0e3;
   color: #155334;
 }
-.team-form-draw {
+.team-form-draw,
+.season-outcome-draw .season-score {
   background: #fff0c2;
   color: #745000;
 }
-.team-form-loss {
+.team-form-loss,
+.season-outcome-loss .season-score {
   background: #fce1df;
   color: #9b2925;
 }
@@ -2254,6 +2257,18 @@ tfoot {
   border-bottom: 1px solid #e5e9df;
   text-align: left;
   vertical-align: middle;
+}
+.season-matches tbody {
+  color: var(--ink);
+}
+.season-outcome-badge {
+  display: inline-block;
+  border: 1px solid currentColor;
+  border-radius: 5px;
+  padding: 3px 5px;
+  margin-bottom: 6px;
+  font-size: 11px;
+  font-weight: 700;
 }
 .season-matches tbody th {
   font-size: 14px;

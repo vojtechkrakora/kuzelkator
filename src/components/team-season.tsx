@@ -11,7 +11,7 @@ import { getData } from "@/lib/client-api";
 import { ErrorNotice, FollowButton, Freshness } from "./common";
 import { teamSeasonHref } from "@/lib/team-navigation";
 import { FollowPlayerButton } from "./player-pages";
-import { teamForm } from "@/domain/team-form";
+import { teamForm, teamMatchOutcome } from "@/domain/team-form";
 
 const formLabels = {
   win: { letter: "V", label: "Výhra" },
@@ -194,13 +194,14 @@ export function TeamSeason({
             </tr>
           </thead>
           {items.map((match) => {
+            const outcome = teamMatchOutcome(match, teamId);
             const hasScore = ["FINISHED", "FORFEIT", "IN_PROGRESS"].includes(
               match.status,
             );
             return (
               <tbody
                 key={match.id}
-                className={hasScore ? "has-result" : "upcoming-match"}
+                className={`${hasScore ? "has-result" : "upcoming-match"}${outcome !== "unknown" ? ` season-outcome-${outcome}` : ""}`}
               >
                 {[true, false].map((isHome) => {
                   const side = isHome ? match.homeTeam : match.awayTeam;
@@ -215,6 +216,14 @@ export function TeamSeason({
                             className="season-match-link"
                             aria-label={`Detail zápasu ${match.homeTeam?.name ?? "Domácí"} – ${match.awayTeam?.name ?? "Hosté"}`}
                           >
+                            {outcome !== "unknown" && (
+                              <span
+                                className={`season-outcome-badge team-form-${outcome}`}
+                              >
+                                {formLabels[outcome].letter} ·{" "}
+                                {formLabels[outcome].label}
+                              </span>
+                            )}
                             <time dateTime={match.date ?? undefined}>
                               {matchDate(match.date)}
                             </time>

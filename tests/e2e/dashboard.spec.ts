@@ -462,6 +462,15 @@ test("favourite team shows the whole season with results, pins and future fixtur
   );
   await expect(form.getByRole("link")).toHaveAttribute("href", "/matches/640");
   await expect(table.locator("tbody")).toHaveCount(2);
+  await expect(table.locator("tbody").first()).toHaveClass(
+    /season-outcome-loss/,
+  );
+  await expect(
+    table.locator("tbody").first().locator(".season-outcome-badge"),
+  ).toHaveText("P · Prohra");
+  await expect(
+    table.locator("tbody").last().locator(".season-outcome-badge"),
+  ).toHaveCount(0);
   await expect(
     table.locator("tbody").first().locator(".season-score").first(),
   ).toHaveText("0");
