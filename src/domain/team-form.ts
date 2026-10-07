@@ -1,5 +1,28 @@
 import { resultFor, type Match } from "./models";
 
+export function teamMatchOutcome(
+  match: Match,
+  teamId: string,
+): "win" | "draw" | "loss" | "unknown" {
+  if (
+    !["FINISHED", "FORFEIT"].includes(match.status) ||
+    ![match.homeTeam?.id, match.awayTeam?.id].some(
+      (id) => String(id) === teamId,
+    )
+  )
+    return "unknown";
+  const home = String(match.homeTeam?.id) === teamId;
+  const points = resultFor(match, home)?.teamPoints;
+  const opponentPoints = resultFor(match, !home)?.teamPoints;
+  if (typeof points !== "number" || typeof opponentPoints !== "number")
+    return "unknown";
+  return points > opponentPoints
+    ? "win"
+    : points < opponentPoints
+      ? "loss"
+      : "draw";
+}
+
 export function teamForm(matches: Match[], teamId: string) {
   return matches
     .filter(
@@ -21,14 +44,7 @@ export function teamForm(matches: Match[], teamId: string) {
       const home = String(match.homeTeam?.id) === teamId;
       const points = resultFor(match, home)?.teamPoints;
       const opponentPoints = resultFor(match, !home)?.teamPoints;
-      const outcome: "win" | "draw" | "loss" | "unknown" =
-        typeof points !== "number" || typeof opponentPoints !== "number"
-          ? "unknown"
-          : points > opponentPoints
-            ? "win"
-            : points < opponentPoints
-              ? "loss"
-              : "draw";
+      const outcome = teamMatchOutcome(match, teamId);
       return {
         match,
         outcome,

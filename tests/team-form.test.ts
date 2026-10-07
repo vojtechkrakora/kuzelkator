@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { Match } from "../src/domain/models";
-import { teamForm } from "../src/domain/team-form";
+import { teamForm, teamMatchOutcome } from "../src/domain/team-form";
 
 function match(id: number, overrides: Partial<Match> = {}): Match {
   return {
@@ -21,6 +21,16 @@ function match(id: number, overrides: Partial<Match> = {}): Match {
 }
 
 describe("team form", () => {
+  it("does not assign an outcome to live, future, or unrelated matches", () => {
+    expect(teamMatchOutcome(match(1, { status: "IN_PROGRESS" }), "1")).toBe(
+      "unknown",
+    );
+    expect(teamMatchOutcome(match(1, { status: "SCHEDULED" }), "1")).toBe(
+      "unknown",
+    );
+    expect(teamMatchOutcome(match(1), "3")).toBe("unknown");
+    expect(teamMatchOutcome(match(1, { date: null }), "1")).toBe("loss");
+  });
   it("takes five latest completed games by date rather than round or input order", () => {
     const matches = [
       match(7, { status: "SCHEDULED" }),
