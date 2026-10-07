@@ -11,6 +11,14 @@ import { getData } from "@/lib/client-api";
 import { ErrorNotice, FollowButton, Freshness } from "./common";
 import { teamSeasonHref } from "@/lib/team-navigation";
 import { FollowPlayerButton } from "./player-pages";
+import { teamForm } from "@/domain/team-form";
+
+const formLabels = {
+  win: { letter: "V", label: "Výhra" },
+  draw: { letter: "R", label: "Remíza" },
+  loss: { letter: "P", label: "Prohra" },
+  unknown: { letter: "?", label: "Výsledek nezveřejněn" },
+};
 
 type Page<T> = { items: T[]; total: number };
 
@@ -62,6 +70,7 @@ export function TeamSeason({
   });
   useFeedReturn(!!matches.data);
   const items = matches.data?.data.items ?? [];
+  const form = teamForm(items, teamId);
   const team = items
     .flatMap((match) => [match.homeTeam, match.awayTeam])
     .find((team) => String(team?.id) === teamId);
@@ -97,6 +106,42 @@ export function TeamSeason({
         <p className="empty-copy">
           Pro tento tým nejsou ve vybrané sezóně zveřejněné žádné zápasy.
         </p>
+      )}
+      {matches.data && (
+        <section className="team-form" aria-labelledby="team-form-title">
+          <h4 id="team-form-title">Forma týmu</h4>
+          {form.length ? (
+            <>
+              <p>Poslední dohrané zápasy · nejnovější vpravo →</p>
+              <ol className="team-form-list">
+                {form.map(
+                  ({ match, outcome, points, opponentPoints, opponent }) => {
+                    const { letter, label } = formLabels[outcome];
+                    const description = `${label} · ${opponent?.name ?? "Soupeř"}${outcome === "unknown" ? "" : ` · ${points}:${opponentPoints}`} · ${matchDate(match.date)}`;
+                    return (
+                      <li key={match.id}>
+                        <Link
+                          prefetch={false}
+                          href={`/matches/${match.id}`}
+                          className={`team-form-box team-form-${outcome}`}
+                          aria-label={description}
+                          title={description}
+                        >
+                          {letter}
+                        </Link>
+                      </li>
+                    );
+                  },
+                )}
+              </ol>
+              <p className="team-form-legend">
+                V – výhra · R – remíza · P – prohra
+              </p>
+            </>
+          ) : (
+            <p>Zatím žádné dohrané zápasy se známým datem v této sezóně.</p>
+          )}
+        </section>
       )}
       <section className="team-roster" aria-labelledby="team-roster-title">
         <div className="team-roster-heading">

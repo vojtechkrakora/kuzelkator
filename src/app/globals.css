@@ -2114,6 +2114,54 @@ tfoot {
   font-size: 13px;
   line-height: 1.6;
 }
+.team-form {
+  margin-bottom: 24px;
+}
+.team-form h4 {
+  margin: 0 0 8px;
+  font-size: 18px;
+}
+.team-form p {
+  font-size: 12px;
+  color: #536159;
+}
+.team-form-list {
+  display: flex;
+  gap: 8px;
+  list-style: none;
+  padding: 0;
+  margin: 12px 0;
+}
+.team-form-box {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  font-size: 17px;
+  font-weight: 800;
+  border: 1px solid transparent;
+}
+.team-form-win {
+  background: #dcf0e3;
+  color: #155334;
+}
+.team-form-draw {
+  background: #fff0c2;
+  color: #745000;
+}
+.team-form-loss {
+  background: #fce1df;
+  color: #9b2925;
+}
+.team-form-unknown {
+  background: #edf0ed;
+  color: #536159;
+}
+.team-form-box:hover {
+  color: inherit;
+  border-color: currentColor;
+}
 .team-roster {
   margin-bottom: 24px;
   padding: 18px;
