@@ -588,6 +588,7 @@ export function Dashboard() {
         onOverview={resetOverview}
         onChooseLeague={chooseFavoriteLeague}
         onChooseTeam={showTeam}
+        playerFavorites={<FavouritePlayers />}
       />
     </main>
   );

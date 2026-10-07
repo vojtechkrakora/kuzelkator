@@ -17,6 +17,7 @@ import { dayLabel } from "../lib/dates";
 import { teamSeasonHref } from "../lib/team-navigation";
 import { LaneScore } from "./player-detail";
 import { DesktopSidebar } from "./desktop-sidebar";
+import { MobileNavigation } from "./mobile-navigation";
 
 type Page<T> = { items: T[]; total: number };
 function PlayerPageLayout({ children }: { children: React.ReactNode }) {
@@ -24,6 +25,7 @@ function PlayerPageLayout({ children }: { children: React.ReactNode }) {
     <main id="main" className="page dashboard player-dashboard">
       <DesktopSidebar playerFavorites={<FavouritePlayers sidebar />} />
       <section className="dashboard-main players-page">{children}</section>
+      <MobileNavigation playerFavorites={<FavouritePlayers />} />
     </main>
   );
 }
