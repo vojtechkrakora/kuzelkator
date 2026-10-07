@@ -137,6 +137,16 @@ test("player search and favourites persist without removing existing teams", asy
     });
   });
   await page.goto("/players");
+  const mobileNavigation = page.getByRole("navigation", {
+    name: "Rychlá navigace",
+  });
+  await expect(mobileNavigation).toBeVisible();
+  await expect(
+    mobileNavigation.getByRole("link", { name: "Zápasy", exact: true }),
+  ).toHaveAttribute("href", "/");
+  await expect(
+    mobileNavigation.getByRole("link", { name: "Soutěže", exact: true }),
+  ).toHaveAttribute("href", "/#competitions");
   await page.getByLabel("Jméno nebo tým").fill("tesarik");
   await page.getByRole("button", { name: "Hledat hráče", exact: true }).click();
   await expect(page.locator(".player-search-results")).toContainText(
@@ -146,23 +156,27 @@ test("player search and favourites persist without removing existing teams", asy
     .locator(".player-search-results")
     .getByRole("button", { name: "Sledovat hráče Martin Tesařík" })
     .click();
-  await expect(page.locator(".favourite-players")).toContainText(
-    "Martin Tesařík",
-  );
+  const pageFavorites = page.locator(".players-page > .favourite-players");
+  await expect(pageFavorites).toContainText("Martin Tesařík");
+  await mobileNavigation
+    .getByRole("button", { name: "Oblíbené", exact: false })
+    .click();
+  const favorites = page.getByRole("dialog", { name: "Oblíbené" });
+  await expect(favorites).toContainText("Martin Tesařík");
+  await favorites.getByRole("button", { name: "Zavřít oblíbené" }).click();
+  await expect(favorites).not.toBeVisible();
   await page.reload();
-  await expect(page.locator(".favourite-players")).toContainText(
-    "Martin Tesařík",
-  );
+  await expect(pageFavorites).toContainText("Martin Tesařík");
   const saved = await page.evaluate(() =>
     JSON.parse(localStorage.getItem("kuzelkator:preferences:v1")!),
   );
   expect(saved.teams).toHaveLength(1);
   expect(saved.players).toHaveLength(1);
   await page
-    .locator(".favourite-players")
+    .locator(".players-page > .favourite-players")
     .getByRole("button", { name: "Přestat sledovat Martin Tesařík" })
     .click();
-  await expect(page.locator(".favourite-players li")).toHaveCount(0);
+  await expect(pageFavorites.locator("li")).toHaveCount(0);
   expect(
     await page.evaluate(
       () => document.documentElement.scrollWidth <= innerWidth,

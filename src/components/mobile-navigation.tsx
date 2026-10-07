@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { FavouritePlayers } from "./player-pages";
-import { useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
+import { useEffect, useRef, type ReactNode } from "react";
 import { CalendarDays, Star, Trophy, Users, X } from "lucide-react";
 import { usePreferences } from "./providers";
 import { TeamLogo } from "./team-logo";
@@ -14,11 +14,14 @@ export function MobileNavigation({
   onChooseTeam,
   onOverview,
   onChooseLeague,
+  playerFavorites,
 }: {
-  onOverview: () => void;
-  onChooseTeam: (id: string) => void;
-  onChooseLeague: (league: FavoriteLeague) => void;
+  onOverview?: () => void;
+  onChooseTeam?: (id: string) => void;
+  onChooseLeague?: (league: FavoriteLeague) => void;
+  playerFavorites: ReactNode;
 }) {
+  const router = useRouter();
   const { teams, leagues, players, warning } = usePreferences();
   const dialog = useRef<HTMLDialogElement>(null);
   const previousOverflow = useRef("");
@@ -32,6 +35,33 @@ export function MobileNavigation({
     previousOverflow.current = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     dialog.current?.showModal();
+  }
+  function showOverview() {
+    close();
+    if (onOverview) {
+      onOverview();
+      document.getElementById("match-feed")?.scrollIntoView();
+    } else {
+      router.push("/");
+    }
+  }
+  function chooseTeam(id: string) {
+    close();
+    if (onChooseTeam) {
+      onChooseTeam(id);
+      document.getElementById("match-feed")?.scrollIntoView();
+    } else {
+      router.push(`/?team=${id}`);
+    }
+  }
+  function chooseLeague(league: FavoriteLeague) {
+    close();
+    if (onChooseLeague) {
+      onChooseLeague(league);
+      document.getElementById("match-feed")?.scrollIntoView();
+    } else {
+      router.push(`/?competition=${league.id}&season=${league.seasonId}`);
+    }
   }
   useEffect(() => {
     const desktop = window.matchMedia("(min-width: 741px)");
@@ -47,10 +77,17 @@ export function MobileNavigation({
   return (
     <>
       <nav className="mobile-navigation" aria-label="Rychlá navigace">
-        <a href="#match-feed" onClick={onOverview}>
-          <CalendarDays size={21} />
-          <span>Zápasy</span>
-        </a>
+        {onOverview ? (
+          <a href="#match-feed" onClick={onOverview}>
+            <CalendarDays size={21} />
+            <span>Zápasy</span>
+          </a>
+        ) : (
+          <Link href="/">
+            <CalendarDays size={21} />
+            <span>Zápasy</span>
+          </Link>
+        )}
         <Link href="/players">
           <Users size={21} />
           <span>Hráči</span>
@@ -66,18 +103,25 @@ export function MobileNavigation({
             )}
           </span>
         </button>
-        <a
-          href="#competitions"
-          onClick={() => {
-            const picker = document.querySelector<HTMLDetailsElement>(
-              "#competitions details",
-            );
-            if (picker) picker.open = true;
-          }}
-        >
-          <Trophy size={21} />
-          <span>Soutěže</span>
-        </a>
+        {onOverview ? (
+          <a
+            href="#competitions"
+            onClick={() => {
+              const picker = document.querySelector<HTMLDetailsElement>(
+                "#competitions details",
+              );
+              if (picker) picker.open = true;
+            }}
+          >
+            <Trophy size={21} />
+            <span>Soutěže</span>
+          </a>
+        ) : (
+          <Link href="/#competitions">
+            <Trophy size={21} />
+            <span>Soutěže</span>
+          </Link>
+        )}
       </nav>
       <dialog
         ref={dialog}
@@ -112,14 +156,8 @@ export function MobileNavigation({
               {warning}
             </p>
           )}
-          <FavouritePlayers />
-          <FavoriteLeagues
-            onChoose={(league) => {
-              onChooseLeague(league);
-              close();
-              document.getElementById("match-feed")?.scrollIntoView();
-            }}
-          />
+          {playerFavorites}
+          <FavoriteLeagues onChoose={chooseLeague} />
           <div className="side-heading">
             <span>MOJE TÝMY</span>
             <span className="counter">{teams.length}</span>
@@ -128,13 +166,7 @@ export function MobileNavigation({
             <div className="sheet-teams">
               {teams.map((team) => (
                 <div className="sheet-team" key={team.id}>
-                  <button
-                    onClick={() => {
-                      onChooseTeam(String(team.id));
-                      close();
-                      document.getElementById("match-feed")?.scrollIntoView();
-                    }}
-                  >
+                  <button onClick={() => chooseTeam(String(team.id))}>
                     <TeamLogo team={team} size={28} />
                     {team.name}
                   </button>
@@ -150,13 +182,7 @@ export function MobileNavigation({
                 Uložte si tým hvězdičkou u zápasu. Tady ho pak najdete jediným
                 klepnutím.
               </p>
-              <button
-                className="button"
-                onClick={() => {
-                  close();
-                  document.getElementById("match-feed")?.scrollIntoView();
-                }}
-              >
+              <button className="button" onClick={showOverview}>
                 Prohlédnout zápasy
               </button>
             </div>
