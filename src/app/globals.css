@@ -434,6 +434,109 @@ svg {
 .date-control svg {
   color: var(--muted);
 }
+.calendar-open {
+  display: grid;
+  place-items: center;
+  min-width: 48px;
+  min-height: 48px;
+  border: 0;
+  background: transparent;
+  color: var(--green);
+}
+.date-control input::-webkit-calendar-picker-indicator {
+  display: none;
+}
+.match-calendar {
+  width: min(440px, calc(100vw - 16px));
+  max-width: none;
+  max-height: calc(100dvh - 24px);
+  margin: auto;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  color: var(--ink);
+  background: white;
+  box-shadow: 0 16px 60px #10291d40;
+}
+.match-calendar::backdrop {
+  background: #10291d80;
+}
+body:has(.match-calendar[open]) {
+  overflow: hidden;
+}
+.calendar-heading,
+.calendar-month {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.calendar-heading h2 {
+  font-size: 18px;
+  margin: 0;
+}
+.calendar-month {
+  margin: 16px 0;
+}
+.calendar-month strong {
+  font-size: 20px;
+  text-transform: capitalize;
+}
+.match-calendar .icon-button {
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+}
+.calendar-days {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 4px;
+}
+.calendar-weekday {
+  text-align: center;
+  padding: 8px 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+.calendar-days button {
+  min-width: 0;
+  min-height: 52px;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  background: var(--soft);
+  color: var(--ink);
+  font-size: 18px;
+}
+.calendar-days button[aria-current="date"] {
+  border-color: var(--green);
+}
+.calendar-days button[aria-pressed="true"] {
+  background: var(--green);
+  color: white;
+  font-weight: 700;
+}
+.calendar-days button:hover {
+  box-shadow: inset 0 0 0 2px var(--green);
+}
+.match-calendar :focus-visible {
+  outline: 2px solid var(--green);
+  outline-offset: 2px;
+}
+.calendar-today {
+  width: 100%;
+  min-height: 48px;
+  margin-top: 16px;
+  font-size: 15px;
+}
+@media (max-width: 360px) {
+  .match-calendar {
+    padding: 10px 6px;
+  }
+  .calendar-days {
+    gap: 2px;
+  }
+}
 .today-button {
   border: 0;
   background: none;
@@ -1255,7 +1358,7 @@ tfoot {
     width: 100%;
     grid-template-columns: 48px minmax(0, 1fr) 48px;
     grid-template-areas: "date date date" "previous today next";
-    gap: 6px;
+    gap: 8px;
   }
   .icon-button {
     width: 44px;
@@ -1278,20 +1381,39 @@ tfoot {
   }
   .date-control {
     grid-area: date;
-    padding: 0 7px;
-    min-height: 50px;
+    position: relative;
+    padding: 0 14px;
+    min-height: 56px;
     min-width: 0;
     border-radius: 10px;
   }
   .date-control svg {
-    display: none;
+    display: block;
+    flex-shrink: 0;
+    color: var(--green);
+    pointer-events: none;
   }
   .date-control input {
     width: 100%;
     min-width: 0;
-    min-height: 48px;
+    min-height: 54px;
     font-size: 16px;
     text-align: center;
+    cursor: pointer;
+  }
+  .date-control input::-webkit-calendar-picker-indicator {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    opacity: 0;
+    cursor: pointer;
+  }
+  .date-control:focus-within {
+    outline: 2px solid var(--green);
+    outline-offset: 3px;
   }
   .today-button {
     margin: 0;
@@ -2730,6 +2852,66 @@ tfoot {
 .day-navigation input {
   width: 18px;
   height: 18px;
+}
+.match-day-jump {
+  min-height: 64px;
+  gap: 8px;
+  text-align: left;
+}
+.match-day-jump > span {
+  display: grid;
+  gap: 5px;
+}
+.match-day-jump > span > span {
+  font-size: 11px;
+  color: var(--muted);
+}
+.match-day-jump strong {
+  font-size: 15px;
+  color: var(--green);
+}
+.match-day-jump svg {
+  flex-shrink: 0;
+  color: var(--green);
+}
+.next-matches {
+  margin-left: auto;
+  text-align: right;
+  justify-content: flex-end;
+}
+@media (max-width: 740px) {
+  .day-navigation {
+    display: grid;
+    align-items: stretch;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    margin: 16px 0;
+  }
+  .day-navigation .match-day-jump {
+    width: 100%;
+    min-width: 0;
+    padding: 12px 8px;
+    border-radius: 12px;
+    background: white;
+    white-space: normal;
+  }
+  .previous-matches {
+    grid-column: 1;
+    grid-row: 1;
+  }
+  .next-matches {
+    grid-column: 2;
+    grid-row: 1;
+    margin-left: 0;
+  }
+  .day-navigation label {
+    grid-column: 1 / -1;
+    min-height: 48px;
+    padding: 8px 12px;
+    border-radius: 10px;
+    background: #edf0e9;
+    font-size: 14px;
+  }
 }
 details.competition-group > summary {
   cursor: pointer;
