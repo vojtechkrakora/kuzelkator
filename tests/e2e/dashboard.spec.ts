@@ -200,7 +200,53 @@ for (const width of [320, 390, 430]) {
   }) => {
     await page.setViewportSize({ width, height: 844 });
     await mockApi(page);
+    await page.route("**/api/data?kind=match-days**", (route) =>
+      route.fulfill({
+        json: {
+          data: { previous: "2026-09-19", next: "2026-10-03" },
+          checkedAt: "2026-10-04T12:00:00Z",
+          stale: false,
+        },
+      }),
+    );
     await page.goto("/?date=2026-09-26");
+    const previous = page.getByRole("button", { name: /Předchozí zápasy/ });
+    const next = page.getByRole("button", { name: /Následující zápasy/ });
+    await expect(previous).toBeVisible();
+    await expect(next).toBeVisible();
+    const left = (await previous.boundingBox())!;
+    const right = (await next.boundingBox())!;
+    expect(left.y).toBe(right.y);
+    expect(Math.abs(left.width - right.width)).toBeLessThan(1);
+    expect(left.height).toBeGreaterThanOrEqual(64);
+    expect(right.x).toBeGreaterThan(left.x + left.width);
+    const date = page.getByLabel("Datum zápasů");
+    expect((await date.boundingBox())!.height).toBeGreaterThanOrEqual(54);
+    await next.click();
+    await expect(date).toHaveValue("2026-10-03");
+    await previous.click();
+    await expect(date).toHaveValue("2026-09-19");
+    await date.fill("2026-09-26");
+    await expect(date).toHaveValue("2026-09-26");
+    await page.getByRole("button", { name: "Otevřít kalendář" }).click();
+    const calendar = page.getByRole("dialog", { name: "Vyberte den zápasů" });
+    await expect(calendar).toBeVisible();
+    await calendar.getByRole("button", { name: "Následující měsíc" }).click();
+    const chosenDay = calendar.getByRole("button", {
+      name: "sobota 3. října 2026",
+      exact: true,
+    });
+    expect((await chosenDay.boundingBox())!.height).toBeGreaterThanOrEqual(48);
+    expect(
+      await calendar.evaluate((el) => el.scrollWidth <= el.clientWidth),
+    ).toBe(true);
+    await chosenDay.click();
+    await expect(calendar).not.toBeVisible();
+    await expect(date).toHaveValue("2026-10-03");
+    await page.getByRole("button", { name: "Otevřít kalendář" }).click();
+    await page.keyboard.press("Escape");
+    await expect(calendar).not.toBeVisible();
+    await date.fill("2026-09-26");
     const follow = page.getByRole("button", {
       name: "Sledovat SK Podlužan Prušánky",
       exact: true,

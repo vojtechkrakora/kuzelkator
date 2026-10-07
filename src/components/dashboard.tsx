@@ -28,6 +28,7 @@ import { TeamSeason } from "./team-season";
 import { CompetitionPicker } from "./competition-picker";
 import { MobileNavigation } from "./mobile-navigation";
 import { teamSeasonHref } from "@/lib/team-navigation";
+import { MatchDatePicker } from "./match-date-picker";
 import { DesktopSidebar } from "./desktop-sidebar";
 
 type Page<T> = { items: T[]; total: number };
@@ -326,15 +327,7 @@ export function Dashboard() {
               >
                 <ChevronLeft size={18} />
               </button>
-              <label className="date-control">
-                <CalendarDays size={16} />
-                <input
-                  aria-label="Datum zápasů"
-                  type="date"
-                  value={day}
-                  onChange={(event) => changeDay(event.target.value)}
-                />
-              </label>
+              <MatchDatePicker value={day} onChange={changeDay} />
               <button
                 className="icon-button"
                 aria-label="Následující den"
@@ -442,18 +435,26 @@ export function Dashboard() {
             <div className="day-navigation">
               {matchDays.data?.data.previous && (
                 <button
-                  className="button"
+                  className="button match-day-jump previous-matches"
                   onClick={() => changeDay(matchDays.data!.data.previous!)}
                 >
-                  Předchozí zápasy · {dayLabel(matchDays.data.data.previous)}
+                  <ChevronLeft size={20} aria-hidden="true" />
+                  <span>
+                    <span>Předchozí zápasy</span>
+                    <strong>{dayLabel(matchDays.data.data.previous)}</strong>
+                  </span>
                 </button>
               )}
               {matchDays.data?.data.next && (
                 <button
-                  className="button"
+                  className="button match-day-jump next-matches"
                   onClick={() => changeDay(matchDays.data!.data.next!)}
                 >
-                  Následující zápasy · {dayLabel(matchDays.data.data.next)}
+                  <span>
+                    <span>Následující zápasy</span>
+                    <strong>{dayLabel(matchDays.data.data.next)}</strong>
+                  </span>
+                  <ChevronRight size={20} aria-hidden="true" />
                 </button>
               )}
               {!competitionId && hasFavourites && (
