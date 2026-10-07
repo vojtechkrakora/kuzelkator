@@ -454,6 +454,13 @@ test("favourite team shows the whole season with results, pins and future fixtur
     .click();
   const table = page.locator(".season-matches");
   await expect(table).toBeVisible();
+  const form = page.getByRole("region", { name: "Forma týmu" });
+  await expect(form.getByRole("link")).toHaveCount(1);
+  await expect(form.getByRole("link")).toHaveText("P");
+  await expect(form.getByRole("link")).toHaveAccessibleName(
+    /Prohra · KK Blansko · 0:8/,
+  );
+  await expect(form.getByRole("link")).toHaveAttribute("href", "/matches/640");
   await expect(table.locator("tbody")).toHaveCount(2);
   await expect(
     table.locator("tbody").first().locator(".season-score").first(),
