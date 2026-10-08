@@ -121,7 +121,7 @@ test("team names on match cards open team season details", async ({ page }) => {
   await expect(roster).toContainText("2 hráčů");
   await expect(
     roster.getByRole("link", { name: "Martin Tesařík", exact: true }),
-  ).toHaveAttribute("href", "/players/3130");
+  ).toHaveAttribute("href", "/players/3130?season=20");
   await expect(
     roster.getByRole("button", {
       name: "Sledovat hráče Martin Tesařík",
