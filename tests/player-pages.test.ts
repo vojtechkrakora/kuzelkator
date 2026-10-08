@@ -47,7 +47,7 @@ it("loads and deduplicates the complete team roster for one season", async () =>
   expect(url.searchParams.get("teamId")).toBe("67");
   expect(url.searchParams.get("seasonId")).toBe("20");
   expect(url.searchParams.get("type")).toBe("ALL");
-  expect(url.searchParams.get("include")).toBe("player");
+  expect(url.searchParams.get("include")).toBe("player,competition");
   expect(get.mock.calls[1][0]).toContain("offset=2");
 });
 it("looks up only season team IDs, deduplicates all pages and caches for an hour", async () => {

@@ -19,6 +19,8 @@ import {
   getPlayerHistory,
   getPlayerStatistics,
   getTeamRoster,
+  getTeamPlayerStatistics,
+  teamPlayerStatsInput,
   getPlayerTeams,
   playerSearchInput,
   teamRosterInput,
@@ -35,6 +37,11 @@ export async function GET(request: NextRequest) {
         break;
       case "team-roster":
         result = await getTeamRoster(teamRosterInput.parse(params));
+        break;
+      case "team-player-statistics":
+        result = await getTeamPlayerStatistics(
+          teamPlayerStatsInput.parse(params),
+        );
         break;
       case "player-teams":
       case "player-statistics":

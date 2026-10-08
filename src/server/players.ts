@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { apiCache, UpstreamError } from "./cache";
-import { collection, type Resource } from "../domain/models";
+import { collection, type Competition, type Resource } from "../domain/models";
 import {
   playerStandingSchema,
   playerAggregateSchema,
@@ -22,6 +22,9 @@ export const playerSearchInput = z.object({
 export const teamRosterInput = z.object({
   teamId: z.coerce.number().int().positive(),
   seasonId: z.coerce.number().int().positive(),
+});
+export const teamPlayerStatsInput = teamRosterInput.extend({
+  competitionId: z.coerce.number().int().positive(),
 });
 const directories = new Map<
   number,
@@ -106,9 +109,12 @@ export async function getTeamRoster(input: z.infer<typeof teamRosterInput>) {
     limit: "100",
     offset: "0",
     sort: "player.lastName,player.firstName,player.id",
-    include: "player",
+    include: "player,competition",
   });
-  const schema = collection(directoryRowSchema.pick({ player: true }));
+  const schema = collection(
+    directoryRowSchema.pick({ player: true, competition: true }),
+  );
+  const competitions = new Map<number, Competition>();
   const players = new Map<number, Omit<DirectoryPlayer, "teams">>();
   let offset = 0,
     total = 1,
@@ -123,7 +129,11 @@ export async function getTeamRoster(input: z.infer<typeof teamRosterInput>) {
     );
     total = page.data.total;
     if (!page.data.items.length && offset < total) throw new UpstreamError(502);
-    for (const row of page.data.items) players.set(row.player.id, row.player);
+    for (const row of page.data.items) {
+      players.set(row.player.id, row.player);
+      if (row.competition)
+        competitions.set(row.competition.id, row.competition);
+    }
     offset += page.data.items.length;
     stale ||= page.stale;
     if (!checkedAt || page.checkedAt < checkedAt) checkedAt = page.checkedAt;
@@ -135,7 +145,41 @@ export async function getTeamRoster(input: z.infer<typeof teamRosterInput>) {
         "cs",
       ) || a.id - b.id,
   );
-  return { data: { items, total: items.length }, stale, checkedAt };
+  return {
+    data: {
+      items,
+      total: items.length,
+      competitions: [...competitions.values()].sort((a, b) =>
+        a.name.localeCompare(b.name, "cs"),
+      ),
+    },
+    stale,
+    checkedAt,
+  };
+}
+
+/** Shared with player profiles: one cached team request, never one per player. */
+function getTeamAggregates(teamId: number, competitionId: number) {
+  return apiCache.get(
+    `/teams/${teamId}/player-stats?competitionId=${competitionId}&include=player`,
+    collection(playerAggregateSchema),
+    600000,
+  );
+}
+
+export async function getTeamPlayerStatistics(
+  input: z.infer<typeof teamPlayerStatsInput>,
+) {
+  const roster = await getTeamRoster(input);
+  if (!roster.data.competitions.some((c) => c.id === input.competitionId))
+    throw new UpstreamError(400);
+  const result = await getTeamAggregates(input.teamId, input.competitionId);
+  return {
+    ...result,
+    stale: result.stale || roster.stale,
+    checkedAt:
+      result.checkedAt < roster.checkedAt ? result.checkedAt : roster.checkedAt,
+  };
 }
 /** Small season-specific lookup; no match histories or nationwide directory scan. */
 export async function getPlayerTeams(id: number, seasonId: number) {
@@ -227,10 +271,9 @@ export async function getPlayerStatistics(id: number, seasonId: number) {
   }
   const items: PlayerStatistics[] = [];
   for (const summary of summaries) {
-    const page = await apiCache.get(
-      `/teams/${summary.team.id}/player-stats?competitionId=${summary.competition.id}&include=player`,
-      collection(playerAggregateSchema),
-      600000,
+    const page = await getTeamAggregates(
+      summary.team.id,
+      summary.competition.id,
     );
     record(page);
     items.push({

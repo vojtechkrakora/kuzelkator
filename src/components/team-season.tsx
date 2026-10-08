@@ -5,12 +5,11 @@ import { TeamLogo } from "./team-logo";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import type { Match } from "@/domain/models";
-import { playerName, resultFor, statusLabel } from "@/domain/models";
-import type { PlayerProfile } from "@/domain/players";
+import { resultFor, statusLabel } from "@/domain/models";
 import { getData } from "@/lib/client-api";
 import { ErrorNotice, FollowButton, Freshness } from "./common";
 import { teamSeasonHref } from "@/lib/team-navigation";
-import { FollowPlayerButton } from "./player-pages";
+import { TeamPlayers } from "./team-players";
 import { teamForm, teamMatchOutcome } from "@/domain/team-form";
 
 const formLabels = {
@@ -19,8 +18,6 @@ const formLabels = {
   loss: { letter: "P", label: "Prohra" },
   unknown: { letter: "?", label: "Výsledek nezveřejněn" },
 };
-
-type Page<T> = { items: T[]; total: number };
 
 function matchDate(value: string | null) {
   if (!value) return "Termín neurčen";
@@ -57,16 +54,6 @@ export function TeamSeason({
       ),
     refetchInterval: 60000,
     refetchIntervalInBackground: false,
-  });
-  const roster = useQuery({
-    queryKey: ["team-roster", teamId, seasonId],
-    enabled: !!seasonId,
-    queryFn: ({ signal }) =>
-      getData<Page<PlayerProfile>>(
-        { kind: "team-roster", teamId, seasonId },
-        signal,
-      ),
-    staleTime: 3600000,
   });
   useFeedReturn(!!matches.data);
   const items = matches.data?.data.items ?? [];
@@ -143,43 +130,12 @@ export function TeamSeason({
           )}
         </section>
       )}
-      <section className="team-roster" aria-labelledby="team-roster-title">
-        <div className="team-roster-heading">
-          <div>
-            <span className="section-kicker">SOUPISKA</span>
-            <h4 id="team-roster-title">Hráči týmu</h4>
-          </div>
-          {roster.data && (
-            <span className="team-roster-count">
-              {roster.data.data.total} hráčů
-            </span>
-          )}
-        </div>
-        {roster.isPending && <p role="status">Načítání soupisky…</p>}
-        {roster.isError && (
-          <ErrorNotice
-            retry={() => void roster.refetch()}
-            message="Soupisku týmu se nepodařilo načíst. Zápasy zůstávají dostupné níže."
-          />
-        )}
-        {roster.data && !roster.data.data.items.length && (
-          <p className="empty-copy">
-            Pro tento tým není ve vybrané sezóně zveřejněná soupiska.
-          </p>
-        )}
-        {!!roster.data?.data.items.length && (
-          <ul className="team-roster-list">
-            {roster.data.data.items.map((player) => (
-              <li key={player.id}>
-                <Link prefetch={false} href={`/players/${player.id}`}>
-                  {playerName(player)}
-                </Link>
-                <FollowPlayerButton player={player} iconOnly />
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
+      <TeamPlayers
+        key={`${teamId}-${seasonId}`}
+        teamId={teamId}
+        seasonId={seasonId}
+        seasonName={seasonName}
+      />
       {!!items.length && (
         <table className="season-matches">
           <caption className="sr-only">
