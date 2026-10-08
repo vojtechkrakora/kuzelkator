@@ -2,6 +2,11 @@ import { z } from "zod";
 import { apiCache, UpstreamError } from "./cache";
 import { collection, type Resource } from "../domain/models";
 import {
+  playerStandingSchema,
+  playerAggregateSchema,
+  type PlayerStatistics,
+} from "../domain/player-statistics";
+import {
   directoryRowSchema,
   profileSchema,
   historySchema,
@@ -172,7 +177,7 @@ export async function getPlayerHistory(id: number, seasonId: number) {
     offset: "0",
     sort: "-teamMatchResult.teamMatch.date,-id",
     include:
-      "player,substitute,laneResults,teamMatchResult,teamMatchResult.team,teamMatchResult.teamMatch,teamMatchResult.teamMatch.homeTeam,teamMatchResult.teamMatch.awayTeam,teamMatchResult.teamMatch.competition,teamMatchResult.substitutions,teamMatchResult.substitutions.playerOut,teamMatchResult.substitutions.playerIn",
+      "player,substitute,laneResults,teamMatchResult,teamMatchResult.team,teamMatchResult.teamMatch,teamMatchResult.teamMatch.homeTeam,teamMatchResult.teamMatch.awayTeam,teamMatchResult.teamMatch.competition,teamMatchResult.teamMatch.venue,teamMatchResult.substitutions,teamMatchResult.substitutions.playerOut,teamMatchResult.substitutions.playerIn",
   });
   const path = () => `/members/${id}/match-results?${query}`;
   const first = await apiCache.get(path(), collection(historySchema));
@@ -186,6 +191,52 @@ export async function getPlayerHistory(id: number, seasonId: number) {
     items.push(...next.data.items);
     stale ||= next.stale;
     if (next.checkedAt < checkedAt) checkedAt = next.checkedAt;
+  }
+  return { data: { items, total: items.length }, stale, checkedAt };
+}
+
+export async function getPlayerStatistics(id: number, seasonId: number) {
+  const query = new URLSearchParams({
+    seasonId: String(seasonId),
+    type: "ALL",
+    include: "team,competition",
+    limit: "100",
+    offset: "0",
+    sort: "team.id,competition.id",
+  });
+  const summaries: z.infer<typeof playerStandingSchema>[] = [];
+  let total = 1,
+    stale = false,
+    checkedAt = "";
+  const record = (page: { stale: boolean; checkedAt: string }) => {
+    stale ||= page.stale;
+    if (!checkedAt || page.checkedAt < checkedAt) checkedAt = page.checkedAt;
+  };
+  while (summaries.length < total) {
+    query.set("offset", String(summaries.length));
+    const page = await apiCache.get(
+      `/members/${id}/player-stats?${query}`,
+      collection(playerStandingSchema),
+      600000,
+    );
+    total = page.data.total;
+    if (!page.data.items.length && summaries.length < total)
+      throw new UpstreamError(502);
+    summaries.push(...page.data.items);
+    record(page);
+  }
+  const items: PlayerStatistics[] = [];
+  for (const summary of summaries) {
+    const page = await apiCache.get(
+      `/teams/${summary.team.id}/player-stats?competitionId=${summary.competition.id}&include=player`,
+      collection(playerAggregateSchema),
+      600000,
+    );
+    record(page);
+    items.push({
+      ...summary,
+      aggregates: page.data.items.filter((r) => r.player.id === id),
+    });
   }
   return { data: { items, total: items.length }, stale, checkedAt };
 }

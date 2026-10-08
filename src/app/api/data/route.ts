@@ -17,6 +17,7 @@ import { UpstreamError } from "@/server/cache";
 import {
   findPlayers,
   getPlayerHistory,
+  getPlayerStatistics,
   getTeamRoster,
   getPlayerTeams,
   playerSearchInput,
@@ -36,6 +37,7 @@ export async function GET(request: NextRequest) {
         result = await getTeamRoster(teamRosterInput.parse(params));
         break;
       case "player-teams":
+      case "player-statistics":
       case "player-history": {
         const input = z
           .object({
@@ -44,7 +46,11 @@ export async function GET(request: NextRequest) {
           })
           .parse(params);
         result = await (
-          params.kind === "player-teams" ? getPlayerTeams : getPlayerHistory
+          params.kind === "player-teams"
+            ? getPlayerTeams
+            : params.kind === "player-statistics"
+              ? getPlayerStatistics
+              : getPlayerHistory
         )(input.id, input.seasonId);
         break;
       }

@@ -87,7 +87,11 @@ export const matchSchema = z.object({
   awayTeam: teamSchema.nullish(),
   competition: competitionSchema.nullish(),
   venue: z
-    .object({ name: z.string(), city: z.string().nullable().optional() })
+    .object({
+      id: z.number().int().optional(),
+      name: z.string(),
+      city: z.string().nullable().optional(),
+    })
     .nullish(),
   results: z.array(resultSchema).optional(),
 });
