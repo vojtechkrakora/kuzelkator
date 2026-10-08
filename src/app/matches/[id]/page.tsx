@@ -2,7 +2,8 @@ import { BackToFeed } from "@/components/feed-navigation";
 import { TeamLogo } from "@/components/team-logo";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { MapPin, Trophy } from "lucide-react";
+import { Trophy } from "lucide-react";
+import { MatchInformation } from "@/components/match-information";
 import { getMatch } from "@/server/cka";
 import { UpstreamError } from "@/server/cache";
 import { resultFor, statusLabel } from "@/domain/models";
@@ -103,12 +104,7 @@ export default async function MatchDetail({
             <span>HOSTÉ</span>
           </div>
         </div>
-        {match.venue && (
-          <p className="venue">
-            <MapPin size={16} /> {match.venue.name}
-            {match.venue.city ? ` · ${match.venue.city}` : ""}
-          </p>
-        )}
+        <MatchInformation match={match} />
         <Freshness {...resource} />
       </section>
       <div className="section-title">

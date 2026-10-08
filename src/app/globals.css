@@ -1290,6 +1290,58 @@ tfoot {
   color: var(--muted);
   font-size: 11px;
 }
+.match-information {
+  margin: 18px 0 14px;
+}
+.match-venue p {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin: 6px 0;
+  overflow-wrap: anywhere;
+}
+.match-venue svg {
+  flex-shrink: 0;
+}
+.match-venue-address,
+.match-venue-extra {
+  color: #536159;
+  font-size: 12px;
+  line-height: 1.6;
+}
+.match-venue-extra {
+  margin: 8px 0;
+}
+.match-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 14px;
+}
+.match-actions a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 48px;
+  padding: 12px 18px;
+  border: 1px solid #bdd1c0;
+  border-radius: 10px;
+  background: white;
+  color: var(--green);
+  font-weight: 700;
+}
+.match-actions a:hover {
+  background: var(--soft);
+  border-color: var(--green);
+}
+@media (max-width: 740px) {
+  .match-actions a {
+    flex: 1 1 130px;
+  }
+}
 .detail-note {
   font-size: 12px;
   color: var(--muted);
