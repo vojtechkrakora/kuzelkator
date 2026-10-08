@@ -9,6 +9,245 @@
   --soft: #edf3e9;
   --radius: 14px;
 }
+.player-statistics {
+  margin: 24px 0 32px;
+  min-width: 0;
+}
+.stats-heading {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 16px;
+}
+.stats-heading h2 {
+  margin: 5px 0 0;
+}
+.stats-context {
+  margin-bottom: 16px;
+  color: #536159;
+}
+.stats-select {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+.stats-select select {
+  width: 100%;
+  min-width: 0;
+  min-height: 48px;
+}
+.stats-cards {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+.stats-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 8px;
+  border: 1px solid var(--line);
+  background: white;
+  border-radius: 14px;
+  padding: 18px;
+}
+.stats-card > span {
+  font-size: 13px;
+  font-weight: 600;
+}
+.stats-card > strong {
+  font-size: 30px;
+  letter-spacing: -1px;
+}
+.stats-card small {
+  font-size: 12px;
+  line-height: 1.5;
+  letter-spacing: normal;
+  color: #536159;
+}
+.stats-card-primary {
+  background: #176347;
+  border-color: #176347;
+  color: white;
+}
+.stats-card-primary small {
+  color: #d9eadd;
+}
+.stats-averages {
+  margin: 20px 0 12px;
+  width: 100%;
+  white-space: normal;
+}
+.stats-averages caption {
+  text-align: left;
+  font-weight: 700;
+  padding-bottom: 12px;
+}
+.stats-averages th,
+.stats-averages td {
+  padding: 10px 8px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.stats-averages th:first-child {
+  text-align: left;
+}
+.stats-note {
+  font-size: 12px;
+  line-height: 1.6;
+  color: #536159;
+  margin: 8px 0 14px;
+}
+.stats-metrics {
+  display: flex;
+  gap: 6px;
+  margin: 20px 0 16px;
+}
+.stats-metrics button {
+  flex: 1;
+  min-height: 46px;
+  padding: 8px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: white;
+}
+.stats-metrics button[aria-pressed="true"],
+.stats-match-picker button[aria-pressed="true"] {
+  background: #176347;
+  color: white;
+  border-color: #176347;
+}
+.stats-chart-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+.stats-chart {
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: white;
+  min-width: 0;
+}
+.stats-chart h3 {
+  font-size: 17px;
+  margin: 0 0 8px;
+}
+.performance-chart {
+  width: 100%;
+  display: block;
+}
+.performance-chart text {
+  font-size: 11px;
+  fill: #536159;
+}
+.stats-match-picker {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+}
+.stats-match-picker button {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  min-height: 52px;
+  background: #f5f6f3;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 6px 2px;
+}
+.stats-match-picker small {
+  font-size: 10px;
+}
+.stats-active-match {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 12px;
+  padding: 12px;
+  border-radius: 8px;
+  background: var(--soft);
+  min-height: 48px;
+}
+.stats-active-match span {
+  font-size: 12px;
+}
+.stats-bars {
+  list-style: none;
+  padding: 0;
+  margin: 16px 0 0;
+  display: grid;
+  gap: 16px;
+}
+.stats-bars li > div:first-child {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 6px;
+}
+.stats-bars strong {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.stats-bars small {
+  display: block;
+  font-size: 11px;
+  color: #536159;
+  margin-top: 5px;
+}
+.stats-bar-track {
+  height: 9px;
+  background: #edf3e9;
+  border-radius: 5px;
+  overflow: hidden;
+}
+.stats-bar-track span {
+  display: block;
+  height: 100%;
+  background: #428568;
+  border-radius: inherit;
+}
+.stats-home-away {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.stats-home-away > div {
+  padding: 16px;
+  border-radius: 10px;
+  background: var(--soft);
+  display: grid;
+  gap: 10px;
+}
+.stats-home-away strong {
+  font-size: 24px;
+}
+@media (max-width: 1000px) {
+  .stats-cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 740px) {
+  .stats-chart-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .stats-card {
+    padding: 14px 12px;
+  }
+  .stats-card > strong {
+    font-size: 27px;
+  }
+  .stats-chart {
+    padding: 16px 12px;
+  }
+  .stats-cards {
+    gap: 8px;
+  }
+}
 * {
   box-sizing: border-box;
 }

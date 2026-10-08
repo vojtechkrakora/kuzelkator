@@ -18,6 +18,7 @@ import { teamSeasonHref } from "../lib/team-navigation";
 import { LaneScore } from "./player-detail";
 import { DesktopSidebar } from "./desktop-sidebar";
 import { MobileNavigation } from "./mobile-navigation";
+import { PlayerStatisticsSection } from "./player-statistics";
 
 type Page<T> = { items: T[]; total: number };
 function PlayerPageLayout({ children }: { children: React.ReactNode }) {
@@ -277,6 +278,12 @@ export function PlayerSeasonPage({
           ))}
         </select>
       </label>
+      <PlayerStatisticsSection
+        key={id}
+        playerId={player.id}
+        seasonId={id}
+        history={results.data?.data.items}
+      />
       <h2>Výsledky v sezóně</h2>
       <p className="lane-detail-note">
         Zveřejněné individuální výsledky. Budoucí účast hráče nelze určit před
