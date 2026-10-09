@@ -69,3 +69,25 @@ export function completePlayerPerformances(
       ),
     );
 }
+
+export type PlayerAverageView = "all" | "home" | "away";
+
+/** A zero TOTAL side average is the API's missing-performance sentinel.
+ * Use TOTAL to distinguish that from a genuine zero in errors/spares.
+ */
+export function teamPlayerAverage(
+  row: PlayerAggregate | undefined,
+  total: PlayerAggregate | undefined,
+  view: PlayerAverageView,
+): number | null {
+  if (!row || row.matches <= 0) return null;
+  if (view === "all") return row.averageResult;
+  const field = view === "home" ? "homeAverage" : "awayAverage";
+  if (
+    !total ||
+    total.matches <= 0 ||
+    !(total[field] != null && total[field] > 0)
+  )
+    return null;
+  return row[field];
+}

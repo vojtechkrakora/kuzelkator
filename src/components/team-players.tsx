@@ -5,7 +5,12 @@ import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { playerName, type Competition } from "@/domain/models";
 import type { PlayerProfile } from "@/domain/players";
-import { statMetrics, type PlayerAggregate } from "@/domain/player-statistics";
+import {
+  statMetrics,
+  teamPlayerAverage,
+  type PlayerAverageView,
+  type PlayerAggregate,
+} from "@/domain/player-statistics";
 import { getData } from "@/lib/client-api";
 import { ErrorNotice, Freshness } from "./common";
 import { FollowPlayerButton } from "./player-pages";
@@ -29,6 +34,11 @@ export function TeamPlayers({
   seasonId: string;
   seasonName?: string;
 }) {
+  const [view, setView] = useState<PlayerAverageView>("all");
+  const viewLabel =
+    view === "home" ? "Doma" : view === "away" ? "Venku" : "Celkem";
+  const averageLabel =
+    view === "all" ? "Průměr" : `Průměr ${viewLabel.toLowerCase()}`;
   const [chosen, setChosen] = useState("");
   const roster = useQuery({
     queryKey: ["team-roster", teamId, seasonId],
@@ -110,6 +120,40 @@ export function TeamPlayers({
       ) : (
         selected && <p className="team-player-competition">{selected.name}</p>
       )}
+      {selected && (
+        <>
+          <div
+            className="team-player-view"
+            role="group"
+            aria-label="Pohled na průměry hráčů"
+          >
+            {(
+              [
+                ["all", "Celkem"],
+                ["home", "Doma"],
+                ["away", "Venku"],
+              ] as const
+            ).map(([value, label]) => (
+              <button
+                key={value}
+                type="button"
+                aria-pressed={view === value}
+                onClick={() => setView(value)}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+          {view !== "all" && (
+            <p className="stats-note">
+              Průměry {viewLabel.toLowerCase()} podle role týmu v zápase, nikoli
+              podle konkrétní kuželny. Počty zápasů, pozice a střídání jsou za
+              celou sezónu ve vybrané soutěži. Průměr průměrů pro tento pohled
+              není dostupný. Pomlčka znamená nedostupný průměr.
+            </p>
+          )}
+        </>
+      )}
       {roster.isPending && <p role="status">Načítání hráčů…</p>}
       {roster.isError && (
         <ErrorNotice
@@ -168,34 +212,41 @@ export function TeamPlayers({
               </div>
               {!!rows.length && (
                 <>
-                  <dl className="team-player-summary">
+                  <dl
+                    className={`team-player-summary${view !== "all" ? " team-player-summary-filtered" : ""}`}
+                  >
                     <div>
-                      <dt>Zápasy</dt>
+                      <dt>{view === "all" ? "Zápasy" : "Zápasy za sezónu"}</dt>
                       <dd>{number(total?.matches)}</dd>
                     </div>
                     <div>
-                      <dt>Průměr</dt>
-                      <dd>{number(average(total, "averageResult"))}</dd>
+                      <dt>{averageLabel}</dt>
+                      <dd>{number(teamPlayerAverage(total, total, view))}</dd>
                     </div>
-                    <div>
-                      <dt>Průměr průměrů</dt>
-                      <dd>{number(average(total, "averagePerformance"))}</dd>
-                    </div>
+                    {view === "all" && (
+                      <div>
+                        <dt>Průměr průměrů</dt>
+                        <dd>{number(average(total, "averagePerformance"))}</dd>
+                      </div>
+                    )}
                   </dl>
                   <details>
                     <summary>
                       Podrobné statistiky
+                      {view !== "all" ? ` — ${viewLabel.toLowerCase()}` : ""}
                       <span className="sr-only"> — {playerName(player)}</span>
                     </summary>
                     <table className="team-player-breakdown">
                       <caption className="sr-only">
-                        Průměry hráče {playerName(player)}
+                        Průměry hráče {playerName(player)} — {viewLabel}
                       </caption>
                       <thead>
                         <tr>
                           <th scope="col">Výkon</th>
-                          <th scope="col">Průměr</th>
-                          <th scope="col">Průměr průměrů</th>
+                          <th scope="col">{averageLabel}</th>
+                          {view === "all" && (
+                            <th scope="col">Průměr průměrů</th>
+                          )}
                         </tr>
                       </thead>
                       <tbody>
@@ -206,17 +257,23 @@ export function TeamPlayers({
                             return (
                               <tr key={m.type}>
                                 <th scope="row">{m.label}</th>
-                                <td>{number(average(row, "averageResult"))}</td>
                                 <td>
-                                  {number(average(row, "averagePerformance"))}
+                                  {number(teamPlayerAverage(row, total, view))}
                                 </td>
+                                {view === "all" && (
+                                  <td>
+                                    {number(average(row, "averagePerformance"))}
+                                  </td>
+                                )}
                               </tr>
                             );
                           })}
                       </tbody>
                     </table>
                     <p className="team-player-positions">
-                      <strong>Pozice v sestavě</strong>
+                      <strong>
+                        Pozice v sestavě{view !== "all" ? " za sezónu" : ""}
+                      </strong>
                       <span>
                         {positions.length
                           ? positions
@@ -229,8 +286,9 @@ export function TeamPlayers({
                       </span>
                     </p>
                     <p className="stats-note">
-                      Střídání: {number(total?.substituteStarts)} · Průměry dle
-                      statistik ČKA.
+                      Střídání{view !== "all" ? " za sezónu" : ""}:{" "}
+                      {number(total?.substituteStarts)} · Průměry dle statistik
+                      ČKA.
                     </p>
                   </details>
                 </>
