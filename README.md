@@ -178,3 +178,18 @@ Průměry sami nepřepočítáváme ani k nim nepřičítáme střídané výkon
 Uživatelské změny zapisujeme česky do [CHANGELOG.md](CHANGELOG.md) do sekce
 Připravované vydání. Při vydání ji nahradíme verzí a datem vydání a stejný text
 použijeme v release PR a GitHub Release.
+
+## Podrobnosti tabulky soutěže
+
+Tabulka družstev umožňuje přepnutí Celkem / Doma / Venku. Zachovává oficiální
+pořadí ČKA i přechod na poslední dostupné kolo. Změnu pořadí porovnává s předchozí
+dostupnou tabulkou stejného typu podle identifikátoru týmu, nikoli pořadí řádků.
+Srovnání se načítá samostatně; jeho chyba nezablokuje zobrazení aktuální tabulky.
+
+Rozbalitelné podrobnosti obsahují zápasové a dílčí body (získané : ztracené),
+prostý průměr kuželek na zápas, minimum a maximum, bilanci a odstup od sousedních
+týmů v tabulkových bodech. Průměr používá `simpleAveragePerformance` z tabulky
+vybraného typu, nikoli odlišný agregát `averagePerformance`; tyto hodnoty nejsou
+zaměnitelné. Ověřeno na domácí tabulce 2. KLM A po 4. kole (3357 a 3379 kuželek,
+průměr 3368), 9. 10. 2026. Nulový počet zápasů nezobrazuje nulový průměr jako výkon.
+Postupy a sestupy automaticky neurčujeme.

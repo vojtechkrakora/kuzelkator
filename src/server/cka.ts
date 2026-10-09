@@ -187,8 +187,12 @@ export function getCompetitions(seasonId: number, offset = 0) {
     300000,
   );
 }
-async function getRoundStandings(slug: string, round: number) {
-  const path = `/competitions/${encodeURIComponent(slug)}/rounds/${round}/table?type=ALL&include=team,team.club&sort=position&limit=100`;
+async function getRoundStandings(
+  slug: string,
+  round: number,
+  type: "ALL" | "HOME" | "AWAY",
+) {
+  const path = `/competitions/${encodeURIComponent(slug)}/rounds/${round}/table?type=${type}&include=team,team.club&sort=position&limit=100`;
   const first = await apiCache.get(path, collection(standingSchema), 300000);
   const items = [...first.data.items];
   let stale = first.stale;
@@ -207,7 +211,11 @@ async function getRoundStandings(slug: string, round: number) {
   return { ...first, stale, checkedAt, data: { ...first.data, items } };
 }
 
-export async function getStandings(slug: string, round?: number) {
+export async function getStandings(
+  slug: string,
+  round?: number,
+  type: "ALL" | "HOME" | "AWAY" = "ALL",
+) {
   const availableRounds =
     round == null
       ? await apiCache.get(
@@ -219,7 +227,7 @@ export async function getStandings(slug: string, round?: number) {
   round ??= Math.max(1, ...(availableRounds?.data ?? []));
   async function read(candidate: number) {
     try {
-      return await getRoundStandings(slug, candidate);
+      return await getRoundStandings(slug, candidate, type);
     } catch (error) {
       // A missing table is different from an outage or rate limit.
       if (error instanceof UpstreamError && error.status === 404) return null;

@@ -102,3 +102,29 @@ it("finds the latest published table without relying on matches in the date wind
       .map((path) => path.match(/rounds\/(\d+)/)?.[1]),
   ).toEqual(["5", "4"]);
 });
+
+it.each(["HOME", "AWAY"] as const)(
+  "keeps %s through fallback and pagination",
+  async (type) => {
+    const paths: string[] = [];
+    vi.spyOn(apiCache, "get").mockImplementation(async (path) => {
+      paths.push(path);
+      if (path.endsWith("/rounds")) return resource([1, 2, 4]);
+      if (path.includes("/4/table")) throw new UpstreamError(404);
+      if (path.includes("offset=1"))
+        return resource({
+          items: [{ ...row, position: 2, team: { id: 2, name: "Praha" } }],
+          total: 2,
+        });
+      return resource({ items: [row], total: 2 });
+    });
+    const result = await getStandings("league", 4, type);
+    expect(result.data.round).toBe(2);
+    expect(result.data.items.map((r) => r.team.id)).toEqual([1, 2]);
+    expect(
+      paths
+        .filter((p) => p.includes("/table"))
+        .every((p) => p.includes(`type=${type}`)),
+    ).toBe(true);
+  },
+);

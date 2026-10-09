@@ -109,6 +109,13 @@ export const standingSchema = z.object({
   draws: z.number(),
   losses: z.number(),
   tablePoints: z.number(),
+  teamPointsWon: z.number().nullish(),
+  teamPointsLost: z.number().nullish(),
+  setPointsWon: z.number().nullish(),
+  setPointsLost: z.number().nullish(),
+  simpleAveragePerformance: z.number().nullish(),
+  minPerformance: z.number().nullish(),
+  maxPerformance: z.number().nullish(),
   averagePerformance: z.number().nullable(),
   team: teamSchema,
 });
