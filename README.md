@@ -158,3 +158,23 @@ Small per-player team lookups run after the match list loads and are cached for
 one hour in the browser and server. No lookup runs without favourite players.
 Players without published season statistics cannot yet contribute teams; transfers
 or appearances for multiple teams can leave more than one team included that season.
+
+## Průměry hráčů týmu
+
+V části Hráči týmu přepínač Celkem / Doma / Venku mění průměry všech hráčů,
+včetně plných, dorážky a chyb v podrobnostech. Používá již načtené agregáty
+ČKA; přepnutí nevyvolává další požadavky. Doma a Venku označuje roli týmu
+v zápase, nikoli konkrétní kuželnu. Počty zápasů, pozice a střídání zůstávají
+za celou sezónu ve vybrané soutěži a jsou tak označené.
+
+Veřejné schéma TeamPlayerStats a živá odpověď byly ověřeny 9. 10. 2026.
+Endpoint neposkytuje samostatné počty započítaných výkonů ani průměr průměrů
+pro domácí/venkovní pohled. Tyto průměry průměrů proto nezobrazujeme a počty
+neodvozujeme z výher a proher, které nepokrývají remízy. Nulový nebo chybějící
+TOTAL průměr v daném pohledu považujeme za nedostupný výkon a zobrazujeme
+pomlčku; skutečnou nulu chyb či dorážky zachováváme při dostupném TOTAL výkonu.
+Průměry sami nepřepočítáváme ani k nim nepřičítáme střídané výkony.
+
+Uživatelské změny zapisujeme česky do [CHANGELOG.md](CHANGELOG.md) do sekce
+Připravované vydání. Při vydání ji nahradíme verzí a datem vydání a stejný text
+použijeme v release PR a GitHub Release.
