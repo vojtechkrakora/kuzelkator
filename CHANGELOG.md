@@ -1,6 +1,6 @@
 # Historie změn
 
-## Připravované vydání
+## 0.9.0 — připraveno k vydání
 
 ### Vylepšení
 

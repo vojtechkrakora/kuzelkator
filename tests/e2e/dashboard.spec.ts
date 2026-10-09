@@ -184,9 +184,9 @@ test("corrupt preferences do not prevent loading results", async ({ page }) => {
   );
   await mockApi(page);
   await page.goto("/?date=2026-09-26");
-  await expect(page.getByRole("status")).toContainText(
-    "Uložené týmy nelze načíst",
-  );
+  await expect(
+    page.getByRole("status").filter({ hasText: "Uložené týmy nelze načíst" }),
+  ).toBeVisible();
   await expect(
     page.getByRole("link", {
       name: "Detail zápasu SK Podlužan Prušánky – KK Blansko",

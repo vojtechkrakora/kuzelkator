@@ -39,7 +39,7 @@ Use the same context and project name for subsequent management commands. Stoppi
 
 ## Release process
 
-Production releases are planned once a week, preferably Tuesday. Changes integrate into `develop`; only approved releases reach `main`. Testing runs locally in Docker, with one production service on Render and no hosted staging site. Ordinary PRs do not increase the app version; each production release does. See the Czech [release process](docs/RELEASE-PROCESS.md), including the Friday–Sunday deployment freeze and critical hotfix procedure.
+Production releases are planned once a week, preferably Tuesday. Changes integrate into `develop`; only approved releases reach `main`. Production Docker candidates are validated on native Linux amd64 in GitHub Actions, with compatible local Docker testing as a supplementary check. There is one production service on Render and no hosted staging site. Ordinary PRs do not increase the app version; each production release does. See the Czech [release process](docs/RELEASE-PROCESS.md), including the Friday–Sunday deployment freeze and critical hotfix procedure.
 
 ## Deploy to Render.com
 
