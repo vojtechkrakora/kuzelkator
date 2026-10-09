@@ -1,6 +1,6 @@
 # Vydávání Kuželkátoru
 
-Cílem je stabilní provoz během zápasů a možnost průběžně připravovat změny bez každodenního nasazování. Používáme jediný produkční web na Renderu. Testování probíhá lokálně v Dockeru; nezřizujeme testovací web ani náhledové služby pro PR na Renderu.
+Cílem je stabilní provoz během zápasů a možnost průběžně připravovat změny bez každodenního nasazování. Používáme jediný produkční web na Renderu. Produkční Docker ověřujeme na nativním Linuxu amd64 v GitHub Actions, lokální Docker slouží jako doplňková kontrola; nezřizujeme testovací web ani náhledové služby pro PR na Renderu.
 
 ## Větve a schvalování
 
@@ -33,12 +33,28 @@ Tyto kroky nemění produkci a běžná PR nezvyšují verzi aplikace.
 1. Vybereme dokončené změny v `develop` a sestavíme stručný český seznam změn. Nedokončenou práci ponecháváme mimo tuto větev; pokud obsahuje blokující problém, vydání odložíme nebo problém vyřešíme přes PR.
 2. Na větvi `feature/release-<verze>` z `develop` zvýšíme verzi v `package.json` i `package-lock.json`. Toto přípravné PR projde stejným ověřením uživatelem a nezávislou kontrolou jako ostatní PR a sloučí se do `develop`.
 3. Otevřeme release PR `develop` → `main` s verzí, seznamem změn, výsledky kontrol a případnými omezeními. Po dobu ověřování do `develop` neslučujeme další změny. Další práci lze připravovat v samostatných větvích.
-4. Otestujeme přesný head commit release PR lokálně v Dockeru. Nezávislý agent zkontroluje celé vydání proti `main`, včetně verze a výsledků kontrol. Před nasazením znovu ověříme, že se head PR ani cílová větev nezměnily; při změně kandidáta kontroly a schválení obnovíme.
+4. Otestujeme přesný head commit release PR workflowem Linux Docker validation v GitHub Actions. Nezávislý agent zkontroluje celé vydání proti `main`, včetně verze a výsledků kontrol. Před nasazením znovu ověříme, že se head PR ani cílová větev nezměnily; při změně kandidáta kontroly a schválení obnovíme.
 5. Uživatel ověří kandidáta a výslovně schválí jeho vydání s uvedením verze a commit SHA. Teprve potom lze release PR sloučit do `main` a nasadit. Pokud Render automaticky nasazuje z `main`, samotné sloučení už představuje pokyn k nasazení.
 6. Ověříme dokončení nasazení, skutečný nasazený SHA, verzi v aplikaci, dostupnost a základní průchod produkcí. Do release PR zaznamenáme verzi, nasazený SHA, čas nasazení s časovým pásmem a výsledek ověření.
 7. Přes zkontrolované synchronizační PR `main` → `develop` přeneseme historii vydání zpět, pokud se větve rozešly. Synchronizace stejného vydání nezvyšuje verzi. Poté obnovíme běžné slučování do `develop`.
 
 Verzi zvyšujeme jednou za celé produkční vydání podle nejsilnější změny: patch pro opravy, dokumentaci a malé úpravy; minor pro nové zpětně kompatibilní funkce; major pro nekompatibilní změny. Kritická oprava má vlastní zvýšení verze. Nezvyšujeme ji znovu při synchronizaci větví nebo opakovaném sestavení stejného kandidáta.
+
+## Ověření na Linuxu v GitHub Actions
+
+Workflow `.github/workflows/docker-validation.yml` se spouští pro PR do `develop`
+a `main`. Testuje přesný head SHA PR na nativním amd64 runneru: sestaví produkční
+Docker image (unit testy a TypeScript build), spustí kontejner, ověří health endpoint,
+dekódování PNG, změnu velikosti a WebP enkódování přes sharp, browser testy a stav
+kontejneru. Workflow nic nenasazuje a nevytváří další službu na Renderu.
+
+Úspěšný běh musí odpovídat aktuálnímu head SHA release PR. Při změně kandidáta
+je nutný nový běh. Výsledek a odkaz na běh uvedeme v release PR. Při nekompatibilitě
+lokální emulace na Apple Silicon nahrazuje tato kontrola požadavek na lokální Docker;
+nenahrazuje ověření živých dat, nezávislou kontrolu ani schválení uživatelem.
+
+Po schválení vydání doplníme v changelogu skutečné datum vydání; příprava verze
+není důkaz nasazení. Dokud datum není potvrzené, používáme „připraveno k vydání“.
 
 ## Lokální ověření
 
@@ -69,7 +85,7 @@ Lokální kontrola nenahrazuje ověření nasazené aplikace v prostředí Rende
 
 Kritická oprava řeší například nefunkční přehled nebo detail zápasu, zásadně chybné výsledky způsobené aplikací či bezpečnostní problém. Nová funkce nebo drobná vizuální úprava počká na běžné vydání.
 
-Opravnou větev založíme z aktuálního `main`, nikoli z rozpracovaného `develop`. Zahrneme pouze nezbytnou opravu a odpovídající zvýšení verze. Provedeme relevantní testy, lokální Docker kontrolu, ověření uživatelem před commitem a pushem a nezávislou kontrolu PR. Nasazení i během pátečního až nedělního zákazu vyžaduje výslovný souhlas uživatele s kritickým vydáním. Po nasazení přeneseme opravu i verzi do `develop` přes PR; případné konflikty vyřešíme před dalším vydáním.
+Opravnou větev založíme z aktuálního `main`, nikoli z rozpracovaného `develop`. Zahrneme pouze nezbytnou opravu a odpovídající zvýšení verze. Provedeme relevantní testy, Docker kontrolu na nativním Linuxu, ověření uživatelem před commitem a pushem a nezávislou kontrolu PR. Nasazení i během pátečního až nedělního zákazu vyžaduje výslovný souhlas uživatele s kritickým vydáním. Po nasazení přeneseme opravu i verzi do `develop` přes PR; případné konflikty vyřešíme před dalším vydáním.
 
 Pokud nové vydání způsobí vážnou regresi, navrhneme návrat k poslední známé funkční nasazené revizi. Po explicitním schválení uživatelem provedeme návrat, ověříme produkci a zaznamenáme nasazený SHA i důvod. Nepřepisujeme historii Git větví. Pokud produkce po návratu neodpovídá `main`, zaznamenáme tento stav a připravíme opravné nebo revertovací PR; další běžné vydání počká na vyřešení. Konkrétní možnost návratu ověříme v aktuálním nastavení Renderu před nasazením, nespoléháme na neověřenou dostupnost starého artefaktu.
 
@@ -84,3 +100,9 @@ Tento dokument popisuje dohodnutý režim. Jeho vytvoření samo nemění nastav
 - Při zakládání PR vždy výslovně určit cílovou větev, aby výchozí nastavení GitHubu omylem neposlalo běžnou změnu do produkce.
 
 Provozní nastavení a vytvoření vzdálených větví provedeme jako samostatný schválený krok. První běžné vydání zahrnující tuto dokumentaci už použije nové pravidlo: jedno zvýšení verze za celé vydání.
+
+## Výjimka pro plánované vydání 0.9.0
+
+Uživatel výslovně schválil výjimku z pátečního až nedělního omezení pro toto
+vydání. Výjimka neruší úspěšné kontroly, nezávislou revizi ani závěrečné schválení
+konkrétní revize před nasazením. Neplatí automaticky pro další vydání.
