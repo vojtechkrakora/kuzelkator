@@ -37,6 +37,10 @@ docker --context desktop-linux compose down
 
 Use the same context and project name for subsequent management commands. Stopping this Compose project does not stop other containers. The local health endpoint is [health](http://localhost:43127/api/health); it checks application availability without calling ČKA.
 
+## Release process
+
+Production releases are planned once a week, preferably Tuesday. Changes integrate into `develop`; only approved releases reach `main`. Production Docker candidates are validated on native Linux amd64 in GitHub Actions, with compatible local Docker testing as a supplementary check. There is one production service on Render and no hosted staging site. Ordinary PRs do not increase the app version; each production release does. See the Czech [release process](docs/RELEASE-PROCESS.md), including the Friday–Sunday deployment freeze and critical hotfix procedure.
+
 ## Deploy to Render.com
 
 The included [render.yaml](render.yaml) Blueprint runs the existing Docker image as a web service in Frankfurt. It defaults to Render's free compute plan for trying the POC. No database, persistent disk, or API credentials are required.
@@ -49,7 +53,7 @@ The included [render.yaml](render.yaml) Blueprint runs the existing Docker image
 
 Render uses the Dockerfile directly, not the local Compose file. Leave the Docker start-command override empty so the image runs `node server.js`. The Blueprint sets `PORT=10000` and `HOSTNAME=0.0.0.0`; the standalone server already respects these values. The local host port 43127 and `KUZELKATOR_PORT` do not apply to Render. Do not use the local `npm start` helper as a Render command because it binds to loopback for local use.
 
-Pushing a commit to the connected branch automatically rebuilds and deploys the service. Change `autoDeployTrigger` to `off` if you prefer manual deployments.
+The checked-in Blueprint has `autoDeployTrigger: commit`. Before adopting the release process, verify that the existing service follows only `main`; never connect production to `develop`. With automatic deployment enabled, merging an approved release into `main` is the production deployment action and requires explicit release approval. The Blueprint does not currently pin a branch, and this documentation change does not change the live service settings. See the [one-time setup](docs/RELEASE-PROCESS.md#jednorázové-zavedení).
 
 Free web services spin down after 15 minutes without incoming traffic and take time to wake up. Use a paid compute plan for an always-on production deployment, updating `plan` in render.yaml to match the chosen plan. The response cache is held in memory and resets on deploys/restarts; favourites stay in each visitor's browser. Localhost favourites do not automatically transfer to the new domain.
 
@@ -154,3 +158,38 @@ Small per-player team lookups run after the match list loads and are cached for
 one hour in the browser and server. No lookup runs without favourite players.
 Players without published season statistics cannot yet contribute teams; transfers
 or appearances for multiple teams can leave more than one team included that season.
+
+## Průměry hráčů týmu
+
+V části Hráči týmu přepínač Celkem / Doma / Venku mění průměry všech hráčů,
+včetně plných, dorážky a chyb v podrobnostech. Používá již načtené agregáty
+ČKA; přepnutí nevyvolává další požadavky. Doma a Venku označuje roli týmu
+v zápase, nikoli konkrétní kuželnu. Počty zápasů, pozice a střídání zůstávají
+za celou sezónu ve vybrané soutěži a jsou tak označené.
+
+Veřejné schéma TeamPlayerStats a živá odpověď byly ověřeny 9. 10. 2026.
+Endpoint neposkytuje samostatné počty započítaných výkonů ani průměr průměrů
+pro domácí/venkovní pohled. Tyto průměry průměrů proto nezobrazujeme a počty
+neodvozujeme z výher a proher, které nepokrývají remízy. Nulový nebo chybějící
+TOTAL průměr v daném pohledu považujeme za nedostupný výkon a zobrazujeme
+pomlčku; skutečnou nulu chyb či dorážky zachováváme při dostupném TOTAL výkonu.
+Průměry sami nepřepočítáváme ani k nim nepřičítáme střídané výkony.
+
+Uživatelské změny zapisujeme česky do [CHANGELOG.md](CHANGELOG.md) do sekce
+Připravované vydání. Při vydání ji nahradíme verzí a datem vydání a stejný text
+použijeme v release PR a GitHub Release.
+
+## Podrobnosti tabulky soutěže
+
+Tabulka družstev umožňuje přepnutí Celkem / Doma / Venku. Zachovává oficiální
+pořadí ČKA i přechod na poslední dostupné kolo. Změnu pořadí porovnává s předchozí
+dostupnou tabulkou stejného typu podle identifikátoru týmu, nikoli pořadí řádků.
+Srovnání se načítá samostatně; jeho chyba nezablokuje zobrazení aktuální tabulky.
+
+Rozbalitelné podrobnosti obsahují zápasové a dílčí body (získané : ztracené),
+prostý průměr kuželek na zápas, minimum a maximum, bilanci a odstup od sousedních
+týmů v tabulkových bodech. Průměr používá `simpleAveragePerformance` z tabulky
+vybraného typu, nikoli odlišný agregát `averagePerformance`; tyto hodnoty nejsou
+zaměnitelné. Ověřeno na domácí tabulce 2. KLM A po 4. kole (3357 a 3379 kuželek,
+průměr 3368), 9. 10. 2026. Nulový počet zápasů nezobrazuje nulový průměr jako výkon.
+Postupy a sestupy automaticky neurčujeme.

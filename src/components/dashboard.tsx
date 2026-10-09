@@ -793,19 +793,45 @@ function Standings({
   seasonId: string;
   onChooseTeam: (id: string) => void;
 }) {
+  const [tableType, setTableType] = useState<"ALL" | "HOME" | "AWAY">("ALL");
+  const tableLabel =
+    tableType === "HOME" ? "Doma" : tableType === "AWAY" ? "Venku" : "Celkem";
   const [selectedRound, setSelectedRound] = useState<number | undefined>();
   const table = useQuery({
-    queryKey: ["standings", competition.slug, selectedRound],
+    queryKey: ["standings", competition.slug, selectedRound, tableType],
     queryFn: ({ signal }) =>
       getData<Page<Standing> & { round: number | null }>(
         {
           kind: "standings",
+          type: tableType,
           slug: competition.slug,
           ...(selectedRound != null ? { round: selectedRound } : {}),
         },
         signal,
       ),
   });
+  const actualRound = table.data?.data.round;
+  const previous = useQuery({
+    queryKey: ["standings-previous", competition.slug, actualRound, tableType],
+    enabled: actualRound != null && actualRound > 1,
+    queryFn: ({ signal }) =>
+      getData<Page<Standing> & { round: number | null }>(
+        {
+          kind: "standings",
+          slug: competition.slug,
+          round: actualRound! - 1,
+          type: tableType,
+        },
+        signal,
+      ),
+  });
+  const format = (value: number | null | undefined) =>
+    value == null
+      ? "—"
+      : new Intl.NumberFormat("cs", { maximumFractionDigits: 2 }).format(value);
+  const priorRows = new Map(
+    previous.data?.data.items.map((row) => [row.team.id, row]) ?? [],
+  );
   return (
     <section className="standings">
       <div className="section-title">
@@ -838,6 +864,32 @@ function Standings({
           )}
         </label>
       </div>
+      <div
+        className="team-player-view"
+        role="group"
+        aria-label="Pohled tabulky družstev"
+      >
+        {(
+          [
+            ["ALL", "Celkem"],
+            ["HOME", "Doma"],
+            ["AWAY", "Venku"],
+          ] as const
+        ).map(([value, label]) => (
+          <button
+            key={value}
+            type="button"
+            aria-pressed={tableType === value}
+            onClick={() => setTableType(value)}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+      <p className="stats-note">
+        {tableLabel} · Body v tabulce jsou tabulkové body družstva. Skóre a
+        průměry najdete v podrobnostech týmu.
+      </p>
       {table.isPending && <p role="status">Načítání tabulky…</p>}
       {table.isError && <ErrorNotice retry={() => void table.refetch()} />}
       {table.data && (
@@ -850,12 +902,36 @@ function Standings({
                 : `Tabulka po ${table.data.data.round}. kole.`}
             </p>
           )}
+          {table.data.data.items.length > 0 && (
+            <div className="stats-note" role="status">
+              {previous.isError ? (
+                <>
+                  <span>Srovnání pořadí se nepodařilo načíst. </span>
+                  <button
+                    className="button"
+                    onClick={() => void previous.refetch()}
+                  >
+                    Zkusit srovnání znovu
+                  </button>
+                </>
+              ) : actualRound != null &&
+                actualRound > 1 &&
+                previous.isPending ? (
+                "Načítání změny pořadí…"
+              ) : previous.data?.data.round != null ? (
+                `Změna pořadí proti ${previous.data.data.round}. kolu · ${tableLabel.toLowerCase()}.`
+              ) : (
+                "Předchozí tabulka pro srovnání není dostupná."
+              )}
+              {previous.data && <Freshness {...previous.data} />}
+            </div>
+          )}
           {table.data.data.items.length ? (
             <div className="table-scroll">
               <table>
                 <caption className="sr-only">
                   Tabulka {competition.name},{" "}
-                  {table.data.data.round ?? selectedRound}. kolo
+                  {table.data.data.round ?? selectedRound}. kolo · {tableLabel}
                 </caption>
                 <thead>
                   <tr>
@@ -869,9 +945,29 @@ function Standings({
                   </tr>
                 </thead>
                 <tbody>
-                  {table.data.data.items.map((row) => (
+                  {table.data.data.items.map((row, index, rows) => (
                     <tr key={row.team.id}>
-                      <td>{row.position}</td>
+                      <td>
+                        {row.position}
+                        <span
+                          className="standing-movement"
+                          aria-label={
+                            priorRows.has(row.team.id)
+                              ? `Změna pořadí: ${priorRows.get(row.team.id)!.position - row.position > 0 ? "postup o" : priorRows.get(row.team.id)!.position - row.position < 0 ? "pokles o" : "beze změny"} ${Math.abs(priorRows.get(row.team.id)!.position - row.position) || ""}`
+                              : "Změna pořadí není dostupná"
+                          }
+                        >
+                          {priorRows.has(row.team.id)
+                            ? priorRows.get(row.team.id)!.position >
+                              row.position
+                              ? `↑${priorRows.get(row.team.id)!.position - row.position}`
+                              : priorRows.get(row.team.id)!.position <
+                                  row.position
+                                ? `↓${row.position - priorRows.get(row.team.id)!.position}`
+                                : "="
+                            : "—"}
+                        </span>
+                      </td>
                       <th scope="row">
                         <span className="table-team">
                           <Link
@@ -888,6 +984,77 @@ function Standings({
                           </Link>
                           <FollowButton team={row.team} />
                         </span>
+                        <details
+                          className="standing-details"
+                          key={`${tableType}-${actualRound}`}
+                        >
+                          <summary>
+                            Podrobnosti
+                            <span className="sr-only"> — {row.team.name}</span>
+                          </summary>
+                          <dl>
+                            <div>
+                              <dt>Výhry / remízy / prohry</dt>
+                              <dd>
+                                {row.wins} / {row.draws} / {row.losses}
+                              </dd>
+                            </div>
+                            <div>
+                              <dt>Zápasové body (získané : ztracené)</dt>
+                              <dd>
+                                {format(row.teamPointsWon)} :{" "}
+                                {format(row.teamPointsLost)}
+                              </dd>
+                            </div>
+                            <div>
+                              <dt>Dílčí body (získané : ztracené)</dt>
+                              <dd>
+                                {format(row.setPointsWon)} :{" "}
+                                {format(row.setPointsLost)}
+                              </dd>
+                            </div>
+                            <div>
+                              <dt>Průměr kuželek na zápas</dt>
+                              <dd>
+                                {format(
+                                  row.matches > 0
+                                    ? row.simpleAveragePerformance
+                                    : null,
+                                )}
+                              </dd>
+                            </div>
+                            <div>
+                              <dt>Minimum / maximum kuželek</dt>
+                              <dd>
+                                {format(
+                                  row.matches > 0 ? row.minPerformance : null,
+                                )}{" "}
+                                /{" "}
+                                {format(
+                                  row.matches > 0 ? row.maxPerformance : null,
+                                )}
+                              </dd>
+                            </div>
+                          </dl>
+                          <p>
+                            {index > 0
+                              ? `Odstup od ${rows[index - 1].team.name}: ${format(rows[index - 1].tablePoints - row.tablePoints)} tabulkových bodů.`
+                              : "První tým tabulky."}
+                          </p>
+                          {index < rows.length - 1 && (
+                            <p>
+                              Náskok před {rows[index + 1].team.name}:{" "}
+                              {format(
+                                row.tablePoints - rows[index + 1].tablePoints,
+                              )}{" "}
+                              tabulkových bodů.
+                            </p>
+                          )}
+                          <p>
+                            {tableLabel} · {actualRound}. kolo · průměr ze
+                            zápasů tohoto pohledu.
+                          </p>
+                        </details>
                       </th>
                       <td>{row.matches}</td>
                       <td>{row.wins}</td>

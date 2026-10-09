@@ -101,9 +101,10 @@ export async function GET(request: NextRequest) {
           .object({
             slug: z.string().regex(/^[a-z0-9-]{1,180}$/),
             round: z.coerce.number().int().min(1).max(1000).optional(),
+            type: z.enum(["ALL", "HOME", "AWAY"]).default("ALL"),
           })
           .parse(params);
-        result = await getStandings(input.slug, input.round);
+        result = await getStandings(input.slug, input.round, input.type);
         break;
       }
       default:
