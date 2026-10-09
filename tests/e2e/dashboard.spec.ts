@@ -403,7 +403,7 @@ test("standings label an earlier available table and show its teams", async ({
     ),
   ).toBeVisible();
   await expect(page.getByRole("table")).toHaveAccessibleName(
-    "Tabulka 2. KLM B, 2. kolo",
+    "Tabulka 2. KLM B, 2. kolo · Celkem",
   );
   await expect(page.getByRole("table")).toContainText("TJ Tábor");
   const team = page.getByRole("link", { name: "TJ Tábor", exact: true });
@@ -940,9 +940,17 @@ test("league view spans past 7 and future 14 days and keeps standings when there
     });
   });
   await page.route("**/api/data?kind=standings**", (route) => {
-    expect(new URL(route.request().url()).searchParams.has("round")).toBe(
-      false,
-    );
+    const round = new URL(route.request().url()).searchParams.get("round");
+    if (round != null) {
+      expect(round).toBe("3");
+      return route.fulfill({
+        json: {
+          data: { items: [], total: 0, round: null },
+          checkedAt: "2026-10-04T12:00:00Z",
+          stale: false,
+        },
+      });
+    }
     return route.fulfill({
       json: {
         data: {
