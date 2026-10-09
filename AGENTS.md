@@ -34,3 +34,5 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - No normal production deployments Friday through Sunday (Europe/Prague). Critical hotfixes are the exception and require explicit user release approval, checks, and independent review.
 - After a release or hotfix, synchronize `main` back into `develop` through a reviewed PR. Record the actually deployed commit and verify production; a merge alone does not prove deployment succeeded.
 - See `docs/RELEASE-PROCESS.md` for preparation, local checks, deployment, rollback, and one-time setup.
+
+- After verifying each production deployment, create an immutable annotated `v<version>` tag on the exact deployed `main` commit and publish the matching GitHub Release with the Czech release notes, subject to user authorization. Never move or overwrite an existing release tag.

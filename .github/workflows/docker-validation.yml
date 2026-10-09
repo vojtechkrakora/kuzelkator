@@ -33,7 +33,7 @@ jobs:
       - name: Run production container
         run: |
           docker run -d --name release-check --read-only --init --cap-drop ALL --security-opt no-new-privileges:true --tmpfs /tmp --tmpfs /app/.next/cache/images:uid=1001,gid=1001,mode=0700,size=64m -p 127.0.0.1:43128:3000 kuzelkator:candidate
-          curl --fail --retry 12 --retry-connrefused --retry-delay 2 --max-time 10 http://localhost:43128/api/health
+          curl --fail --retry 12 --retry-all-errors --retry-connrefused --retry-delay 2 --max-time 10 http://localhost:43128/api/health
       - name: Check native image processing
         run: |
           docker exec release-check node -e 'const sharp = require("sharp"); (async () => { for (let i = 0; i < 10; i++) { const png = await sharp({create:{width:128,height:128,channels:3,background:"red"}}).png().toBuffer(); await sharp(png).resize(32).webp().toBuffer(); } console.log("PNG decode, resize and WebP encode passed"); })().catch(e => { console.error(e); process.exit(1); });'

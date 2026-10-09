@@ -58,7 +58,7 @@ není důkaz nasazení. Dokud datum není potvrzené, používáme „připraven
 
 ## Lokální ověření
 
-Na přesné revizi kandidáta provedeme:
+Na přesné revizi kandidáta provedeme lokální kontroly. Níže uvedené Docker příkazy jsou doplňkové pro kompatibilní prostředí; při nekompatibilní emulaci na Apple Silicon je nahradí povinná kontrola na nativním Linuxu v GitHub Actions. Uživatelské ověření a živá data zkontrolujeme v lokálně spuštěném produkčním sestavení podle README:
 
 ```sh
 npm ci
@@ -79,7 +79,7 @@ Po ověření ukončíme pouze tento testovací projekt:
 docker compose -p kuzelkator-release-check down
 ```
 
-Lokální kontrola nenahrazuje ověření nasazené aplikace v prostředí Renderu. Pokud kontrolu nelze dokončit, uvedeme omezení a kandidáta nepovažujeme za připraveného k běžnému vydání.
+Lokální kontrola nenahrazuje ověření nasazené aplikace v prostředí Renderu. Nekompatibilní lokální Docker zaznamenáme jako omezení; při úspěšné kontrole stejné revize na nativním Linuxu sám o sobě vydání neblokuje. Bez úspěšné povinné Linux Docker kontroly a uživatelského ověření kandidát není připravený k vydání.
 
 ## Kritická oprava a návrat k funkční verzi
 
@@ -106,3 +106,16 @@ Provozní nastavení a vytvoření vzdálených větví provedeme jako samostatn
 Uživatel výslovně schválil výjimku z pátečního až nedělního omezení pro toto
 vydání. Výjimka neruší úspěšné kontroly, nezávislou revizi ani závěrečné schválení
 konkrétní revize před nasazením. Neplatí automaticky pro další vydání.
+
+## Git tag a GitHub Release
+
+Každé produkční vydání včetně hotfixu označíme anotovaným tagem `v<verze>`,
+například `v0.9.0`. Tag vytvoříme na přesném commitu `main`, jehož úspěšné nasazení
+jsme ověřili; netagujeme přípravnou větev ani neověřený merge. Verze tagu musí
+odpovídat oběma manifestům aplikace. Před vytvořením ověříme, že tag neexistuje.
+Existující tag nikdy nepřesouváme ani nepřepisujeme. Oprava vyžaduje nové vydání.
+
+Po schválení pushnutí tagu publikujeme GitHub Release navázaný na tento existující
+tag se stejnými českými release notes, skutečným datem vydání a nasazeným SHA.
+Tag ani GitHub Release samy nepotvrzují nasazení; důkaz nasazení evidujeme v release
+PR. Pouhé schválení přípravného commitu není souhlas s publikováním vydání.
