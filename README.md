@@ -37,6 +37,10 @@ docker --context desktop-linux compose down
 
 Use the same context and project name for subsequent management commands. Stopping this Compose project does not stop other containers. The local health endpoint is [health](http://localhost:43127/api/health); it checks application availability without calling ČKA.
 
+## Release process
+
+Production releases are planned once a week, preferably Tuesday. Changes integrate into `develop`; only approved releases reach `main`. Testing runs locally in Docker, with one production service on Render and no hosted staging site. Ordinary PRs do not increase the app version; each production release does. See the Czech [release process](docs/RELEASE-PROCESS.md), including the Friday–Sunday deployment freeze and critical hotfix procedure.
+
 ## Deploy to Render.com
 
 The included [render.yaml](render.yaml) Blueprint runs the existing Docker image as a web service in Frankfurt. It defaults to Render's free compute plan for trying the POC. No database, persistent disk, or API credentials are required.
@@ -49,7 +53,7 @@ The included [render.yaml](render.yaml) Blueprint runs the existing Docker image
 
 Render uses the Dockerfile directly, not the local Compose file. Leave the Docker start-command override empty so the image runs `node server.js`. The Blueprint sets `PORT=10000` and `HOSTNAME=0.0.0.0`; the standalone server already respects these values. The local host port 43127 and `KUZELKATOR_PORT` do not apply to Render. Do not use the local `npm start` helper as a Render command because it binds to loopback for local use.
 
-Pushing a commit to the connected branch automatically rebuilds and deploys the service. Change `autoDeployTrigger` to `off` if you prefer manual deployments.
+The checked-in Blueprint has `autoDeployTrigger: commit`. Before adopting the release process, verify that the existing service follows only `main`; never connect production to `develop`. With automatic deployment enabled, merging an approved release into `main` is the production deployment action and requires explicit release approval. The Blueprint does not currently pin a branch, and this documentation change does not change the live service settings. See the [one-time setup](docs/RELEASE-PROCESS.md#jednorázové-zavedení).
 
 Free web services spin down after 15 minutes without incoming traffic and take time to wake up. Use a paid compute plan for an always-on production deployment, updating `plan` in render.yaml to match the chosen plan. The response cache is held in memory and resets on deploys/restarts; favourites stay in each visitor's browser. Localhost favourites do not automatically transfer to the new domain.
 
