@@ -1,5 +1,12 @@
 # Historie změn
 
+## 0.9.1 — připraveno k vydání
+
+### Opravy
+
+- Aktuální tabulka zahrnuje i předehrávky a dohrávky. Srovnávací kolo se určuje zvlášť podle průběhu většiny rozpisu, aby ojedinělá předehrávka neskryla posuny pořadí.
+- Posuny pořadí mají přehlednější zelené a červené indikátory. Nedostupné srovnání je odlišené od nezměněného pořadí.
+
 ## 0.9.0 — připraveno k vydání
 
 ### Vylepšení

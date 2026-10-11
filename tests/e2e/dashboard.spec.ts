@@ -399,7 +399,7 @@ test("standings label an earlier available table and show its teams", async ({
   await page.getByLabel("Kolo tabulky").fill("3");
   await expect(
     page.getByText(
-      "Pro 3. kolo tabulka zatím není zveřejněna. Zobrazujeme poslední dostupnou tabulku po 2. kole.",
+      "Pro 3. kolo není dostupná tabulka z odehraných zápasů. Zobrazujeme tabulku k 2. kolu.",
     ),
   ).toBeVisible();
   await expect(page.getByRole("table")).toHaveAccessibleName(

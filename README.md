@@ -193,3 +193,23 @@ vybraného typu, nikoli odlišný agregát `averagePerformance`; tyto hodnoty ne
 zaměnitelné. Ověřeno na domácí tabulce 2. KLM A po 4. kole (3357 a 3379 kuželek,
 průměr 3368), 9. 10. 2026. Nulový počet zápasů nezobrazuje nulový průměr jako výkon.
 Postupy a sestupy automaticky neurčujeme.
+
+### Aktuální tabulka a srovnávací kolo
+
+Aktuální tabulka zahrnuje všechny publikované výsledky včetně předehrávek:
+načítáme oficiální tabulku nejvyššího kola se zápasem IN_PROGRESS, FINISHED nebo
+FORFEIT. Pokud tato tabulka není dostupná, zobrazíme chybu místo neúplné starší
+tabulky. Ručně vybrané historické tabulky se mohou vracet k nižším dostupným kolům.
+
+Srovnávací kolo určujeme zvlášť z úplného rozpisu. Běžné kolo odhadujeme jako
+nejvyšší kolo, kde alespoň jeden zápas začal a u nadpoloviční většiny zápasů
+už začala hra nebo nastal jejich termín (dnešní datum v Praze). Jedna předehrávka
+šestizápasového kola tak srovnání neposune. Je to odhad z aktuálního rozpisu,
+ne oficiální údaj API; při hromadném překládání zápasů se může změnit. Bez
+určitelného běžného kola jsou šipky nedostupné, ale výsledky se zobrazují.
+
+Šipky porovnávají aktuální tabulku s předchozím způsobilým kolem stejného typu;
+konkrétní kolo je uvedeno. Neznamenají změnu po posledním zápase. Dohrávky mohou
+zpětně upravit i srovnávací tabulku. Žádné snímky neukládáme. Počet utkání týmu
+není číslem kola. Detail soutěže a úplný rozpis jsou ve sdílené cache; neúplný
+rozpis nelze použít k tichému odhadu. Historické sezóny fungují stejným postupem.

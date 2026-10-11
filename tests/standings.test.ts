@@ -1,130 +1,175 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, expect, it, vi } from "vitest";
 import { getStandings } from "../src/server/cka";
 import { apiCache, UpstreamError } from "../src/server/cache";
-
 const row = {
-  position: 1,
-  matches: 2,
-  wins: 2,
+  position: 4,
+  matches: 4,
+  wins: 3,
   draws: 0,
-  losses: 0,
-  tablePoints: 4,
+  losses: 1,
+  tablePoints: 6,
   averagePerformance: 3300,
-  team: { id: 1, name: "Tábor" },
+  team: { id: 57, name: "Bohušovice" },
 };
 const resource = (data: unknown, stale = false) => ({
   data,
   stale,
-  checkedAt: "2026-09-29T08:00:00Z",
+  checkedAt: "2026-10-11T08:00:00Z",
 });
+const draw = Array.from({ length: 22 }, (_, i) => ({
+  round: i + 1,
+  status: [2, 3, 4, 5].includes(i + 1) ? "FINISHED" : "SCHEDULED",
+}));
+function mock(
+  schedule = draw,
+  table = (path: string) => resource({ items: [row], total: 1 }),
+) {
+  return vi.spyOn(apiCache, "get").mockImplementation(async (path) => {
+    if (path === "/competitions/league") return resource({ id: 16 });
+    if (path.endsWith("/schedule"))
+      return resource({ items: schedule, total: schedule.length });
+    return table(path);
+  });
+}
 afterEach(() => vi.restoreAllMocks());
-describe("latest available standings", () => {
-  it("uses a published current table without extra requests", async () => {
-    const get = vi
-      .spyOn(apiCache, "get")
-      .mockResolvedValue(resource({ items: [row], total: 1 }));
-    expect((await getStandings("league", 3)).data.round).toBe(3);
-    expect(get).toHaveBeenCalledTimes(1);
-  });
-  it("skips empty rounds, deduplicates round IDs and never chooses a future table", async () => {
-    const paths: string[] = [];
-    vi.spyOn(apiCache, "get").mockImplementation(async (path) => {
-      paths.push(path);
-      if (path.endsWith("/rounds")) return resource([1, 2, 2, 3, 4, 5]);
-      return resource({
-        items: path.includes("/2/table") ? [row] : [],
-        total: path.includes("/2/table") ? 1 : 0,
-      });
-    });
-    const result = await getStandings("league", 4);
-    expect(result.data).toEqual({ items: [row], total: 1, round: 2 });
-    expect(
-      paths
-        .filter((path) => path.includes("/table"))
-        .map((path) => path.match(/rounds\/(\d+)/)?.[1]),
-    ).toEqual(["4", "3", "2"]);
-  });
-  it("returns an explicit empty result at the start of the season", async () => {
-    const get = vi
-      .spyOn(apiCache, "get")
-      .mockResolvedValue(resource({ items: [], total: 0 }));
-    expect((await getStandings("league", 1)).data.round).toBeNull();
-    expect(get).toHaveBeenCalledTimes(1);
-  });
-  it("falls back for a missing table and preserves stale metadata", async () => {
-    vi.spyOn(apiCache, "get")
-      .mockRejectedValueOnce(new UpstreamError(404))
-      .mockResolvedValueOnce(resource([1, 2]))
-      .mockResolvedValueOnce(resource({ items: [row], total: 1 }, true));
-    const result = await getStandings("league", 2);
-    expect(result.data.round).toBe(1);
-    expect(result.stale).toBe(true);
-  });
-  it("does not hide an upstream failure behind a previous table", async () => {
-    const get = vi
-      .spyOn(apiCache, "get")
-      .mockRejectedValue(new UpstreamError(429));
-    await expect(getStandings("league", 3)).rejects.toMatchObject({
-      status: 429,
-    });
-    expect(get).toHaveBeenCalledTimes(1);
-  });
-  it("includes every team when the upstream table is paginated", async () => {
-    const get = vi
-      .spyOn(apiCache, "get")
-      .mockResolvedValueOnce(resource({ items: [row], total: 2 }))
-      .mockResolvedValueOnce(
-        resource({
-          items: [{ ...row, team: { id: 2, name: "Sezimovo Ústí" } }],
-          total: 2,
-        }),
-      );
-    expect((await getStandings("league", 2)).data.items).toHaveLength(2);
-    expect(get.mock.calls[1][0]).toContain("offset=1");
-  });
-});
-
-it("finds the latest published table without relying on matches in the date window", async () => {
-  const paths: string[] = [];
-  vi.spyOn(apiCache, "get").mockImplementation(async (path) => {
-    paths.push(path);
-    if (path.endsWith("/rounds")) return resource([1, 2, 3, 4, 5]);
-    return resource({
-      items: path.includes("/4/table") ? [row] : [],
-      total: path.includes("/4/table") ? 1 : 0,
-    });
-  });
-  expect((await getStandings("league")).data.round).toBe(4);
-  expect(paths.filter((path) => path.endsWith("/rounds"))).toHaveLength(1);
+it("ignores populated future tables and compares round5 against4 despite only4 starts", async () => {
+  const get = mock(draw, (path) =>
+    resource({
+      items: [{ ...row, position: path.includes("/4/table") ? 1 : 4 }],
+      total: 1,
+    }),
+  );
+  const current = await getStandings("league");
+  const previous = await getStandings("league", current.data.round! - 1);
+  expect(current.data.round).toBe(5);
+  expect(current.data.items[0].matches).toBe(4);
+  expect(previous.data.round).toBe(4);
+  expect(previous.data.items[0].position - current.data.items[0].position).toBe(
+    -3,
+  );
+  expect(current.data.incompleteMatches).toBe(1);
   expect(
-    paths
-      .filter((path) => path.includes("/table"))
-      .map((path) => path.match(/rounds\/(\d+)/)?.[1]),
-  ).toEqual(["5", "4"]);
+    get.mock.calls.some(
+      ([p]) =>
+        p.includes("/22/table") ||
+        p.includes("/21/table") ||
+        p.endsWith("/rounds"),
+    ),
+  ).toBe(false);
 });
-
+it("clamps explicit future selection to actual play", async () => {
+  mock();
+  expect((await getStandings("league", 22)).data.round).toBe(5);
+});
+it("does not claim a table before the season starts", async () => {
+  const get = mock([{ round: 1, status: "SCHEDULED" }]);
+  expect((await getStandings("league")).data.round).toBeNull();
+  expect(get).toHaveBeenCalledTimes(2);
+});
+it("keeps completed historical final rounds", async () => {
+  mock(draw.map((m) => ({ ...m, status: "FINISHED" })));
+  expect((await getStandings("league")).data.round).toBe(22);
+});
+it("uses a preplayed round but marks earlier unfinished matches", async () => {
+  mock([
+    { round: 1, status: "SCHEDULED" },
+    { round: 2, status: "FINISHED" },
+    { round: 6, status: "IN_PROGRESS" },
+    { round: 6, status: "SCHEDULED" },
+  ]);
+  const r = await getStandings("league");
+  expect(r.data.round).toBe(2);
+  expect(r.data.comparisonRound).toBe(1);
+  expect(r.data.incompleteMatches).toBe(3);
+});
+it("a late low-round match never moves the latest round backwards", async () => {
+  mock([
+    { round: 1, status: "IN_PROGRESS" },
+    { round: 5, status: "FINISHED" },
+  ]);
+  expect((await getStandings("league")).data.round).toBe(5);
+});
 it.each(["HOME", "AWAY"] as const)(
-  "keeps %s through fallback and pagination",
+  "preserves %s fallback and pagination",
   async (type) => {
-    const paths: string[] = [];
-    vi.spyOn(apiCache, "get").mockImplementation(async (path) => {
-      paths.push(path);
-      if (path.endsWith("/rounds")) return resource([1, 2, 4]);
-      if (path.includes("/4/table")) throw new UpstreamError(404);
-      if (path.includes("offset=1"))
-        return resource({
-          items: [{ ...row, position: 2, team: { id: 2, name: "Praha" } }],
+    const get = mock(draw, (path) => {
+      if (path.includes("/5/table")) throw new UpstreamError(404);
+      if (path.includes("/4/table")) return resource({ items: [], total: 0 });
+      return resource(
+        {
+          items: [
+            path.includes("offset=1")
+              ? { ...row, team: { id: 2, name: "Praha" } }
+              : row,
+          ],
           total: 2,
-        });
-      return resource({ items: [row], total: 2 });
+        },
+        true,
+      );
     });
-    const result = await getStandings("league", 4, type);
-    expect(result.data.round).toBe(2);
-    expect(result.data.items.map((r) => r.team.id)).toEqual([1, 2]);
+    const r = await getStandings("league", 4, type);
+    expect(r.data.round).toBe(3);
+    expect(r.data.items).toHaveLength(2);
+    expect(r.stale).toBe(true);
     expect(
-      paths
-        .filter((p) => p.includes("/table"))
-        .every((p) => p.includes(`type=${type}`)),
+      get.mock.calls
+        .filter(([p]) => p.includes("/table"))
+        .every(([p]) => p.includes(`type=${type}`)),
     ).toBe(true);
   },
 );
+it("does not hide API failures as a missing comparison", async () => {
+  mock(draw, () => {
+    throw new UpstreamError(429);
+  });
+  await expect(getStandings("league")).rejects.toMatchObject({ status: 429 });
+});
+it("rejects a truncated schedule rather than selecting the wrong round", async () => {
+  vi.spyOn(apiCache, "get")
+    .mockResolvedValueOnce(resource({ id: 16 }))
+    .mockResolvedValueOnce(resource({ items: draw.slice(0, 2), total: 22 }));
+  await expect(getStandings("league")).rejects.toMatchObject({ status: 502 });
+});
+it("keeps stale schedule metadata", async () => {
+  vi.spyOn(apiCache, "get")
+    .mockResolvedValueOnce(resource({ id: 16 }))
+    .mockResolvedValueOnce(resource({ items: draw, total: 22 }, true))
+    .mockResolvedValueOnce(resource({ items: [row], total: 1 }));
+  expect((await getStandings("league")).stale).toBe(true);
+});
+
+it("counts forfeits as resolved but not pre-match preparation", async () => {
+  mock([
+    { round: 5, status: "FORFEIT" },
+    { round: 6, status: "PREPARATION" },
+  ]);
+  const result = await getStandings("league");
+  expect(result.data.round).toBe(5);
+  expect(result.data.incompleteMatches).toBe(0);
+});
+
+it("includes a distant advance without moving the comparison round", async () => {
+  const schedule = [
+    { round: 4, status: "FINISHED" },
+    { round: 5, status: "FINISHED" },
+    ...Array.from({ length: 6 }, (_, i) => ({
+      round: 8,
+      status: i === 0 ? "FINISHED" : "SCHEDULED",
+    })),
+  ];
+  const get = mock(schedule, (path) =>
+    resource({
+      items: [{ ...row, matches: path.includes("/8/table") ? 5 : 4 }],
+      total: 1,
+    }),
+  );
+  const result = await getStandings("league");
+  expect(result.data.round).toBe(5);
+  expect(result.data.comparisonRound).toBe(4);
+  expect(result.data.items[0].matches).toBe(5);
+  expect(get.mock.calls.some(([p]) => p.includes("/8/table"))).toBe(true);
+});
+it("does not omit an advance by falling back to an older current table", async () => {
+  mock(draw, () => resource({ items: [], total: 0 }));
+  await expect(getStandings("league")).rejects.toMatchObject({ status: 502 });
+});
