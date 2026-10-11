@@ -825,10 +825,6 @@ function Standings({
         signal,
       ),
   });
-  const format = (value: number | null | undefined) =>
-    value == null
-      ? "—"
-      : new Intl.NumberFormat("cs", { maximumFractionDigits: 2 }).format(value);
   const priorRows = new Map(
     previous.data?.data.items.map((row) => [row.team.id, row]) ?? [],
   );
@@ -945,7 +941,7 @@ function Standings({
                   </tr>
                 </thead>
                 <tbody>
-                  {table.data.data.items.map((row, index, rows) => (
+                  {table.data.data.items.map((row) => (
                     <tr key={row.team.id}>
                       <td>
                         {row.position}
@@ -984,77 +980,6 @@ function Standings({
                           </Link>
                           <FollowButton team={row.team} />
                         </span>
-                        <details
-                          className="standing-details"
-                          key={`${tableType}-${actualRound}`}
-                        >
-                          <summary>
-                            Podrobnosti
-                            <span className="sr-only"> — {row.team.name}</span>
-                          </summary>
-                          <dl>
-                            <div>
-                              <dt>Výhry / remízy / prohry</dt>
-                              <dd>
-                                {row.wins} / {row.draws} / {row.losses}
-                              </dd>
-                            </div>
-                            <div>
-                              <dt>Zápasové body (získané : ztracené)</dt>
-                              <dd>
-                                {format(row.teamPointsWon)} :{" "}
-                                {format(row.teamPointsLost)}
-                              </dd>
-                            </div>
-                            <div>
-                              <dt>Dílčí body (získané : ztracené)</dt>
-                              <dd>
-                                {format(row.setPointsWon)} :{" "}
-                                {format(row.setPointsLost)}
-                              </dd>
-                            </div>
-                            <div>
-                              <dt>Průměr kuželek na zápas</dt>
-                              <dd>
-                                {format(
-                                  row.matches > 0
-                                    ? row.simpleAveragePerformance
-                                    : null,
-                                )}
-                              </dd>
-                            </div>
-                            <div>
-                              <dt>Minimum / maximum kuželek</dt>
-                              <dd>
-                                {format(
-                                  row.matches > 0 ? row.minPerformance : null,
-                                )}{" "}
-                                /{" "}
-                                {format(
-                                  row.matches > 0 ? row.maxPerformance : null,
-                                )}
-                              </dd>
-                            </div>
-                          </dl>
-                          <p>
-                            {index > 0
-                              ? `Odstup od ${rows[index - 1].team.name}: ${format(rows[index - 1].tablePoints - row.tablePoints)} tabulkových bodů.`
-                              : "První tým tabulky."}
-                          </p>
-                          {index < rows.length - 1 && (
-                            <p>
-                              Náskok před {rows[index + 1].team.name}:{" "}
-                              {format(
-                                row.tablePoints - rows[index + 1].tablePoints,
-                              )}{" "}
-                              tabulkových bodů.
-                            </p>
-                          )}
-                          <p>
-                            {tableLabel} · {actualRound}. kolo · průměr ze
-                            zápasů tohoto pohledu.
-                          </p>
-                        </details>
                       </th>
                       <td>{row.matches}</td>
                       <td>{row.wins}</td>
