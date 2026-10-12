@@ -18,7 +18,7 @@ const row = {
   team: { id: 57, name: "SKK Bohušovice" },
 };
 for (const width of [320, 390, 1280])
-  test(`standings details and views at ${width}px`, async ({ page }) => {
+  test(`compact standings and views at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 900 });
     const requests: string[] = [];
     await page.route("**/api/data?**", async (route) => {
@@ -69,22 +69,10 @@ for (const width of [320, 390, 1280])
     await expect(
       table.getByRole("link", { name: "SKK Bohušovice" }),
     ).toHaveAttribute("href", "/?team=57&season=20");
-    await table.locator("summary").first().click();
-    const details = table.locator("details").first();
-    await expect(details).toContainText("3 368");
-    await expect(details).toContainText("11 : 5");
-    await expect(details).toContainText("30,5 : 17,5");
-    await expect(details).toContainText(
-      "Náskok před SKK Náchod: 2 tabulkových bodů.",
-    );
+    await expect(table.locator("details, summary")).toHaveCount(0);
     await table.getByRole("button", { name: "Doma", exact: true }).click();
     await expect(table).toContainText("Změna oproti tabulce 2. kola · doma.");
-    await expect(table.locator("details").first()).not.toHaveAttribute(
-      "open",
-      "",
-    );
-    await table.locator("summary").first().click();
-    await expect(table.locator("details").first()).toContainText("3 400");
+    await expect(table.locator("details, summary")).toHaveCount(0);
     expect(
       await page.evaluate(
         () => document.documentElement.scrollWidth <= innerWidth,

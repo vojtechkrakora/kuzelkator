@@ -186,12 +186,8 @@ pořadí ČKA i přechod na poslední dostupné kolo. Změnu pořadí porovnáv�
 dostupnou tabulkou stejného typu podle identifikátoru týmu, nikoli pořadí řádků.
 Srovnání se načítá samostatně; jeho chyba nezablokuje zobrazení aktuální tabulky.
 
-Rozbalitelné podrobnosti obsahují zápasové a dílčí body (získané : ztracené),
-prostý průměr kuželek na zápas, minimum a maximum, bilanci a odstup od sousedních
-týmů v tabulkových bodech. Průměr používá `simpleAveragePerformance` z tabulky
-vybraného typu, nikoli odlišný agregát `averagePerformance`; tyto hodnoty nejsou
-zaměnitelné. Ověřeno na domácí tabulce 2. KLM A po 4. kole (3357 a 3379 kuželek,
-průměr 3368), 9. 10. 2026. Nulový počet zápasů nezobrazuje nulový průměr jako výkon.
+Řádky zůstávají kompaktní bez rozbalovacích detailů. Název týmu vede na jeho
+detail; indikátor u pořadí ukazuje změnu umístění.
 Postupy a sestupy automaticky neurčujeme.
 
 ### Aktuální tabulka a srovnávací kolo
@@ -213,3 +209,33 @@ konkrétní kolo je uvedeno. Neznamenají změnu po posledním zápase. Dohrávk
 zpětně upravit i srovnávací tabulku. Žádné snímky neukládáme. Počet utkání týmu
 není číslem kola. Detail soutěže a úplný rozpis jsou ve sdílené cache; neúplný
 rozpis nelze použít k tichému odhadu. Historické sezóny fungují stejným postupem.
+
+## Výsledky pro OBS
+
+Na konci detailu zápasu rozbalte nenápadnou položku **Pro pořadatele** a otevřete **Nastavení výsledků pro OBS**. Stránka nabízí náhled a tři
+adresy zdroje: domácí, hosté a skóre. V OBS je vložte jako tři zdroje
+**Prohlížeč**, nikoli jako snímání oken. Doporučené rozměry pro 1080p:
+týmy kompaktně 240 × 500 (výchozí), případně plně 360 × 960, skóre 1920 × 120; zdroje umístěte nad kameru. Pro 720p je
+poměrně zmenšete na dvě třetiny. Průhledný podklad zajišťuje samotná stránka.
+
+Adresy mají podobu `/matches/513/overlay?panel=home`, `panel=away`, `panel=score`.
+Hráčské panely jsou výchozí kompaktní; `&density=full` přepne na původní plný pohled. V nastavení lze variantu změnit a zkopírovat odpovídající adresy. Kompaktní pohled používá iniciály křestních jmen, příjmení a součet vedle jména, bez opakovaných popisků. Bez parametru panel se otevře nastavení a náhled. Není potřeba účet ani trvale
+otevřené nastavení. Oba týmové zdroje nastavte na stejné rozměry pro zarovnání
+pozic soupeřů. Výhra/prohra/remíza dráhy je určena jen zveřejněnými vzájemně
+odpovídajícími dílčími body; neúplné výsledky zůstávají neutrální.
+
+Aktivní zápas kontrolujeme každých 15 sekund přes `/api/data?kind=match&id=513`.
+Všechny panely využívají stejný `getMatch` a procesovou cache s TTL 60 sekund
+včetně slučování souběžných požadavků. Při zdravém provozu jedné instance tak
+12 dotazů panelů za minutu představuje přibližně jeden upstream dotaz na zápas,
+pokud položka zůstává v cache. Po restartu, vyřazení položky či při více procesech
+tato mez není globálně garantovaná. Aktualizace není po každém hodu; latence
+závisí také na zveřejnění u ČKA. Panely se mohou při obnově krátce lišit.
+
+Po dohrání obnovujeme přibližně jednou za 5 minut, při chybách prodlužujeme
+interval a respektujeme Retry-After. Poslední platné skóre zůstává viditelné
+s označením „Neaktuální data“; čas „Ověřeno“ se při výpadku neposouvá. V OBS lze
+zapnout vypnutí nepoužívaného zdroje; po opětovném načtení zdroje se data načtou
+hned. Neprovádíme automatický reload celé stránky, cron ani ukládání snímků.
+Před produkčním vydáním ověřte přímo v OBS průhlednost, změnu scény a aktuální
+zápas; testy v prohlížeči nenahrazují kontrolu OBS/CEF.

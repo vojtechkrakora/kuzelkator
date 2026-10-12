@@ -1,0 +1,380 @@
+/* The marker is rendered on the server: transparency does not wait for hydration. */
+html:has([data-obs-overlay]),
+body:has([data-obs-overlay]) {
+  background: transparent !important;
+  margin: 0;
+  padding: 0;
+  min-height: 0;
+}
+body:has([data-obs-overlay]) > * {
+  min-height: 0;
+}
+body:has([data-obs-overlay]) .site-header,
+body:has([data-obs-overlay]) .footer,
+body:has([data-obs-overlay]) .skip-link {
+  display: none;
+}
+.obs-root {
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  color: #f6faf8;
+}
+.obs-panel {
+  background: #0e191e;
+  color: #f6faf8;
+  border-radius: 12px;
+  overflow: hidden;
+  font-variant-numeric: tabular-nums;
+}
+.obs-team {
+  container-type: inline-size;
+  border-top: 5px solid #a3e5be;
+}
+.obs-away {
+  border-top-color: #91c5ff;
+}
+.obs-team-heading {
+  padding: 10px 14px;
+  min-height: 83px;
+  box-sizing: border-box;
+}
+.obs-team-heading > span {
+  color: #b8c9c4;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 2px;
+}
+.obs-team-heading h1 {
+  margin: 4px 0 0;
+  font-size: clamp(16px, 6cqw, 23px);
+  line-height: 1.15;
+  overflow-wrap: anywhere;
+}
+.obs-players {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.obs-player {
+  padding: 9px 12px;
+  height: 135px;
+  box-sizing: border-box;
+  border-top: 1px solid #455454;
+  display: grid;
+  grid-template-rows: 42px 53px 20px;
+  gap: 1px;
+}
+.obs-player-name {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  line-height: 1.1;
+  font-size: clamp(14px, 5cqw, 18px);
+}
+.obs-player-name > span {
+  color: #afc4ba;
+  flex: 0 0 auto;
+}
+.obs-player-name strong {
+  overflow-wrap: anywhere;
+  font-weight: 750;
+  font-size: inherit;
+}
+.obs-lanes {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  gap: 5px;
+}
+.obs-lane {
+  display: grid;
+  text-align: center;
+  align-content: center;
+  border-radius: 5px;
+  background: #2d3b41;
+  line-height: 1.1;
+}
+.obs-lane small {
+  font-size: 9px;
+  color: inherit;
+}
+.obs-lane strong {
+  font-size: 22px;
+  font-weight: 500;
+}
+.obs-lane span {
+  font-size: 10px;
+}
+.obs-lane-win {
+  background: #d1f3dc;
+  color: #124b2a;
+}
+.obs-lane-win strong {
+  font-weight: 850;
+}
+.obs-lane-loss {
+  background: #62343d;
+  color: #ffe2e4;
+}
+.obs-lane-draw {
+  background: #f4df9e;
+  color: #594310;
+}
+.obs-player-total {
+  display: flex;
+  justify-content: space-between;
+  align-items: end;
+  font-size: 11px;
+  color: #c8d4d0;
+}
+.obs-player-total strong {
+  color: white;
+  font-size: 17px;
+  margin-left: 4px;
+}
+.obs-freshness {
+  padding: 7px 12px;
+  font-size: 11px;
+  color: #c8d4d0;
+  min-height: 28px;
+  box-sizing: border-box;
+}
+.obs-stale {
+  color: #ffde87;
+  background: #463b25;
+}
+.obs-loading {
+  padding: 18px;
+  font-size: 16px;
+}
+.obs-score {
+  border-left: 5px solid #a3e5be;
+  border-right: 5px solid #91c5ff;
+}
+.obs-score-main {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr auto;
+  gap: 24px;
+  align-items: center;
+  padding: 8px 22px;
+  min-height: 76px;
+  box-sizing: border-box;
+}
+.obs-score .obs-team-name {
+  font-size: clamp(16px, 2vw, 32px);
+  line-height: 1.15;
+  overflow-wrap: anywhere;
+}
+.obs-score .obs-team-name:nth-child(3) {
+  text-align: right;
+}
+.obs-score-numbers,
+.obs-score-pins {
+  display: grid;
+  text-align: center;
+}
+.obs-score-numbers small,
+.obs-score-pins small {
+  font-size: 11px;
+  letter-spacing: 1px;
+  color: #c8d4d0;
+}
+.obs-score-numbers strong {
+  font-size: 38px;
+  line-height: 1.05;
+  white-space: nowrap;
+}
+.obs-score-pins {
+  border-left: 1px solid #65716b;
+  padding-left: 24px;
+}
+.obs-score-pins strong {
+  font-size: 25px;
+  white-space: nowrap;
+}
+.obs-score .obs-freshness {
+  text-align: center;
+}
+.obs-setup > h1 {
+  margin-top: 22px;
+}
+.obs-source-list {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+.obs-source {
+  padding: 20px;
+  background: white;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  min-width: 0;
+}
+.obs-source h2 {
+  margin-top: 0;
+}
+.obs-source label {
+  display: grid;
+  gap: 8px;
+}
+.obs-source input {
+  width: 100%;
+  min-width: 0;
+  min-height: 48px;
+  box-sizing: border-box;
+}
+.obs-source-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+.obs-source-actions .button {
+  min-height: 48px;
+}
+.obs-instructions {
+  background: white;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 16px;
+  margin: 20px 0;
+}
+.obs-instructions summary {
+  cursor: pointer;
+  padding: 12px 0;
+}
+.obs-preview-teams {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 20px;
+  border-radius: 12px;
+  background: repeating-conic-gradient(#c8cfca 0% 25%, #e1e6e2 0% 50%) 0 / 24px
+    24px;
+}
+.obs-preview-teams > div {
+  width: 360px;
+  max-width: 100%;
+}
+.obs-preview-score {
+  margin-top: 16px;
+}
+@media (max-width: 800px) {
+  .obs-source-list {
+    grid-template-columns: 1fr;
+  }
+  .obs-preview-teams {
+    justify-content: center;
+    padding: 8px;
+  }
+}
+@media (max-width: 650px) {
+  .obs-score-main {
+    grid-template-columns: 1fr auto 1fr;
+    gap: 10px;
+    padding: 10px;
+  }
+  .obs-score-pins {
+    grid-column: 1 / -1;
+    border: 0;
+    padding: 0;
+  }
+  .obs-score-numbers strong {
+    font-size: 28px;
+  }
+}
+
+.obs-density-picker {
+  border: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 20px 0 12px;
+}
+.obs-density-picker legend {
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+.obs-density-picker button {
+  min-height: 48px;
+}
+.obs-density-picker button[aria-pressed="true"] {
+  background: var(--green);
+  color: white;
+}
+.obs-preview-compact > div {
+  width: 240px;
+}
+.obs-density-compact {
+  border-top-width: 3px;
+  border-radius: 7px;
+  background: transparent;
+}
+.obs-density-compact .obs-team-heading {
+  height: 52px;
+  min-height: 0;
+  padding: 4px 8px;
+  background: #0e191e;
+}
+.obs-density-compact .obs-team-heading > span {
+  font-size: 9px;
+  letter-spacing: 1px;
+}
+.obs-density-compact .obs-team-heading h1 {
+  margin-top: 1px;
+  font-size: 14px;
+  line-height: 15px;
+}
+.obs-density-compact .obs-player {
+  height: 68px;
+  padding: 4px 7px;
+  grid-template-rows: 30px 28px;
+  gap: 0;
+  border-top: 2px solid transparent;
+  background: #0e191e;
+  background-clip: padding-box;
+}
+.obs-density-compact .obs-player-name {
+  gap: 4px;
+  font-size: 12px;
+}
+.obs-density-compact .obs-name-text {
+  flex: 1;
+  min-width: 0;
+}
+.obs-compact-total {
+  flex: 0 0 auto;
+  font-size: 17px;
+}
+.obs-density-compact .obs-lanes {
+  gap: 4px;
+}
+.obs-density-compact .obs-lane {
+  grid-template-columns: 1fr auto;
+  padding: 3px 4px;
+  align-items: center;
+  border-radius: 4px;
+}
+.obs-density-compact .obs-lane strong {
+  font-size: 16px;
+}
+.obs-density-compact .obs-lane span {
+  font-size: 8px;
+}
+.obs-density-compact .obs-lane-label,
+.obs-density-compact .obs-player-total {
+  display: none;
+}
+.obs-density-compact .obs-freshness {
+  min-height: 36px;
+  padding: 6px 7px;
+  font-size: 10px;
+  line-height: 12px;
+  background: #0e191e;
+}
+.obs-density-compact .obs-stale {
+  background: #463b25;
+}

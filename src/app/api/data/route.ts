@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import {
+  getMatch,
   getCompetitions,
   getMatchDays,
   dateInput,
@@ -32,6 +33,16 @@ export async function GET(request: NextRequest) {
   try {
     let result;
     switch (params.kind) {
+      case "match":
+        result = await getMatch(
+          z.coerce
+            .number()
+            .int()
+            .positive()
+            .max(Number.MAX_SAFE_INTEGER)
+            .parse(params.id),
+        );
+        break;
       case "player-search":
         result = await findPlayers(playerSearchInput.parse(params));
         break;

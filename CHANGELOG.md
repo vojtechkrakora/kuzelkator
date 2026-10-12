@@ -1,6 +1,24 @@
 # Historie změn
 
-## 0.9.1 — připraveno k vydání
+## Nevydáno
+
+## 0.10.0 — připraveno k vydání
+
+### Opravy
+
+- Podklad OBS panelů pod jmény a výsledky je neprůhledný pro lepší čitelnost nad kamerou; okolí panelů zůstává průhledné.
+
+- OBS panely pro disciplínu 100 HS zobrazují dvě dráhy místo čtyř, také před zveřejněním prvních výsledků.
+
+- Po zavření mobilních oblíbených se posouvání stránky odemkne okamžitě, také při rychlém opakovaném otevření a zavření.
+
+### Vylepšení
+
+- V nenápadné sekci Pro pořadatele na konci detailu zápasu jsou dostupné tři průhledné OBS panely: domácí, hosté a celkové skóre. Hráčské panely mají kompaktní i plnou variantu. Výsledky drah a střídání se automaticky obnovují; při výpadku zůstávají poslední údaje označené jako neaktuální.
+
+- Tabulka soutěže je kompaktnější bez rozklikávacích podrobností týmů. Indikátory posunu pořadí, odkazy na týmy a přepínání pohledů zůstávají zachované.
+
+## 0.9.1 — 12. 10. 2026
 
 ### Opravy
 
