@@ -15,6 +15,21 @@ export function overlayPositions(match: Match) {
     ),
   ].sort((a, b) => a - b);
 }
+export function overlayLanes(
+  match: Match,
+  player?: PlayerResult,
+  rival?: PlayerResult,
+) {
+  const discipline = match.discipline ?? match.competition?.discipline;
+  const expected = discipline === "T100" ? [1, 2] : [1, 2, 3, 4];
+  return [
+    ...new Set([
+      ...expected,
+      ...(player?.laneResults ?? []).map((lane) => lane.laneNumber),
+      ...(rival?.laneResults ?? []).map((lane) => lane.laneNumber),
+    ]),
+  ].sort((a, b) => a - b);
+}
 export function laneOutcome(lane?: Lane, opponent?: Lane) {
   // Only published complementary points establish an outcome. Initial zeroes do not.
   if (

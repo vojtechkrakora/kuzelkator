@@ -1,6 +1,7 @@
 import { expect, it } from "vitest";
 import {
   laneOutcome,
+  overlayLanes,
   overlayPositions,
   overlayPlayerName,
   overlayPollDelay,
@@ -78,4 +79,48 @@ it("aligns healthy polling, slows completed matches and backs off failures inclu
   expect(overlayPollDelay(15000, 1, false)).toBe(30000);
   expect(overlayPollDelay(15000, 9, false)).toBe(300000);
   expect(overlayPollDelay(15000, 1, false, 600000)).toBe(600000);
+});
+
+it("uses two lanes for T100 even before scores arrive, including competition fallback", () => {
+  expect(overlayLanes({ ...match, discipline: "T100" })).toEqual([1, 2]);
+  expect(
+    overlayLanes({
+      ...match,
+      discipline: null,
+      competition: {
+        id: 1,
+        name: "Divize",
+        slug: "divize",
+        discipline: "T100",
+      },
+    }),
+  ).toEqual([1, 2]);
+  expect(
+    overlayLanes({
+      ...match,
+      discipline: "T120",
+      competition: {
+        id: 1,
+        name: "Divize",
+        slug: "divize",
+        discipline: "T100",
+      },
+    }),
+  ).toEqual([1, 2, 3, 4]);
+});
+it("keeps four lanes for T120 or unknown disciplines despite partial results", () => {
+  const player = { position: 1, laneResults: [{ laneNumber: 1, total: 150 }] };
+  expect(overlayLanes({ ...match, discipline: "T120" }, player)).toEqual([
+    1, 2, 3, 4,
+  ]);
+  expect(overlayLanes(match, player)).toEqual([1, 2, 3, 4]);
+});
+it("does not discard unexpected published lanes from either opponent", () => {
+  expect(
+    overlayLanes(
+      { ...match, discipline: "T100" },
+      { position: 1, laneResults: [{ laneNumber: 3, total: 150 }] },
+      { position: 1, laneResults: [{ laneNumber: 4, total: 140 }] },
+    ),
+  ).toEqual([1, 2, 3, 4]);
 });

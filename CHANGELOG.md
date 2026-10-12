@@ -4,6 +4,8 @@
 
 ### Opravy
 
+- OBS panely pro disciplínu 100 HS zobrazují dvě dráhy místo čtyř, také před zveřejněním prvních výsledků.
+
 - Po zavření mobilních oblíbených se posouvání stránky odemkne okamžitě, také při rychlém opakovaném otevření a zavření.
 
 ### Vylepšení
