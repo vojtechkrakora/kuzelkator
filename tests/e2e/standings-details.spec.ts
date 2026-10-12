@@ -64,14 +64,14 @@ for (const width of [320, 390, 1280])
     });
     await page.goto("/?competition=16&season=20&date=2026-10-09");
     const table = page.locator(".standings");
-    await expect(table).toContainText("Změna pořadí proti 2. kolu · celkem.");
+    await expect(table).toContainText("Změna oproti tabulce 2. kola · celkem.");
     await expect(table.locator(".standing-movement").first()).toHaveText("↑2");
     await expect(
       table.getByRole("link", { name: "SKK Bohušovice" }),
     ).toHaveAttribute("href", "/?team=57&season=20");
     await expect(table.locator("details, summary")).toHaveCount(0);
     await table.getByRole("button", { name: "Doma", exact: true }).click();
-    await expect(table).toContainText("Změna pořadí proti 2. kolu · doma.");
+    await expect(table).toContainText("Změna oproti tabulce 2. kola · doma.");
     await expect(table.locator("details, summary")).toHaveCount(0);
     expect(
       await page.evaluate(
@@ -87,7 +87,7 @@ for (const width of [320, 390, 1280])
     await expect(table).toContainText(
       "Předchozí tabulka pro srovnání není dostupná.",
     );
-    await expect(table.locator(".standing-movement").first()).toHaveText("—");
+    await expect(table.locator(".standing-movement").first()).toHaveText("?");
     expect(requests).toEqual([
       "ALL:latest",
       "ALL:3",
@@ -97,3 +97,47 @@ for (const width of [320, 390, 1280])
       "AWAY:3",
     ]);
   });
+
+test("current standings compare the regular round despite an advance", async ({
+  page,
+}) => {
+  const rounds: (string | null)[] = [];
+  await page.route("**/api/data?**", async (route) => {
+    const q = new URL(route.request().url()).searchParams;
+    let data: unknown = { items: [], total: 0 };
+    if (q.get("kind") === "seasons")
+      data = { items: [{ id: 20, name: "2026/2027", active: true }], total: 1 };
+    if (q.get("kind") === "competitions")
+      data = { items: [competition], total: 1 };
+    if (q.get("kind") === "standings") {
+      rounds.push(q.get("round"));
+      data =
+        q.get("round") === "4"
+          ? {
+              items: [{ ...row, position: 2 }],
+              total: 1,
+              round: 4,
+              isCurrent: false,
+              comparisonRound: 3,
+            }
+          : {
+              items: [{ ...row, position: 2, matches: 6 }],
+              total: 1,
+              round: 5,
+              isCurrent: true,
+              comparisonRound: 4,
+            };
+    }
+    await route.fulfill({
+      json: { data, checkedAt: "2026-10-11T08:00:00Z", stale: false },
+    });
+  });
+  await page.goto("/?competition=16&season=20&date=2026-10-11");
+  const table = page.locator(".standings");
+  await expect(table).toContainText(
+    "všechny zveřejněné výsledky včetně předehrávek a dohrávek",
+  );
+  await expect(table).toContainText("Změna oproti tabulce 4. kola");
+  await expect(table.locator(".standing-movement").first()).toHaveText("=");
+  expect(rounds).toEqual([null, "4"]);
+});
