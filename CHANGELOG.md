@@ -2,6 +2,10 @@
 
 ## Nevydáno
 
+### Opravy
+
+- Po zavření mobilních oblíbených se posouvání stránky odemkne okamžitě, také při rychlém opakovaném otevření a zavření.
+
 ### Vylepšení
 
 - Tabulka soutěže je kompaktnější bez rozklikávacích podrobností týmů. Indikátory posunu pořadí, odkazy na týmy a přepínání pohledů zůstávají zachované.

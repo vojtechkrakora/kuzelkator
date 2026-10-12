@@ -24,17 +24,23 @@ export function MobileNavigation({
   const router = useRouter();
   const { teams, leagues, players, warning } = usePreferences();
   const dialog = useRef<HTMLDialogElement>(null);
-  const previousOverflow = useRef("");
+  const previousOverflow = useRef<string | null>(null);
   function close() {
     dialog.current?.close();
+    releaseScroll();
   }
   function releaseScroll() {
+    if (previousOverflow.current === null) return;
     document.body.style.overflow = previousOverflow.current;
+    previousOverflow.current = null;
   }
   function open() {
-    previousOverflow.current = document.body.style.overflow;
+    if (!dialog.current || dialog.current.open) return;
+    dialog.current.showModal();
+    // Reopening before the queued close event must keep the original value.
+    if (previousOverflow.current === null)
+      previousOverflow.current = document.body.style.overflow;
     document.body.style.overflow = "hidden";
-    dialog.current?.showModal();
   }
   function showOverview() {
     close();
@@ -71,7 +77,7 @@ export function MobileNavigation({
     desktop.addEventListener("change", onResize);
     return () => {
       desktop.removeEventListener("change", onResize);
-      document.body.style.overflow = previousOverflow.current;
+      releaseScroll();
     };
   }, []);
   return (
@@ -127,7 +133,14 @@ export function MobileNavigation({
         ref={dialog}
         className="favorites-sheet"
         aria-labelledby="favorites-title"
-        onClose={releaseScroll}
+        onCancel={(event) => {
+          event.preventDefault();
+          close();
+        }}
+        onClose={() => {
+          // A close event can arrive after this same dialog has reopened.
+          if (!dialog.current?.open) releaseScroll();
+        }}
         onClick={(event) => {
           if (event.target === event.currentTarget) close();
         }}
