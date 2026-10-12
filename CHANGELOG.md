@@ -1,5 +1,11 @@
 # Historie změn
 
+## Nevydáno
+
+### Vylepšení
+
+- Tabulka soutěže je kompaktnější bez rozklikávacích podrobností týmů. Indikátory posunu pořadí, odkazy na týmy a přepínání pohledů zůstávají zachované.
+
 ## 0.9.0 — připraveno k vydání
 
 ### Vylepšení
