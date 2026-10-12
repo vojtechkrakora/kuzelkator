@@ -3614,3 +3614,19 @@ details.competition-group[open] > summary > span > svg {
 .standing-movement-unknown {
   border: 1px dashed #a5afa9;
 }
+
+.match-organizer-tools {
+  margin-top: 20px;
+  font-size: 12px;
+  color: var(--muted);
+}
+.match-organizer-tools summary {
+  width: fit-content;
+  padding: 12px 0;
+  cursor: pointer;
+}
+.match-organizer-tools a {
+  display: inline-block;
+  padding: 12px 0;
+  color: var(--green);
+}
