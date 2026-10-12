@@ -21,7 +21,7 @@ body:has([data-obs-overlay]) .skip-link {
   color: #f6faf8;
 }
 .obs-panel {
-  background: rgba(14, 25, 30, 0.94);
+  background: #0e191e;
   color: #f6faf8;
   border-radius: 12px;
   overflow: hidden;
@@ -317,7 +317,7 @@ body:has([data-obs-overlay]) .skip-link {
   height: 52px;
   min-height: 0;
   padding: 4px 8px;
-  background: rgba(14, 25, 30, 0.88);
+  background: #0e191e;
 }
 .obs-density-compact .obs-team-heading > span {
   font-size: 9px;
@@ -334,7 +334,7 @@ body:has([data-obs-overlay]) .skip-link {
   grid-template-rows: 30px 28px;
   gap: 0;
   border-top: 2px solid transparent;
-  background: rgba(14, 25, 30, 0.88);
+  background: #0e191e;
   background-clip: padding-box;
 }
 .obs-density-compact .obs-player-name {
@@ -373,7 +373,7 @@ body:has([data-obs-overlay]) .skip-link {
   padding: 6px 7px;
   font-size: 10px;
   line-height: 12px;
-  background: rgba(14, 25, 30, 0.88);
+  background: #0e191e;
 }
 .obs-density-compact .obs-stale {
   background: #463b25;
