@@ -202,6 +202,12 @@ export default async function MatchDetail({
       >
         Zdroj výsledků: Česká kuželkářská asociace ↗
       </a>
+      <details className="match-organizer-tools">
+        <summary>Pro pořadatele</summary>
+        <Link href={`/matches/${id}/overlay`} prefetch={false}>
+          Nastavení výsledků pro OBS
+        </Link>
+      </details>
     </main>
   );
 }
