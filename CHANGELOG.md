@@ -2,6 +2,10 @@
 
 ## Nevydáno
 
+### Opravy
+
+- Po zavření mobilních oblíbených se posouvání stránky odemkne okamžitě, také při rychlém opakovaném otevření a zavření.
+
 ### Vylepšení
 
 - V nenápadné sekci Pro pořadatele na konci detailu zápasu jsou dostupné tři průhledné OBS panely: domácí, hosté a celkové skóre. Hráčské panely mají kompaktní i plnou variantu. Výsledky drah a střídání se automaticky obnovují; při výpadku zůstávají poslední údaje označené jako neaktuální.
