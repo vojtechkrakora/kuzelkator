@@ -8,7 +8,8 @@ import {
   teamSchema,
 } from "../domain/models";
 import { orderMatchFeed } from "../domain/match-feed";
-import { pragueMidnight, shiftDay } from "../lib/dates";
+import { standingsRounds } from "../domain/standings-rounds";
+import { pragueMidnight, shiftDay, todayPrague } from "../lib/dates";
 import { apiCache, UpstreamError } from "./cache";
 
 export const dateInput = z
@@ -216,56 +217,92 @@ export async function getStandings(
   round?: number,
   type: "ALL" | "HOME" | "AWAY" = "ALL",
 ) {
-  const availableRounds =
-    round == null
-      ? await apiCache.get(
-          `/competitions/${encodeURIComponent(slug)}/rounds`,
-          z.array(z.number().int().positive()),
-          300000,
-        )
-      : null;
-  round ??= Math.max(1, ...(availableRounds?.data ?? []));
-  async function read(candidate: number) {
+  // /rounds lists the whole draw; even future table endpoints return cumulative
+  // non-empty data. Only rounds with actual play are eligible.
+  const competition = await apiCache.get(
+    `/competitions/${encodeURIComponent(slug)}`,
+    z.object({ id: z.number().int().positive() }),
+    300000,
+  );
+  const schedule = await apiCache.get(
+    `/competitions/${competition.data.id}/schedule`,
+    collection(
+      z.object({
+        round: z.number().int().positive().nullable(),
+        status: z.string(),
+        date: z.string().nullable().optional(),
+      }),
+    ),
+    60000,
+  );
+  // The schedule endpoint is a complete draw, not a paginated match listing.
+  // Do not silently choose a round from a partial or truncated response.
+  if (schedule.data.items.length !== schedule.data.total)
+    throw new UpstreamError(502);
+  const { playedRounds: started, regularRound } = standingsRounds(
+    schedule.data.items,
+    todayPrague(),
+  );
+  const isCurrent =
+    round == null || (regularRound != null && round > regularRound);
+  // Current standings must include every played fixture, even a distant advance.
+  // Never silently fall back to an older, incomplete current table.
+  const candidates = isCurrent
+    ? started.slice(0, 1)
+    : started.filter((value) => value <= round!);
+  let stale = competition.stale || schedule.stale;
+  let checkedAt =
+    competition.checkedAt < schedule.checkedAt
+      ? competition.checkedAt
+      : schedule.checkedAt;
+  for (const candidate of candidates) {
+    let table;
     try {
-      return await getRoundStandings(slug, candidate, type);
+      table = await getRoundStandings(slug, candidate, type);
     } catch (error) {
-      // A missing table is different from an outage or rate limit.
-      if (error instanceof UpstreamError && error.status === 404) return null;
+      if (error instanceof UpstreamError && error.status === 404) continue;
       throw error;
     }
+    stale ||= table.stale;
+    if (table.checkedAt < checkedAt) checkedAt = table.checkedAt;
+    if (!table.data.items.length) continue;
+    const incompleteMatches = schedule.data.items.filter(
+      (m) =>
+        m.round != null &&
+        m.round <= candidate &&
+        !["FINISHED", "FORFEIT"].includes(m.status),
+    ).length;
+    return {
+      ...table,
+      stale,
+      checkedAt,
+      data: {
+        ...table.data,
+        round: isCurrent ? regularRound : candidate,
+        incompleteMatches,
+        isCurrent,
+        comparisonRound: isCurrent
+          ? regularRound != null && regularRound > 1
+            ? regularRound - 1
+            : null
+          : candidate > 1
+            ? candidate - 1
+            : null,
+      },
+    };
   }
-  const current = await read(round);
-  if (current?.data.items.length)
-    return { ...current, data: { ...current.data, round } };
-
-  // Use the official round list rather than probing arbitrary round numbers.
-  const rounds =
-    round > 1
-      ? (availableRounds ??
-        (await apiCache.get(
-          `/competitions/${encodeURIComponent(slug)}/rounds`,
-          z.array(z.number().int().positive()),
-          300000,
-        )))
-      : null;
-  const previous = [...new Set(rounds?.data ?? [])]
-    .filter((value) => value < round)
-    .sort((a, b) => b - a);
-  for (const candidate of previous) {
-    const table = await read(candidate);
-    if (table?.data.items.length) {
-      return {
-        ...table,
-        stale: table.stale || !!current?.stale || !!rounds?.stale,
-        data: { ...table.data, round: candidate },
-      };
-    }
-  }
+  if (isCurrent && started.length) throw new UpstreamError(502);
   return {
-    checkedAt:
-      current?.checkedAt ?? rounds?.checkedAt ?? new Date().toISOString(),
-    stale: !!current?.stale || !!rounds?.stale,
-    data: { items: [], total: 0, round: null },
+    stale,
+    checkedAt,
+    data: {
+      items: [],
+      total: 0,
+      round: null,
+      incompleteMatches: 0,
+      isCurrent,
+      comparisonRound: null,
+    },
   };
 }
 

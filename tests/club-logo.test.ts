@@ -43,16 +43,25 @@ describe("club logos", () => {
     ).toEqual({ id: 2, logo: null });
   });
   it("requests logos with match and standings data", async () => {
-    const get = vi
-      .spyOn(apiCache, "get")
-      .mockResolvedValue({
-        data: { items: [{ id: 1 }], total: 1 },
-        checkedAt: "now",
-        stale: false,
-      });
+    const get = vi.spyOn(apiCache, "get").mockResolvedValue({
+      data: { items: [{ id: 1 }], total: 1 },
+      checkedAt: "now",
+      stale: false,
+    });
     await getMatch(1);
     await getMatches({ from: "2026-09-28", to: "2026-10-04", offset: 0 });
     await getTeamSeasonMatches({ teamId: 1, seasonId: 20 });
+    get
+      .mockResolvedValueOnce({
+        data: { id: 16 },
+        checkedAt: "now",
+        stale: false,
+      })
+      .mockResolvedValueOnce({
+        data: { items: [{ round: 1, status: "FINISHED" }], total: 1 },
+        checkedAt: "now",
+        stale: false,
+      });
     await getStandings("league", 1);
     for (const [path] of get.mock.calls.slice(0, 3)) {
       const includes = new URL(path, "https://test.local").searchParams.get(
@@ -61,8 +70,8 @@ describe("club logos", () => {
       expect(includes).toContain("homeTeam.club");
       expect(includes).toContain("awayTeam.club");
     }
-    expect(get.mock.calls[3][0]).toContain("team.club");
+    expect(get.mock.calls[5][0]).toContain("team.club");
     await getTeam(1);
-    expect(get.mock.calls[4][0]).toBe("/teams/1?include=club");
+    expect(get.mock.calls[6][0]).toBe("/teams/1?include=club");
   });
 });
