@@ -2,6 +2,8 @@
 
 ## Nevydáno
 
+## 0.10.0 — připraveno k vydání
+
 ### Opravy
 
 - Podklad OBS panelů pod jmény a výsledky je neprůhledný pro lepší čitelnost nad kamerou; okolí panelů zůstává průhledné.
