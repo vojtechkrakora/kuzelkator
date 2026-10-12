@@ -11,6 +11,7 @@ import {
 } from "@/domain/models";
 import {
   laneOutcome,
+  overlayLanes,
   overlayPlayerName,
   overlayPositions,
   overlayPollDelay,
@@ -187,16 +188,7 @@ export function OverlayContent({
           const rival = opponent?.playerResults?.find(
             (p) => p.position === position,
           );
-          const lanes = [
-            ...new Set([
-              1,
-              2,
-              3,
-              4,
-              ...(player?.laneResults ?? []).map((l) => l.laneNumber),
-              ...(rival?.laneResults ?? []).map((l) => l.laneNumber),
-            ]),
-          ].sort((a, b) => a - b);
+          const lanes = overlayLanes(match, player, rival);
           const displayName = overlayPlayerName(
             match,
             isHome,

@@ -267,3 +267,35 @@ test("setup density switch updates source links, dimensions and previews", async
   await expect(page.locator(".obs-density-compact")).toHaveCount(2);
   await expect(page.getByLabel("Adresa: Skóre")).toHaveValue(/panel=score$/);
 });
+
+for (const density of ["compact", "full"]) {
+  test(`OBS T100 shows two lanes for both teams (${density})`, async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 240, height: 960 });
+    await page.route("**/api/data?kind=match&**", (route) =>
+      route.fulfill({
+        json: {
+          data: { ...fixture(), discipline: "T100" },
+          checkedAt: new Date().toISOString(),
+          stale: false,
+        },
+      }),
+    );
+    for (const panel of ["home", "away"]) {
+      await page.goto(`/matches/513/overlay?panel=${panel}&density=${density}`);
+      const cards = page.locator(".obs-player");
+      await expect(cards).toHaveCount(6);
+      for (const card of await cards.all())
+        await expect(card.locator(".obs-lane")).toHaveCount(2);
+      await expect(cards.first().locator(".obs-lane").first()).toContainText(
+        panel === "home" ? "150" : "140",
+      );
+      expect(
+        await page.evaluate(
+          () => document.documentElement.scrollWidth <= innerWidth,
+        ),
+      ).toBe(true);
+    }
+  });
+}
