@@ -800,7 +800,14 @@ function Standings({
   const table = useQuery({
     queryKey: ["standings", competition.slug, selectedRound, tableType],
     queryFn: ({ signal }) =>
-      getData<Page<Standing> & { round: number | null }>(
+      getData<
+        Page<Standing> & {
+          round: number | null;
+          incompleteMatches?: number;
+          isCurrent?: boolean;
+          comparisonRound?: number | null;
+        }
+      >(
         {
           kind: "standings",
           type: tableType,
@@ -811,15 +818,33 @@ function Standings({
       ),
   });
   const actualRound = table.data?.data.round;
+  const comparisonRound =
+    table.data?.data.comparisonRound === undefined
+      ? actualRound != null && actualRound > 1
+        ? actualRound - 1
+        : null
+      : table.data.data.comparisonRound;
   const previous = useQuery({
-    queryKey: ["standings-previous", competition.slug, actualRound, tableType],
-    enabled: actualRound != null && actualRound > 1,
+    queryKey: [
+      "standings-previous",
+      competition.slug,
+      comparisonRound,
+      tableType,
+    ],
+    enabled: comparisonRound != null,
     queryFn: ({ signal }) =>
-      getData<Page<Standing> & { round: number | null }>(
+      getData<
+        Page<Standing> & {
+          round: number | null;
+          incompleteMatches?: number;
+          isCurrent?: boolean;
+          comparisonRound?: number | null;
+        }
+      >(
         {
           kind: "standings",
           slug: competition.slug,
-          round: actualRound! - 1,
+          round: comparisonRound!,
           type: tableType,
         },
         signal,
@@ -830,7 +855,10 @@ function Standings({
       ? "—"
       : new Intl.NumberFormat("cs", { maximumFractionDigits: 2 }).format(value);
   const priorRows = new Map(
-    previous.data?.data.items.map((row) => [row.team.id, row]) ?? [],
+    (previous.isError ? undefined : previous.data)?.data.items.map((row) => [
+      row.team.id,
+      row,
+    ]) ?? [],
   );
   return (
     <section className="standings">
@@ -897,9 +925,24 @@ function Standings({
           <Freshness {...table.data} />
           {table.data.data.round != null && (
             <p className="empty-copy" role="status">
-              {selectedRound != null && table.data.data.round < selectedRound
-                ? `Pro ${selectedRound}. kolo tabulka zatím není zveřejněna. Zobrazujeme poslední dostupnou tabulku po ${table.data.data.round}. kole.`
-                : `Tabulka po ${table.data.data.round}. kole.`}
+              {table.data.data.isCurrent
+                ? "Aktuální tabulka · všechny zveřejněné výsledky včetně předehrávek a dohrávek."
+                : selectedRound != null && table.data.data.round < selectedRound
+                  ? `Pro ${selectedRound}. kolo není dostupná tabulka z odehraných zápasů. Zobrazujeme tabulku k ${table.data.data.round}. kolu.`
+                  : `Tabulka k ${table.data.data.round}. kolu.`}
+            </p>
+          )}
+          {table.data.data.isCurrent && actualRound == null && (
+            <p className="stats-note">
+              Aktuální tabulka zahrnuje všechny zveřejněné výsledky. Běžné kolo
+              zatím nelze určit; srovnání není dostupné.
+            </p>
+          )}
+          {!!table.data.data.incompleteMatches && (
+            <p className="stats-note">
+              Průběžná tabulka: v zahrnutých kolech zbývá dohrát{" "}
+              {table.data.data.incompleteMatches} zápasů. Dohrávky mohou upravit
+              i starší tabulky.
             </p>
           )}
           {table.data.data.items.length > 0 && (
@@ -914,12 +957,10 @@ function Standings({
                     Zkusit srovnání znovu
                   </button>
                 </>
-              ) : actualRound != null &&
-                actualRound > 1 &&
-                previous.isPending ? (
+              ) : comparisonRound != null && previous.isPending ? (
                 "Načítání změny pořadí…"
               ) : previous.data?.data.round != null ? (
-                `Změna pořadí proti ${previous.data.data.round}. kolu · ${tableLabel.toLowerCase()}.`
+                `Změna oproti tabulce ${previous.data.data.round}. kola · ${tableLabel.toLowerCase()}.`
               ) : (
                 "Předchozí tabulka pro srovnání není dostupná."
               )}
@@ -931,7 +972,10 @@ function Standings({
               <table>
                 <caption className="sr-only">
                   Tabulka {competition.name},{" "}
-                  {table.data.data.round ?? selectedRound}. kolo · {tableLabel}
+                  {table.data.data.isCurrent
+                    ? "aktuální"
+                    : `${table.data.data.round ?? selectedRound}. kolo`}{" "}
+                  · {tableLabel}
                 </caption>
                 <thead>
                   <tr>
@@ -949,24 +993,13 @@ function Standings({
                     <tr key={row.team.id}>
                       <td>
                         {row.position}
-                        <span
-                          className="standing-movement"
-                          aria-label={
-                            priorRows.has(row.team.id)
-                              ? `Změna pořadí: ${priorRows.get(row.team.id)!.position - row.position > 0 ? "postup o" : priorRows.get(row.team.id)!.position - row.position < 0 ? "pokles o" : "beze změny"} ${Math.abs(priorRows.get(row.team.id)!.position - row.position) || ""}`
-                              : "Změna pořadí není dostupná"
+                        <StandingMovement
+                          current={row.position}
+                          previous={priorRows.get(row.team.id)?.position}
+                          loading={
+                            comparisonRound != null && previous.isPending
                           }
-                        >
-                          {priorRows.has(row.team.id)
-                            ? priorRows.get(row.team.id)!.position >
-                              row.position
-                              ? `↑${priorRows.get(row.team.id)!.position - row.position}`
-                              : priorRows.get(row.team.id)!.position <
-                                  row.position
-                                ? `↓${row.position - priorRows.get(row.team.id)!.position}`
-                                : "="
-                            : "—"}
-                        </span>
+                        />
                       </td>
                       <th scope="row">
                         <span className="table-team">
@@ -1051,8 +1084,11 @@ function Standings({
                             </p>
                           )}
                           <p>
-                            {tableLabel} · {actualRound}. kolo · průměr ze
-                            zápasů tohoto pohledu.
+                            {tableLabel} ·{" "}
+                            {table.data.data.isCurrent
+                              ? "aktuální tabulka"
+                              : `${actualRound}. kolo`}{" "}
+                            · průměr ze zápasů tohoto pohledu.
                           </p>
                         </details>
                       </th>
@@ -1076,5 +1112,53 @@ function Standings({
         </>
       )}
     </section>
+  );
+}
+
+function StandingMovement({
+  current,
+  previous,
+  loading,
+}: {
+  current: number;
+  previous?: number;
+  loading: boolean;
+}) {
+  const change = previous == null ? null : previous - current;
+  const direction = loading
+    ? "loading"
+    : change == null
+      ? "unknown"
+      : change > 0
+        ? "up"
+        : change < 0
+          ? "down"
+          : "same";
+  const label = loading
+    ? "Načítání změny pořadí"
+    : change == null
+      ? "Změna pořadí není dostupná"
+      : change === 0
+        ? "Pořadí beze změny"
+        : `${change > 0 ? "Postup" : "Pokles"} o ${Math.abs(change)} míst`;
+  return (
+    <span
+      className={`standing-movement standing-movement-${direction}`}
+      aria-label={label}
+      title={label}
+    >
+      {loading ? (
+        "…"
+      ) : change == null ? (
+        "?"
+      ) : change === 0 ? (
+        "="
+      ) : (
+        <>
+          {change > 0 ? "↑" : "↓"}
+          {Math.abs(change)}
+        </>
+      )}
+    </span>
   );
 }

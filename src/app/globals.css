@@ -3616,3 +3616,30 @@ details.competition-group[open] > summary > span > svg {
 .standing-details p {
   line-height: 1.5;
 }
+
+.standing-movement {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: max-content;
+  min-width: 28px;
+  min-height: 24px;
+  padding: 2px 5px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  background: #f1f3f2;
+  color: #526159;
+}
+.standing-movement-up {
+  background: #e5f4e8;
+  color: #246235;
+}
+.standing-movement-down {
+  background: #fbe9e7;
+  color: #a32c24;
+}
+.standing-movement-unknown {
+  border: 1px dashed #a5afa9;
+}
