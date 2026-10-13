@@ -299,3 +299,85 @@ for (const density of ["compact", "full"]) {
     }
   });
 }
+
+for (const width of [1920, 1280, 390]) {
+  test(`OBS score stays centered with unequal names and totals at ${width}px`, async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width, height: width === 1920 ? 120 : 500 });
+    const data = fixture();
+    data.homeTeam.name = "TJ Dlouhý domácí název družstva";
+    data.awayTeam.name = "Hosté";
+    data.results[0].teamPoints = 7;
+    data.results[1].teamPoints = 1;
+    data.results[0].totalPerformance = 1064;
+    data.results[1].totalPerformance = 999;
+    await page.route("**/api/data?kind=match&**", (route) =>
+      route.fulfill({
+        json: { data, checkedAt: new Date().toISOString(), stale: false },
+      }),
+    );
+    await page.goto("/matches/513/overlay?panel=score");
+    await expect(page.locator(".obs-score-numbers strong")).toHaveText("7 : 1");
+    const score = await page.locator(".obs-score-numbers").boundingBox();
+    const panel = await page.locator(".obs-score").boundingBox();
+    expect(
+      Math.abs(score!.x + score!.width / 2 - (panel!.x + panel!.width / 2)),
+    ).toBeLessThan(1);
+    await expect(page.locator(".obs-pin-difference")).toHaveText("+65");
+    await expect(page.locator(".obs-pin-difference")).toHaveClass(
+      /obs-pin-home/,
+    );
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= innerWidth,
+      ),
+    ).toBe(true);
+    if (width === 1920) expect(panel!.height).toBeLessThanOrEqual(120);
+  });
+}
+
+test("OBS pin lead follows refreshed results, ties, zeroes and missing totals", async ({
+  page,
+}) => {
+  await page.clock.install({ time: new Date("2026-10-12T12:00:00Z") });
+  let home: number | null = 1000,
+    away: number | null = 1065;
+  await page.route("**/api/data?kind=match&**", (route) => {
+    const data = fixture();
+    return route.fulfill({
+      json: {
+        data: {
+          ...data,
+          results: data.results.map((result) => ({
+            ...result,
+            totalPerformance: result.isHome ? home : away,
+          })),
+        },
+        checkedAt: new Date().toISOString(),
+        stale: false,
+      },
+    });
+  });
+  await page.goto("/matches/513/overlay?panel=score");
+  const lead = page.locator(".obs-pin-difference");
+  await expect(lead).toHaveText("65+");
+  await expect(lead).toHaveClass(/obs-pin-away/);
+  await expect(lead).toHaveAttribute("aria-label", "Hosté vedou o 65 kuželek");
+  home = 1065;
+  await page.clock.fastForward(16000);
+  await expect(lead).toHaveText("0");
+  await expect(lead).not.toHaveClass(/obs-pin-(home|away)/);
+  home = null;
+  await page.clock.fastForward(16000);
+  await expect(lead).toHaveText("—");
+  await expect(lead).toHaveAttribute(
+    "aria-label",
+    "Rozdíl kuželek není dostupný",
+  );
+  home = 65;
+  away = 0;
+  await page.clock.fastForward(16000);
+  await expect(lead).toHaveText("+65");
+  await expect(lead).toHaveClass(/obs-pin-home/);
+});
