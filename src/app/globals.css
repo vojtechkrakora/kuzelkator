@@ -3704,3 +3704,106 @@ details.competition-group[open] > summary > span > svg {
 .competition-resources-error .button {
   min-height: 44px;
 }
+
+.next-opponent {
+  margin: 20px 0;
+  padding: 20px;
+  border: 1px solid #dce4d8;
+  border-radius: 16px;
+  background: #f7faf5;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.next-opponent p {
+  margin: 8px 0;
+}
+.next-opponent-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 10px;
+}
+.next-opponent-heading h4 {
+  margin: 0;
+  font-size: 1.15rem;
+}
+.next-opponent-heading a {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+}
+.next-opponent-location {
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+.next-opponent-venue span {
+  display: block;
+  font-size: 0.85rem;
+}
+.next-opponent-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 14px 0;
+}
+.next-opponent-actions a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 8px 12px;
+  background: white;
+  border: 1px solid #dce4d8;
+  border-radius: 10px;
+}
+.next-opponent-stats {
+  border-top: 1px solid #dce4d8;
+  padding-top: 8px;
+}
+.next-opponent-stats > .muted {
+  font-size: 0.8rem;
+}
+.next-opponent-average {
+  display: grid;
+  gap: 4px;
+  padding: 12px 0;
+}
+.next-opponent-average strong {
+  font-size: 1.5rem;
+  font-variant-numeric: tabular-nums;
+}
+.next-opponent-average small {
+  color: #5c6857;
+}
+@media (max-width: 600px) {
+  .next-opponent {
+    padding: 14px;
+  }
+}
+
+.team-detail-tabs {
+  display: flex;
+  gap: 4px;
+  border-bottom: 1px solid #dce4d8;
+  margin: 16px 0;
+}
+.team-detail-tabs button {
+  min-height: 44px;
+  padding: 10px 14px;
+  border: 0;
+  border-bottom: 3px solid transparent;
+  background: transparent;
+  color: #5c6857;
+  font-weight: 600;
+  cursor: pointer;
+}
+.team-detail-tabs button[aria-selected="true"] {
+  color: #126044;
+  border-bottom-color: #126044;
+}
+.team-detail-tabs button:focus-visible {
+  outline: 2px solid #126044;
+  outline-offset: -2px;
+}

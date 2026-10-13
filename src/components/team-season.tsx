@@ -1,5 +1,7 @@
 "use client";
 
+import { useId, useState } from "react";
+import { NextOpponent } from "./next-opponent";
 import { useFeedReturn } from "./feed-navigation";
 import { TeamLogo } from "./team-logo";
 import Link from "next/link";
@@ -44,6 +46,14 @@ export function TeamSeason({
   seasonName?: string;
   onChooseTeam: (id: string) => void;
 }) {
+  const tabsId = useId();
+  const context = `${teamId}:${seasonId}`;
+  const [selection, setSelection] = useState({ context, tab: "team" });
+  const activeTab = selection.context === context ? selection.tab : "team";
+  const tabs = [
+    { id: "team", label: "Přehled týmu" },
+    { id: "opponent", label: "Příští soupeř" },
+  ];
   const matches = useQuery({
     queryKey: ["team-season", teamId, seasonId],
     enabled: !!seasonId,
@@ -82,6 +92,44 @@ export function TeamSeason({
         </div>
         {matches.data && <Freshness {...matches.data} />}
       </div>
+      <div
+        className="team-detail-tabs"
+        role="tablist"
+        aria-label="Pohled na tým"
+      >
+        {tabs.map((tab, index) => (
+          <button
+            key={tab.id}
+            type="button"
+            role="tab"
+            id={`${tabsId}-${tab.id}-tab`}
+            aria-controls={`${tabsId}-${tab.id}-panel`}
+            aria-selected={activeTab === tab.id}
+            tabIndex={activeTab === tab.id ? 0 : -1}
+            onClick={() => setSelection({ context, tab: tab.id })}
+            onKeyDown={(event) => {
+              const next =
+                event.key === "ArrowRight"
+                  ? (index + 1) % tabs.length
+                  : event.key === "ArrowLeft"
+                    ? (index + tabs.length - 1) % tabs.length
+                    : event.key === "Home"
+                      ? 0
+                      : event.key === "End"
+                        ? tabs.length - 1
+                        : null;
+              if (next == null) return;
+              event.preventDefault();
+              setSelection({ context, tab: tabs[next].id });
+              event.currentTarget.parentElement
+                ?.querySelectorAll<HTMLButtonElement>('[role="tab"]')
+                [next]?.focus();
+            }}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
       {matches.isPending && <p role="status">Načítání celé sezóny…</p>}
       {matches.isError && (
         <ErrorNotice
@@ -94,149 +142,168 @@ export function TeamSeason({
           Pro tento tým nejsou ve vybrané sezóně zveřejněné žádné zápasy.
         </p>
       )}
-      {matches.data && (
-        <section className="team-form" aria-labelledby="team-form-title">
-          <h4 id="team-form-title">Forma týmu</h4>
-          {form.length ? (
-            <>
-              <p>Poslední dohrané zápasy · nejnovější vpravo →</p>
-              <ol className="team-form-list">
-                {form.map(
-                  ({ match, outcome, points, opponentPoints, opponent }) => {
-                    const { letter, label } = formLabels[outcome];
-                    const description = `${label} · ${opponent?.name ?? "Soupeř"}${outcome === "unknown" ? "" : ` · ${points}:${opponentPoints}`} · ${matchDate(match.date)}`;
-                    return (
-                      <li key={match.id}>
-                        <Link
-                          prefetch={false}
-                          href={`/matches/${match.id}`}
-                          className={`team-form-box team-form-${outcome}`}
-                          aria-label={description}
-                          title={description}
-                        >
-                          {letter}
-                        </Link>
-                      </li>
-                    );
-                  },
-                )}
-              </ol>
-              <p className="team-form-legend">
-                V – výhra · R – remíza · P – prohra
-              </p>
-            </>
-          ) : (
-            <p>Zatím žádné dohrané zápasy se známým datem v této sezóně.</p>
-          )}
-        </section>
-      )}
-      <TeamPlayers
-        key={`${teamId}-${seasonId}`}
-        teamId={teamId}
-        seasonId={seasonId}
-        seasonName={seasonName}
-      />
-      {!!items.length && (
-        <table className="season-matches">
-          <caption className="sr-only">
-            {name} — všechny zápasy sezóny {seasonName}
-          </caption>
-          <thead>
-            <tr>
-              <th scope="col">Termín</th>
-              <th scope="col">Domácí / Hosté</th>
-              <th scope="col">Body</th>
-              <th scope="col">Kuželky</th>
-            </tr>
-          </thead>
-          {items.map((match) => {
-            const outcome = teamMatchOutcome(match, teamId);
-            const hasScore = ["FINISHED", "FORFEIT", "IN_PROGRESS"].includes(
-              match.status,
-            );
-            return (
-              <tbody
-                key={match.id}
-                className={`${hasScore ? "has-result" : "upcoming-match"}${outcome !== "unknown" ? ` season-outcome-${outcome}` : ""}`}
-              >
-                {[true, false].map((isHome) => {
-                  const side = isHome ? match.homeTeam : match.awayTeam;
-                  const result = resultFor(match, isHome);
-                  return (
-                    <tr key={String(isHome)}>
-                      {isHome && (
-                        <td rowSpan={2}>
+      <div
+        role="tabpanel"
+        id={`${tabsId}-opponent-panel`}
+        aria-labelledby={`${tabsId}-opponent-tab`}
+        hidden={activeTab !== "opponent"}
+        tabIndex={0}
+      >
+        {activeTab === "opponent" && matches.data && (
+          <NextOpponent matches={items} teamId={teamId} seasonId={seasonId} />
+        )}
+      </div>
+      <div
+        role="tabpanel"
+        id={`${tabsId}-team-panel`}
+        aria-labelledby={`${tabsId}-team-tab`}
+        hidden={activeTab !== "team"}
+        tabIndex={0}
+      >
+        {matches.data && (
+          <section className="team-form" aria-labelledby="team-form-title">
+            <h4 id="team-form-title">Forma týmu</h4>
+            {form.length ? (
+              <>
+                <p>Poslední dohrané zápasy · nejnovější vpravo →</p>
+                <ol className="team-form-list">
+                  {form.map(
+                    ({ match, outcome, points, opponentPoints, opponent }) => {
+                      const { letter, label } = formLabels[outcome];
+                      const description = `${label} · ${opponent?.name ?? "Soupeř"}${outcome === "unknown" ? "" : ` · ${points}:${opponentPoints}`} · ${matchDate(match.date)}`;
+                      return (
+                        <li key={match.id}>
                           <Link
                             prefetch={false}
                             href={`/matches/${match.id}`}
-                            className="season-match-link"
-                            aria-label={`Detail zápasu ${match.homeTeam?.name ?? "Domácí"} – ${match.awayTeam?.name ?? "Hosté"}`}
+                            className={`team-form-box team-form-${outcome}`}
+                            aria-label={description}
+                            title={description}
                           >
-                            {outcome !== "unknown" && (
-                              <span
-                                className={`season-outcome-badge team-form-${outcome}`}
-                              >
-                                {formLabels[outcome].letter} ·{" "}
-                                {formLabels[outcome].label}
-                              </span>
-                            )}
-                            <time dateTime={match.date ?? undefined}>
-                              {matchDate(match.date)}
-                            </time>
-                            <small>{match.time?.slice(0, 5)}</small>
-                            <small>
-                              {match.round ? `${match.round}. kolo · ` : ""}
-                              {statusLabel(match.status)}
-                            </small>
-                            {multipleCompetitions && (
-                              <small>{match.competition?.name}</small>
-                            )}
+                            {letter}
                           </Link>
-                        </td>
-                      )}
-                      <th scope="row">
-                        {side ? (
-                          <Link
-                            prefetch={false}
-                            href={teamSeasonHref(side.id, seasonId)}
-                            onNavigate={(event) => {
-                              event.preventDefault();
-                              onChooseTeam(String(side.id));
-                            }}
-                            className={
-                              String(side.id) === teamId
-                                ? "followed-side season-team-link"
-                                : "season-team-link"
-                            }
-                          >
-                            <TeamLogo team={side} size={22} />
-                            <span>{side.name}</span>
-                          </Link>
-                        ) : (
-                          <span className="season-team-link">
-                            <TeamLogo team={side} size={22} />
-                            <span>
-                              {isHome
-                                ? "Domácí tým neuveden"
-                                : "Hostující tým neuveden"}
-                            </span>
-                          </span>
+                        </li>
+                      );
+                    },
+                  )}
+                </ol>
+                <p className="team-form-legend">
+                  V – výhra · R – remíza · P – prohra
+                </p>
+              </>
+            ) : (
+              <p>Zatím žádné dohrané zápasy se známým datem v této sezóně.</p>
+            )}
+          </section>
+        )}
+        <TeamPlayers
+          key={`${teamId}-${seasonId}`}
+          teamId={teamId}
+          seasonId={seasonId}
+          seasonName={seasonName}
+        />
+        {!!items.length && (
+          <table className="season-matches">
+            <caption className="sr-only">
+              {name} — všechny zápasy sezóny {seasonName}
+            </caption>
+            <thead>
+              <tr>
+                <th scope="col">Termín</th>
+                <th scope="col">Domácí / Hosté</th>
+                <th scope="col">Body</th>
+                <th scope="col">Kuželky</th>
+              </tr>
+            </thead>
+            {items.map((match) => {
+              const outcome = teamMatchOutcome(match, teamId);
+              const hasScore = ["FINISHED", "FORFEIT", "IN_PROGRESS"].includes(
+                match.status,
+              );
+              return (
+                <tbody
+                  key={match.id}
+                  className={`${hasScore ? "has-result" : "upcoming-match"}${outcome !== "unknown" ? ` season-outcome-${outcome}` : ""}`}
+                >
+                  {[true, false].map((isHome) => {
+                    const side = isHome ? match.homeTeam : match.awayTeam;
+                    const result = resultFor(match, isHome);
+                    return (
+                      <tr key={String(isHome)}>
+                        {isHome && (
+                          <td rowSpan={2}>
+                            <Link
+                              prefetch={false}
+                              href={`/matches/${match.id}`}
+                              className="season-match-link"
+                              aria-label={`Detail zápasu ${match.homeTeam?.name ?? "Domácí"} – ${match.awayTeam?.name ?? "Hosté"}`}
+                            >
+                              {outcome !== "unknown" && (
+                                <span
+                                  className={`season-outcome-badge team-form-${outcome}`}
+                                >
+                                  {formLabels[outcome].letter} ·{" "}
+                                  {formLabels[outcome].label}
+                                </span>
+                              )}
+                              <time dateTime={match.date ?? undefined}>
+                                {matchDate(match.date)}
+                              </time>
+                              <small>{match.time?.slice(0, 5)}</small>
+                              <small>
+                                {match.round ? `${match.round}. kolo · ` : ""}
+                                {statusLabel(match.status)}
+                              </small>
+                              {multipleCompetitions && (
+                                <small>{match.competition?.name}</small>
+                              )}
+                            </Link>
+                          </td>
                         )}
-                      </th>
-                      <td className="season-score">
-                        {hasScore ? (result?.teamPoints ?? "—") : "—"}
-                      </td>
-                      <td className="season-pins">
-                        {hasScore ? (result?.totalPerformance ?? "—") : "—"}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            );
-          })}
-        </table>
-      )}
+                        <th scope="row">
+                          {side ? (
+                            <Link
+                              prefetch={false}
+                              href={teamSeasonHref(side.id, seasonId)}
+                              onNavigate={(event) => {
+                                event.preventDefault();
+                                onChooseTeam(String(side.id));
+                              }}
+                              className={
+                                String(side.id) === teamId
+                                  ? "followed-side season-team-link"
+                                  : "season-team-link"
+                              }
+                            >
+                              <TeamLogo team={side} size={22} />
+                              <span>{side.name}</span>
+                            </Link>
+                          ) : (
+                            <span className="season-team-link">
+                              <TeamLogo team={side} size={22} />
+                              <span>
+                                {isHome
+                                  ? "Domácí tým neuveden"
+                                  : "Hostující tým neuveden"}
+                              </span>
+                            </span>
+                          )}
+                        </th>
+                        <td className="season-score">
+                          {hasScore ? (result?.teamPoints ?? "—") : "—"}
+                        </td>
+                        <td className="season-pins">
+                          {hasScore ? (result?.totalPerformance ?? "—") : "—"}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              );
+            })}
+          </table>
+        )}
+      </div>
     </section>
   );
 }
