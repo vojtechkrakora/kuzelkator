@@ -6,6 +6,8 @@
 
 - Detail týmu má samostatnou záložku „Příští soupeř“, která se načte až po přepnutí a ukazuje soupeře podle skutečného termínu, kuželnu s navigací, poslední formu soupeře a jeho domácí či venkovní průměr v příslušné soutěži.
 
+- U soutěže lze přepnout z družstev na pořadí hráčů podle průměru (výchozí) nebo oficiálního pořadí ČKA, včetně pohledů celkem/doma/venku, vyhledání hráče či týmu a zvýraznění oblíbených.
+
 - U vybrané soutěže jsou dostupné oficiální dokumenty ČKA (například soupisky) a poslední související zprávy. Dokumenty mají formát, velikost a datum aktualizace, pokud je zdroj uvádí.
 
 ## 0.10.1 — připraveno k vydání

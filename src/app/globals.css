@@ -3807,3 +3807,178 @@ details.competition-group[open] > summary > span > svg {
   outline: 2px solid #126044;
   outline-offset: -2px;
 }
+
+.competition-standings-switch {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.competition-player-table {
+  min-width: 0;
+  margin: 16px 0 24px;
+}
+.competition-player-table .section-title p {
+  font-size: 13px;
+  margin: 6px 0 0;
+}
+.player-table-round {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  margin: 12px 0;
+}
+.player-table-round label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.player-table-round input {
+  width: 118px;
+  min-height: 44px;
+}
+.player-table-filters {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: end;
+  margin: 16px 0;
+}
+.player-table-filters > label:first-child {
+  display: grid;
+  gap: 6px;
+  font-size: 13px;
+}
+.player-table-filters input[type="search"] {
+  width: 100%;
+  min-width: 0;
+  min-height: 44px;
+}
+.player-table-round input,
+.player-table-filters input[type="search"] {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 10px 12px;
+  background: white;
+  color: inherit;
+  font: inherit;
+  box-sizing: border-box;
+}
+.player-table-favorites {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  font-size: 13px;
+  cursor: pointer;
+}
+.player-table-favorites input {
+  width: 20px;
+  height: 20px;
+}
+.player-table-note,
+.player-table-count {
+  font-size: 12px;
+  line-height: 1.5;
+}
+.competition-player-list {
+  list-style: none;
+  padding: 0;
+  margin: 12px 0;
+  display: grid;
+  gap: 8px;
+}
+.competition-player-list li {
+  background: white;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 10px 12px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(220px, 0.8fr);
+  gap: 12px;
+  align-items: center;
+}
+.competition-player-list li.is-favorite {
+  background: #eff8f0;
+  border-color: #a3ccb0;
+}
+.player-standing-identity {
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1fr) 44px;
+  gap: 8px;
+  align-items: center;
+}
+.player-standing-position {
+  color: var(--muted);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.player-standing-name,
+.player-standing-team {
+  display: block;
+  overflow-wrap: anywhere;
+}
+.player-standing-name {
+  font-weight: 700;
+  text-decoration: none;
+}
+.player-standing-team {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 4px;
+}
+.player-standing-identity .star-button {
+  width: 44px;
+  height: 44px;
+}
+.competition-player-list dl {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0;
+  text-align: center;
+}
+.competition-player-list dt {
+  font-size: 11px;
+  color: var(--muted);
+}
+.competition-player-list dd {
+  margin: 4px 0 0;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.player-table-more {
+  min-height: 44px;
+  width: 100%;
+}
+@media (max-width: 650px) {
+  .player-table-filters {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 4px;
+  }
+  .competition-player-list li {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 10px;
+    padding: 10px;
+  }
+  .competition-player-list dl {
+    border-top: 1px solid var(--line);
+    padding-top: 8px;
+  }
+}
+
+.player-table-order {
+  display: grid;
+  gap: 6px;
+  max-width: 360px;
+  font-size: 13px;
+  margin: 12px 0;
+}
+.player-table-order select {
+  min-height: 44px;
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 10px;
+  background: white;
+  font: inherit;
+  color: inherit;
+}

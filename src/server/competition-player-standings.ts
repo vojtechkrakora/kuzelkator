@@ -1,0 +1,100 @@
+import { collection } from "../domain/models";
+import {
+  competitionPlayerStandingSchema,
+  type CompetitionPlayerTable,
+} from "../domain/competition-player-standings";
+import type { Resource } from "../domain/models";
+import { standingsRounds } from "../domain/standings-rounds";
+import { todayPrague } from "../lib/dates";
+import { getCompetitionSchedule } from "./cka";
+import { apiCache, UpstreamError } from "./cache";
+
+export async function getCompetitionPlayerStandings(
+  slug: string,
+  round?: number,
+  type: "ALL" | "HOME" | "AWAY" = "ALL",
+): Promise<Resource<CompetitionPlayerTable>> {
+  const { competition, schedule } = await getCompetitionSchedule(slug);
+  const { playedRounds } = standingsRounds(schedule.data.items, todayPrague());
+  const candidates = playedRounds.filter((r) => round == null || r <= round);
+  let stale = competition.stale || schedule.stale;
+  let checkedAt =
+    competition.checkedAt < schedule.checkedAt
+      ? competition.checkedAt
+      : schedule.checkedAt;
+  for (const candidate of candidates) {
+    const query = new URLSearchParams({
+      type,
+      include: "player,team",
+      sort: "position,player.id,team.id",
+      limit: "100",
+      offset: "0",
+    });
+    const path = `/competitions/${encodeURIComponent(slug)}/rounds/${candidate}/player-table`;
+    let first;
+    try {
+      first = await apiCache.get(
+        `${path}?${query}`,
+        collection(competitionPlayerStandingSchema),
+        300000,
+      );
+    } catch (error) {
+      if (error instanceof UpstreamError && error.status === 404) continue;
+      throw error;
+    }
+    stale ||= first.stale;
+    if (first.checkedAt < checkedAt) checkedAt = first.checkedAt;
+    if (first.data.total === 0 && first.data.items.length === 0) continue;
+    if (first.data.total > 10000 || !first.data.items.length)
+      throw new UpstreamError(502);
+    const items = [...first.data.items];
+    while (items.length < first.data.total) {
+      query.set("offset", String(items.length));
+      const next = await apiCache.get(
+        `${path}?${query}`,
+        collection(competitionPlayerStandingSchema),
+        300000,
+      );
+      if (!next.data.items.length || next.data.total !== first.data.total)
+        throw new UpstreamError(502);
+      items.push(...next.data.items);
+      stale ||= next.stale;
+      if (next.checkedAt < checkedAt) checkedAt = next.checkedAt;
+    }
+    // Never label a partial/mixed snapshot as a complete official ranking.
+    if (
+      items.length !== first.data.total ||
+      items.some((row) => row.round !== candidate || row.type !== type) ||
+      new Set(items.map((row) => `${row.player.id}:${row.team.id}`)).size !==
+        items.length
+    )
+      throw new UpstreamError(502);
+    items.sort(
+      (a, b) =>
+        (a.position > 0 ? a.position : Infinity) -
+          (b.position > 0 ? b.position : Infinity) ||
+        a.player.id - b.player.id ||
+        a.team.id - b.team.id,
+    );
+    return {
+      stale,
+      checkedAt,
+      data: {
+        items,
+        total: items.length,
+        round: candidate,
+        latestStartedRound: playedRounds[0] ?? null,
+      },
+    };
+  }
+  return {
+    stale,
+    checkedAt,
+    data: {
+      items: [],
+      total: 0,
+      round: null,
+      latestStartedRound: playedRounds[0] ?? null,
+    },
+  };
+}
