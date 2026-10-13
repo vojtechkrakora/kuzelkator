@@ -149,7 +149,7 @@ export async function getTeamSeasonMatches(
     limit: "100",
     sort: "date,time,id",
     include:
-      "homeTeam,homeTeam.club,awayTeam,awayTeam.club,competition,results",
+      "homeTeam,homeTeam.club,awayTeam,awayTeam.club,competition,results,venue",
   });
   const first = await apiCache.get(
     `/matches?${query}`,

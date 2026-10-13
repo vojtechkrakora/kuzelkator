@@ -254,3 +254,7 @@ Používají stávající sdílenou procesovou cache s TTL 15 minut, slučován�
 požadavků a označením starších dat při dočasném výpadku. Nevyžadují další službu,
 cron ani databázi. Použité veřejné endpointy: `/competitions/{slug}` a
 `/articles?competitionId={id}&visible=true&sort=-publishedAt&limit=5`.
+
+### Příští soupeř
+
+Výchozí záložka „Přehled týmu“ obsahuje formu, hráče a zápasy prohlíženého týmu. Samostatná záložka „Příští soupeř“ načítá soupeřova data až po přepnutí; při změně týmu nebo sezóny se znovu zobrazí přehled týmu. Přehled soupeře vybírá nejbližší budoucí neodehrané utkání podle data a času (probíhající utkání má přednost), nikoli podle kola. Utkání bez termínu zůstává v rozpisu a přehled na ně upozorní. Karta obsahuje odkazy na zápas a soupeře, kuželnu a navigaci, pokud je dostupná poloha. Jen pro tohoto soupeře se načítá rozpis vybrané sezóny a týmové souhrny ČKA s povinným competitionId. Forma a počty dohraných utkání se omezují na stejnou soutěž; průměr je údaj ČKA pro místo příštího startu soupeře (doma/venku). Počet dohraných utkání není počet výkonů započtených do průměru. Při výpadku statistik zůstává karta utkání funkční. Bez dalšího utkání se soupeři nepřednačítají.

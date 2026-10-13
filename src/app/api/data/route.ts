@@ -1,3 +1,4 @@
+import { getTeamRecords, teamRecordsInput } from "@/server/team-records";
 import {
   getCompetitionDocuments,
   getCompetitionArticles,
@@ -111,6 +112,9 @@ export async function GET(request: NextRequest) {
             .max(Number.MAX_SAFE_INTEGER)
             .parse(params.id),
         );
+        break;
+      case "team-records":
+        result = await getTeamRecords(teamRecordsInput.parse(params));
         break;
       case "team-season":
         result = await getTeamSeasonMatches(teamSeasonFilters.parse(params));
