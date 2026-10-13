@@ -2,6 +2,10 @@
 
 ## Nevydáno
 
+### Opravy
+
+- Spodní OBS lišta drží bodové skóre přesně uprostřed a pod celkovými kuželkami ukazuje rozdíl: zelené +N pro vedení domácích, červené N+ pro vedení hostů.
+
 ## 0.10.0 — připraveno k vydání
 
 ### Opravy

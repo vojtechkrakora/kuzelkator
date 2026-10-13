@@ -136,6 +136,10 @@ export function OverlayContent({
       })}
     </div>
   );
+  const pinDifference =
+    home?.totalPerformance != null && away?.totalPerformance != null
+      ? home.totalPerformance - away.totalPerformance
+      : null;
   if (panel === "score")
     return (
       <section className="obs-panel obs-score" aria-label="Skóre zápasu">
@@ -149,15 +153,35 @@ export function OverlayContent({
               {number(home?.teamPoints)} : {number(away?.teamPoints)}
             </strong>
           </div>
-          <strong className="obs-team-name">
-            {match.awayTeam?.name ?? "Hosté"}
-          </strong>
-          <div className="obs-score-pins">
-            <small>KUŽELKY</small>
-            <strong>
-              {number(home?.totalPerformance)} :{" "}
-              {number(away?.totalPerformance)}
+          <div className="obs-score-away">
+            <strong className="obs-team-name">
+              {match.awayTeam?.name ?? "Hosté"}
             </strong>
+            <div className="obs-score-pins">
+              <small>KUŽELKY</small>
+              <strong>
+                {number(home?.totalPerformance)} :{" "}
+                {number(away?.totalPerformance)}
+              </strong>
+              <span
+                className={`obs-pin-difference ${pinDifference == null || pinDifference === 0 ? "" : pinDifference > 0 ? "obs-pin-home" : "obs-pin-away"}`}
+                aria-label={
+                  pinDifference == null
+                    ? "Rozdíl kuželek není dostupný"
+                    : pinDifference === 0
+                      ? "Shodný počet kuželek"
+                      : `${pinDifference > 0 ? "Domácí" : "Hosté"} vedou o ${Math.abs(pinDifference)} kuželek`
+                }
+              >
+                {pinDifference == null
+                  ? "—"
+                  : pinDifference === 0
+                    ? "0"
+                    : pinDifference > 0
+                      ? `+${pinDifference}`
+                      : `${Math.abs(pinDifference)}+`}
+              </span>
+            </div>
           </div>
         </div>
         {freshness}
