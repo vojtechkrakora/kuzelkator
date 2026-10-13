@@ -3630,3 +3630,77 @@ details.competition-group[open] > summary > span > svg {
   padding: 12px 0;
   color: var(--green);
 }
+
+.competition-resources {
+  margin: 12px 0 20px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: white;
+  min-width: 0;
+}
+.competition-resources summary {
+  min-height: 48px;
+  padding: 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+}
+.competition-resources summary::after {
+  content: "+";
+  margin-left: auto;
+}
+.competition-resources[open] summary::after {
+  content: "−";
+}
+.competition-resources-content {
+  padding: 0 12px 12px;
+}
+.competition-resources-content h3 {
+  font-size: 15px;
+  margin: 16px 0 8px;
+}
+.competition-resources-content p {
+  font-size: 13px;
+}
+.competition-resources ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.competition-resources li + li {
+  border-top: 1px solid var(--line);
+}
+.competition-resources a {
+  min-height: 48px;
+  padding: 10px 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+}
+.competition-resources a > span:first-child {
+  min-width: 0;
+  flex: 1;
+  overflow-wrap: anywhere;
+}
+.competition-resources a svg {
+  flex-shrink: 0;
+}
+.competition-resources a small {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+  margin-top: 4px;
+}
+.competition-resources a:hover strong {
+  text-decoration: underline;
+}
+.competition-resources-loading {
+  font-size: 13px;
+  color: var(--muted);
+}
+.competition-resources-error .button {
+  min-height: 44px;
+}

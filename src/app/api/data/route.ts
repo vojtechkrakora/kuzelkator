@@ -1,3 +1,7 @@
+import {
+  getCompetitionDocuments,
+  getCompetitionArticles,
+} from "@/server/competition-resources";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import {
@@ -90,6 +94,24 @@ export async function GET(request: NextRequest) {
         result = await getCompetitions(input.seasonId, input.offset);
         break;
       }
+      case "competition-documents":
+        result = await getCompetitionDocuments(
+          z
+            .string()
+            .regex(/^[a-z0-9-]{1,180}$/)
+            .parse(params.slug),
+        );
+        break;
+      case "competition-articles":
+        result = await getCompetitionArticles(
+          z.coerce
+            .number()
+            .int()
+            .positive()
+            .max(Number.MAX_SAFE_INTEGER)
+            .parse(params.id),
+        );
+        break;
       case "team-season":
         result = await getTeamSeasonMatches(teamSeasonFilters.parse(params));
         break;

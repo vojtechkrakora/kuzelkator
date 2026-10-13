@@ -25,6 +25,7 @@ import { usePreferences } from "./providers";
 import { ErrorNotice, FollowButton, Freshness } from "./common";
 import { getData } from "@/lib/client-api";
 import { TeamSeason } from "./team-season";
+import { CompetitionResources } from "./competition-resources";
 import { CompetitionPicker } from "./competition-picker";
 import { MobileNavigation } from "./mobile-navigation";
 import { teamSeasonHref } from "@/lib/team-navigation";
@@ -425,6 +426,12 @@ export function Dashboard() {
                 competition={selectedCompetition}
                 seasonId={activeSeason}
                 onChooseTeam={showTeam}
+              />
+            )}
+            {selectedCompetition && (
+              <CompetitionResources
+                key={selectedCompetition.slug}
+                competition={selectedCompetition}
               />
             )}
             {competitionId && (
