@@ -239,3 +239,18 @@ zapnout vypnutí nepoužívaného zdroje; po opětovném načtení zdroje se dat
 hned. Neprovádíme automatický reload celé stránky, cron ani ukládání snímků.
 Před produkčním vydáním ověřte přímo v OBS průhlednost, změnu scény a aktuální
 zápas; testy v prohlížeči nenahrazují kontrolu OBS/CEF.
+
+## Oficiální dokumenty a zprávy soutěže
+
+Po výběru soutěže je pod tabulkou rozbalovací sekce **Dokumenty a zprávy ČKA**.
+Zobrazuje přílohy soutěže (název, formát, velikost a datum aktualizace, pokud je
+API uvádí) a nejvýše pět posledních zveřejněných zpráv příslušné soutěže. Prázdná
+sekce se nezobrazuje. Odkazy otevírají oficiální web nebo poskytovatele dokumentu;
+HTML obsahu článků se do aplikace nepřenáší.
+
+Metadata se načítají pouze pro zvolenou soutěž. Dokumenty a zprávy mají samostatné
+požadavky, takže selhání jednoho zdroje neschová druhý ani výsledky zápasů.
+Používají stávající sdílenou procesovou cache s TTL 15 minut, slučováním souběžných
+požadavků a označením starších dat při dočasném výpadku. Nevyžadují další službu,
+cron ani databázi. Použité veřejné endpointy: `/competitions/{slug}` a
+`/articles?competitionId={id}&visible=true&sort=-publishedAt&limit=5`.

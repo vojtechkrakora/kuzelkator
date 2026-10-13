@@ -2,6 +2,10 @@
 
 ## Nevydáno
 
+### Vylepšení
+
+- U vybrané soutěže jsou dostupné oficiální dokumenty ČKA (například soupisky) a poslední související zprávy. Dokumenty mají formát, velikost a datum aktualizace, pokud je zdroj uvádí.
+
 ## 0.10.1 — připraveno k vydání
 
 ### Opravy

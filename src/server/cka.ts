@@ -1,3 +1,4 @@
+import { competitionDocumentsSchema } from "../domain/competition-resources";
 import { z } from "zod";
 import {
   collection,
@@ -221,7 +222,7 @@ export async function getStandings(
   // non-empty data. Only rounds with actual play are eligible.
   const competition = await apiCache.get(
     `/competitions/${encodeURIComponent(slug)}`,
-    z.object({ id: z.number().int().positive() }),
+    competitionDocumentsSchema,
     300000,
   );
   const schedule = await apiCache.get(
