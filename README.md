@@ -258,3 +258,19 @@ cron ani databázi. Použité veřejné endpointy: `/competitions/{slug}` a
 ### Příští soupeř
 
 Výchozí záložka „Přehled týmu“ obsahuje formu, hráče a zápasy prohlíženého týmu. Samostatná záložka „Příští soupeř“ načítá soupeřova data až po přepnutí; při změně týmu nebo sezóny se znovu zobrazí přehled týmu. Přehled soupeře vybírá nejbližší budoucí neodehrané utkání podle data a času (probíhající utkání má přednost), nikoli podle kola. Utkání bez termínu zůstává v rozpisu a přehled na ně upozorní. Karta obsahuje odkazy na zápas a soupeře, kuželnu a navigaci, pokud je dostupná poloha. Jen pro tohoto soupeře se načítá rozpis vybrané sezóny a týmové souhrny ČKA s povinným competitionId. Forma a počty dohraných utkání se omezují na stejnou soutěž; průměr je údaj ČKA pro místo příštího startu soupeře (doma/venku). Počet dohraných utkání není počet výkonů započtených do průměru. Při výpadku statistik zůstává karta utkání funkční. Bez dalšího utkání se soupeři nepřednačítají.
+
+## Pořadí hráčů soutěže
+
+U vybrané soutěže lze přepnout **Družstva / Hráči**. Hráčská tabulka se načítá až
+po otevření pohledu Hráči. Výchozí řazení je podle průměru sestupně; oficiální pořadí ČKA lze zvolit zvlášť. Shodné průměry sdílejí pozici a chybějící průměry patří na konec. Pořadí se určí před hledáním a filtrováním oblíbených. Nabízí Celkem, Doma,
+Venku, volbu kola, hledání hráče/týmu a filtr oblíbených. Odkazy na hráče i tým
+zachovávají sezónu. Starty, průměr a získané body jsou hodnoty ČKA; při nulovém
+počtu startů průměr nevydáváme za skutečnou nulu.
+
+Server vybírá pouze kola s rozehraným nebo dokončeným zápasem podle společného
+rozpisu. Nedostupná (404) či prázdná hráčská tabulka umožňuje návrat ke staršímu
+kolu, které UI výslovně uvede. Při výpadku API nepředstíráme starší tabulku jako
+aktuální. Stránkování endpointu `player-table` se dokončí před zobrazením a
+neúplné/duplicitní stránky nebo nesouhlasící kolo/pohled se odmítnou. Na telefonu
+se nejprve zobrazí 25 hráčů; hledání a oblíbené pracují s celým načteným pořadím.
+Cache je sdílená, pětiminutová, bez databáze nebo vlastní kvalifikační logiky.

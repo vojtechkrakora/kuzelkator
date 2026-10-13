@@ -25,6 +25,7 @@ import { usePreferences } from "./providers";
 import { ErrorNotice, FollowButton, Freshness } from "./common";
 import { getData } from "@/lib/client-api";
 import { TeamSeason } from "./team-season";
+import { CompetitionStandings } from "./competition-player-standings";
 import { CompetitionResources } from "./competition-resources";
 import { CompetitionPicker } from "./competition-picker";
 import { MobileNavigation } from "./mobile-navigation";
@@ -421,12 +422,22 @@ export function Dashboard() {
         ) : (
           <>
             {selectedCompetition && (
-              <Standings
-                key={selectedCompetition.id}
+              <CompetitionStandings
+                key={`${selectedCompetition.slug}:${activeSeason}`}
                 competition={selectedCompetition}
                 seasonId={activeSeason}
-                onChooseTeam={showTeam}
-              />
+                seasonName={
+                  seasons.data?.data.items.find(
+                    (item) => String(item.id) === activeSeason,
+                  )?.name
+                }
+              >
+                <Standings
+                  competition={selectedCompetition}
+                  seasonId={activeSeason}
+                  onChooseTeam={showTeam}
+                />
+              </CompetitionStandings>
             )}
             {selectedCompetition && (
               <CompetitionResources
