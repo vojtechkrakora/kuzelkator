@@ -3809,7 +3809,7 @@ details.competition-group[open] > summary > span > svg {
 }
 
 .competition-standings-switch {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: 1fr 1fr 1.6fr;
 }
 .competition-player-table {
   min-width: 0;
@@ -3981,4 +3981,93 @@ details.competition-group[open] > summary > span > svg {
   background: white;
   font: inherit;
   color: inherit;
+}
+
+.competition-best-performances {
+  margin: 16px 0 24px;
+  min-width: 0;
+}
+.competition-best-performances > .muted {
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+.best-performance-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  padding: 0;
+  margin: 16px 0;
+  list-style: none;
+}
+.best-performance-list > li {
+  min-width: 0;
+  padding: 16px;
+  background: white;
+  border: 1px solid #dce4d8;
+  border-radius: 14px;
+  overflow-wrap: anywhere;
+}
+.best-performance-list > .best-performance-favorite {
+  background: #f2f8eb;
+  border-color: #b6cba0;
+}
+.best-performance-heading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.best-performance-rank {
+  color: #64725b;
+  min-width: 24px;
+  font-variant-numeric: tabular-nums;
+}
+.best-performance-player {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+}
+.best-performance-player a {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+}
+.best-performance-player a:first-child {
+  font-weight: 700;
+}
+.best-performance-player a:last-child {
+  font-size: 0.85rem;
+  color: #64725b;
+}
+.best-performance-result {
+  display: grid;
+  gap: 4px;
+  margin: 12px 0;
+}
+.best-performance-result strong {
+  font-size: 1.6rem;
+  font-variant-numeric: tabular-nums;
+}
+.best-performance-result small {
+  font-size: 0.8rem;
+  font-weight: 400;
+}
+.best-performance-result > span {
+  font-size: 0.8rem;
+  color: #64725b;
+}
+.best-performance-match {
+  display: grid;
+  font-size: 0.85rem;
+  border-top: 1px solid #e4e8e0;
+  padding-top: 10px;
+}
+.best-performance-match a {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+}
+@media (max-width: 700px) {
+  .best-performance-list {
+    grid-template-columns: 1fr;
+  }
 }

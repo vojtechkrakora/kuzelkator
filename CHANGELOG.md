@@ -2,6 +2,10 @@
 
 ## Nevydáno
 
+### Vylepšení
+
+- U soutěže lze otevřít nejlepší samostatné výkony sezóny s hráčem, týmem, kuželnou a odkazem na zápas. Přehled vynechává střídání a nedohraná utkání, zachovává shodná umístění a načítá se až po otevření.
+
 ## 0.11.0 — připraveno k vydání
 
 ### Vylepšení
