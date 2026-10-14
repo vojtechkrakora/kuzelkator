@@ -1,3 +1,10 @@
+import { getTeamRecords, teamRecordsInput } from "@/server/team-records";
+
+import { getCompetitionPlayerStandings } from "@/server/competition-player-standings";
+import {
+  getCompetitionDocuments,
+  getCompetitionArticles,
+} from "@/server/competition-resources";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import {
@@ -90,6 +97,27 @@ export async function GET(request: NextRequest) {
         result = await getCompetitions(input.seasonId, input.offset);
         break;
       }
+      case "competition-documents":
+        result = await getCompetitionDocuments(
+          z
+            .string()
+            .regex(/^[a-z0-9-]{1,180}$/)
+            .parse(params.slug),
+        );
+        break;
+      case "competition-articles":
+        result = await getCompetitionArticles(
+          z.coerce
+            .number()
+            .int()
+            .positive()
+            .max(Number.MAX_SAFE_INTEGER)
+            .parse(params.id),
+        );
+        break;
+      case "team-records":
+        result = await getTeamRecords(teamRecordsInput.parse(params));
+        break;
       case "team-season":
         result = await getTeamSeasonMatches(teamSeasonFilters.parse(params));
         break;
@@ -107,6 +135,21 @@ export async function GET(request: NextRequest) {
       case "matches":
         result = await getMatches(matchFilters.parse(params));
         break;
+      case "competition-player-standings": {
+        const input = z
+          .object({
+            slug: z.string().regex(/^[a-z0-9-]{1,180}$/),
+            round: z.coerce.number().int().min(1).max(1000).optional(),
+            type: z.enum(["ALL", "HOME", "AWAY"]).default("ALL"),
+          })
+          .parse(params);
+        result = await getCompetitionPlayerStandings(
+          input.slug,
+          input.round,
+          input.type,
+        );
+        break;
+      }
       case "standings": {
         const input = z
           .object({

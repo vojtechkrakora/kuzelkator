@@ -1,3 +1,4 @@
+import { competitionDocumentsSchema } from "../domain/competition-resources";
 import { z } from "zod";
 import {
   collection,
@@ -148,7 +149,7 @@ export async function getTeamSeasonMatches(
     limit: "100",
     sort: "date,time,id",
     include:
-      "homeTeam,homeTeam.club,awayTeam,awayTeam.club,competition,results",
+      "homeTeam,homeTeam.club,awayTeam,awayTeam.club,competition,results,venue",
   });
   const first = await apiCache.get(
     `/matches?${query}`,
@@ -212,16 +213,12 @@ async function getRoundStandings(
   return { ...first, stale, checkedAt, data: { ...first.data, items } };
 }
 
-export async function getStandings(
-  slug: string,
-  round?: number,
-  type: "ALL" | "HOME" | "AWAY" = "ALL",
-) {
+export async function getCompetitionSchedule(slug: string) {
   // /rounds lists the whole draw; even future table endpoints return cumulative
   // non-empty data. Only rounds with actual play are eligible.
   const competition = await apiCache.get(
     `/competitions/${encodeURIComponent(slug)}`,
-    z.object({ id: z.number().int().positive() }),
+    competitionDocumentsSchema,
     300000,
   );
   const schedule = await apiCache.get(
@@ -239,6 +236,15 @@ export async function getStandings(
   // Do not silently choose a round from a partial or truncated response.
   if (schedule.data.items.length !== schedule.data.total)
     throw new UpstreamError(502);
+  return { competition, schedule };
+}
+
+export async function getStandings(
+  slug: string,
+  round?: number,
+  type: "ALL" | "HOME" | "AWAY" = "ALL",
+) {
+  const { competition, schedule } = await getCompetitionSchedule(slug);
   const { playedRounds: started, regularRound } = standingsRounds(
     schedule.data.items,
     todayPrague(),
