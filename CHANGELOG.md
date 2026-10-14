@@ -2,6 +2,8 @@
 
 ## Nevydáno
 
+## 0.11.0 — připraveno k vydání
+
 ### Vylepšení
 
 - Detail týmu má samostatnou záložku „Příští soupeř“, která se načte až po přepnutí a ukazuje soupeře podle skutečného termínu, kuželnu s navigací, poslední formu soupeře a jeho domácí či venkovní průměr v příslušné soutěži.
@@ -10,7 +12,7 @@
 
 - U vybrané soutěže jsou dostupné oficiální dokumenty ČKA (například soupisky) a poslední související zprávy. Dokumenty mají formát, velikost a datum aktualizace, pokud je zdroj uvádí.
 
-## 0.10.1 — připraveno k vydání
+## 0.10.1 — 13. 10. 2026
 
 ### Opravy
 
