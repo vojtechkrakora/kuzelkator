@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { z } from "zod";
+import { ObsFrame } from "./obs-frame";
+import { obsSettings, type ObsSettings } from "@/domain/obs-settings";
 import {
   matchSchema,
   resultFor,
@@ -297,15 +299,19 @@ export function ObsOverlay({
   id,
   panel,
   density = "compact",
+  settings,
 }: {
   id: number;
   panel: OverlayPanel;
   density?: OverlayDensity;
+  settings?: ObsSettings;
 }) {
   const state = useOverlayMatch(id);
   return (
     <main id="main" data-obs-overlay className={`obs-root obs-root-${panel}`}>
-      <OverlayContent panel={panel} density={density} {...state} />
+      <ObsFrame settings={settings ?? obsSettings(panel, { density })}>
+        <OverlayContent panel={panel} density={density} {...state} />
+      </ObsFrame>
     </main>
   );
 }
