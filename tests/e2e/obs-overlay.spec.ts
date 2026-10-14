@@ -50,7 +50,7 @@ async function mock(page: Page, status = "IN_PROGRESS") {
   );
 }
 for (const panel of ["home", "away", "score"])
-  test(`OBS ${panel}: transparent independent source with no application chrome`, async ({
+  test(`OBS ${panel}: opaque independent source with no application chrome`, async ({
     page,
   }) => {
     await page.setViewportSize(
@@ -69,7 +69,7 @@ for (const panel of ["home", "away", "score"])
       await page.evaluate(
         () => getComputedStyle(document.body).backgroundColor,
       ),
-    ).toBe("rgba(0, 0, 0, 0)");
+    ).toBe("rgb(14, 25, 30)");
     expect(
       await page.evaluate(
         () =>
@@ -137,7 +137,7 @@ test("setup works on phones and offers three source URLs without hiding the site
   await expect(page.locator(".site-header")).toBeVisible();
   await expect(page.locator(".obs-source")).toHaveCount(3);
   await expect(page.getByLabel("Adresa: Domácí")).toHaveValue(
-    /panel=home&density=compact$/,
+    /panel=home.*density=compact$/,
   );
   expect(
     await page.evaluate(
@@ -260,15 +260,75 @@ test("setup density switch updates source links, dimensions and previews", async
   await expect(page.getByLabel("Adresa: Domácí")).toHaveValue(
     /density=compact$/,
   );
-  await page.getByRole("button", { name: "Plný · 360 × 960" }).click();
+  await page.getByRole("button", { name: "Plný · 360 × 1320" }).click();
   await expect(page.getByLabel("Adresa: Domácí")).toHaveValue(/density=full$/);
   await expect(page.locator(".obs-density-full")).toHaveCount(2);
-  await page.getByRole("button", { name: "Kompaktní · 240 × 500" }).click();
+  await page.getByRole("button", { name: "Kompaktní · 240 × 720" }).click();
   await expect(page.locator(".obs-density-compact")).toHaveCount(2);
-  await expect(page.getByLabel("Adresa: Skóre")).toHaveValue(/panel=score$/);
+  await expect(page.getByLabel("Adresa: Skóre")).toHaveValue(/panel=score&/);
+});
+
+test("OBS configuration persists across matches and height does not change width", async ({
+  page,
+}) => {
+  await mock(page);
+  await page.goto("/matches/513/overlay");
+  await page.getByLabel("Výška: Domácí", { exact: true }).fill("800");
+  await page
+    .getByLabel("Mezery hráčů (px): Domácí", { exact: true })
+    .fill("12");
+  await expect(page.getByLabel("Šířka: Domácí", { exact: true })).toHaveValue(
+    "240",
+  );
+  await expect(page.getByLabel("Adresa: Domácí")).toHaveValue(
+    /width=240&height=800&scale=100&gap=12/,
+  );
+  await page.goto("/matches/514/overlay");
+  await expect(page.getByLabel("Výška: Domácí", { exact: true })).toHaveValue(
+    "800",
+  );
+});
+
+test("OBS small source fits all players and paints gaps and unused space", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 240, height: 360 });
+  await mock(page);
+  await page.goto("/matches/513/overlay?panel=home&scale=150&gap=24");
+  await expect(page.locator(".obs-player")).toHaveCount(6);
+  await expect
+    .poll(async () => {
+      const last = await page.locator(".obs-freshness").boundingBox();
+      return last ? last.y + last.height : Infinity;
+    })
+    .toBeLessThanOrEqual(361);
+  await expect(page.locator(".obs-frame")).toHaveCSS(
+    "background-color",
+    "rgb(14, 25, 30)",
+  );
+  await page.setViewportSize({ width: 240, height: 1000 });
+  await expect(page.locator(".obs-frame")).toHaveCSS("height", "1000px");
 });
 
 for (const density of ["compact", "full"]) {
+  test(`OBS four lanes use two rows (${density})`, async ({ page }) => {
+    await page.setViewportSize({ width: 240, height: 1320 });
+    await mock(page);
+    await page.goto(`/matches/513/overlay?panel=home&density=${density}`);
+    const lanes = page.locator(".obs-player").first().locator(".obs-lane");
+    await expect(lanes).toHaveCount(4);
+    const boxes = await lanes.evaluateAll((elements) =>
+      elements.map((element) => {
+        const { x, y, width } = element.getBoundingClientRect();
+        return { x, y, width };
+      }),
+    );
+    expect(boxes[0].y).toBeCloseTo(boxes[1].y);
+    expect(boxes[2].y).toBeCloseTo(boxes[3].y);
+    expect(boxes[2].y).toBeGreaterThan(boxes[0].y);
+    expect(boxes[0].x).toBeCloseTo(boxes[2].x);
+    expect(boxes[1].x).toBeGreaterThan(boxes[0].x + boxes[0].width);
+  });
   test(`OBS T100 shows two lanes for both teams (${density})`, async ({
     page,
   }) => {
@@ -288,6 +348,13 @@ for (const density of ["compact", "full"]) {
       await expect(cards).toHaveCount(6);
       for (const card of await cards.all())
         await expect(card.locator(".obs-lane")).toHaveCount(2);
+      const positions = await cards
+        .first()
+        .locator(".obs-lane")
+        .evaluateAll((elements) =>
+          elements.map((element) => element.getBoundingClientRect().y),
+        );
+      expect(positions[0]).toBeCloseTo(positions[1]);
       await expect(cards.first().locator(".obs-lane").first()).toContainText(
         panel === "home" ? "150" : "140",
       );

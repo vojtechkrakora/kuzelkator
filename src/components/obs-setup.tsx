@@ -3,25 +3,109 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { OverlayContent, useOverlayMatch } from "./obs-overlay";
 import { overlayPanels, type OverlayDensity } from "@/domain/obs-overlay";
+import {
+  obsSettings,
+  obsPath,
+  obsStorageKey,
+  type ObsSettings,
+} from "@/domain/obs-settings";
+import { ObsFrame } from "./obs-frame";
 const panels = {
-  home: { name: "Domácí", size: "360 × 960" },
-  away: { name: "Hosté", size: "360 × 960" },
-  score: { name: "Skóre", size: "1920 × 120" },
+  home: { name: "Domácí" },
+  away: { name: "Hosté" },
+  score: { name: "Skóre" },
 };
+function DimensionInput({
+  value,
+  min,
+  max,
+  label,
+  onValue,
+}: {
+  value: number;
+  min: number;
+  max: number;
+  label: string;
+  onValue: (value: number) => void;
+}) {
+  const [draft, setDraft] = useState(String(value));
+  useEffect(() => setDraft(String(value)), [value]);
+  return (
+    <input
+      type="number"
+      aria-label={label}
+      min={min}
+      max={max}
+      value={draft}
+      onChange={(event) => {
+        const text = event.target.value;
+        setDraft(text);
+        const n = Number(text);
+        if (text && Number.isInteger(n) && n >= min && n <= max) onValue(n);
+      }}
+      onBlur={() => {
+        const n = draft.trim() ? Number(draft) : value;
+        const bounded = Number.isFinite(n)
+          ? Math.round(Math.max(min, Math.min(max, n)))
+          : value;
+        setDraft(String(bounded));
+        onValue(bounded);
+      }}
+    />
+  );
+}
 export function ObsSetup({ id }: { id: number }) {
   const [density, setDensity] = useState<OverlayDensity>("compact");
   const [origin, setOrigin] = useState("");
   const [message, setMessage] = useState("");
+  const [settings, setSettings] = useState(() => ({
+    home: obsSettings("home"),
+    away: obsSettings("away"),
+    score: obsSettings("score"),
+  }));
   const state = useOverlayMatch(id);
-  useEffect(() => setOrigin(window.location.origin), []);
+  useEffect(() => {
+    setOrigin(window.location.origin);
+    try {
+      const saved = JSON.parse(localStorage.getItem(obsStorageKey) ?? "null");
+      if (saved && typeof saved === "object") {
+        const next = {
+          home: obsSettings("home", saved.home),
+          away: obsSettings("away", saved.away),
+          score: obsSettings("score", saved.score),
+        };
+        setSettings(next);
+        setDensity(next.home.density);
+      }
+    } catch {
+      /* Storage is optional. Links work without it. */
+    }
+  }, []);
+  function save(next: typeof settings) {
+    setSettings(next);
+    try {
+      localStorage.setItem(obsStorageKey, JSON.stringify(next));
+    } catch {
+      /* Optional storage. */
+    }
+  }
+  function preset(value: OverlayDensity) {
+    setDensity(value);
+    save({
+      ...settings,
+      home: obsSettings("home", { density: value }),
+      away: obsSettings("away", { density: value }),
+    });
+    setMessage("");
+  }
   return (
     <main id="main" className="page obs-setup">
       <Link href={`/matches/${id}`}>← Zpět na zápas</Link>
       <h1>Výsledky do OBS</h1>
       <p>
-        Tři průhledné zdroje, které si rozmístíš kolem obrazu kamery. Každý vlož
-        v OBS jako zdroj <strong>Prohlížeč</strong> a nastav uvedenou šířku a
-        výšku. Další okna prohlížeče nepotřebuješ.
+        Tři neprůhledné zdroje, které si rozmístíš kolem obrazu kamery. Každý
+        vlož v OBS jako zdroj <strong>Prohlížeč</strong> a nastav uvedenou šířku
+        a výšku. Další okna prohlížeče nepotřebuješ.
       </p>
       <fieldset className="obs-density-picker">
         <legend>Velikost hráčských panelů</legend>
@@ -29,41 +113,70 @@ export function ObsSetup({ id }: { id: number }) {
           className="button"
           aria-pressed={density === "compact"}
           onClick={() => {
-            setDensity("compact");
-            setMessage("");
+            preset("compact");
           }}
         >
-          Kompaktní · 240 × 500
+          Kompaktní · 240 × 720
         </button>
         <button
           className="button"
           aria-pressed={density === "full"}
           onClick={() => {
-            setDensity("full");
-            setMessage("");
+            preset("full");
           }}
         >
-          Plný · 360 × 960
+          Plný · 360 × 1320
         </button>
       </fieldset>
       <p>
-        Kompaktní pohled šetří místo: iniciála jména, příjmení, součet a čtyři
-        výsledky drah. Plný pohled zachovává celé jméno a všechny popisky.
-        Velikost můžeš dále poměrně upravit přímo v OBS.
+        Kompaktní pohled šetří místo: iniciála jména, příjmení, součet a
+        výsledky drah. Plný pohled zachovává celé jméno a všechny popisky. Každý
+        zdroj nastav zvlášť níže. Nastavení si tento prohlížeč zapamatuje i pro
+        další zápas.
       </p>
       <div className="obs-source-list">
         {overlayPanels.map((panel) => {
-          const path = `/matches/${id}/overlay?panel=${panel}${panel === "score" ? "" : `&density=${density}`}`;
+          const config = settings[panel];
+          const path = obsPath(id, panel, config);
           const url = origin ? origin + path : "";
           return (
             <section className="obs-source" key={panel}>
               <h2>{panels[panel].name}</h2>
               <p>
-                {panel !== "score" && density === "compact"
-                  ? "240 × 500"
-                  : panels[panel].size}{" "}
-                px · pro plátno 1920 × 1080
+                {config.width} × {config.height} px · rozměry zdroje Prohlížeč v
+                OBS
               </p>
+              <div className="obs-config-fields">
+                {(
+                  [
+                    ["width", "Šířka", 200, 3840],
+                    ["height", "Výška", 100, 2160],
+                    ["scale", "Velikost obsahu (%)", 75, 150],
+                    ...(panel === "score"
+                      ? []
+                      : [["gap", "Mezery hráčů (px)", 0, 24]]),
+                  ] as [keyof ObsSettings, string, number, number][]
+                ).map(([key, label, min, max]) => (
+                  <label key={key}>
+                    {label}
+                    <DimensionInput
+                      label={`${label}: ${panels[panel].name}`}
+                      min={min}
+                      max={max}
+                      value={Number(config[key])}
+                      onValue={(value) =>
+                        save({
+                          ...settings,
+                          [panel]: obsSettings(panel, {
+                            ...config,
+                            [key]: value,
+                          }),
+                        })
+                      }
+                    />
+                  </label>
+                ))}
+              </div>
               <label>
                 Adresa zdroje
                 <input
@@ -107,9 +220,12 @@ export function ObsSetup({ id }: { id: number }) {
       <details className="obs-instructions">
         <summary>Nastavení a aktualizace</summary>
         <p>
-          Umísti zdroje nad kameru. Pro jiné rozlišení je v OBS poměrně zmenši;
-          například pro 1280 × 720 na dvě třetiny. Levý a pravý panel nastav na
-          stejnou velikost, aby protilehlí hráči zůstali zarovnaní.
+          Šířku a výšku měň v OBS ve Vlastnostech zdroje Prohlížeč, nikoli
+          tažením rohu v obraze. Po změně nastavení zkopíruj novou adresu a
+          uvedené rozměry do OBS. Při nedostatku místa se obsah automaticky
+          zmenší, aby žádný hráč nechyběl. Pro větší písmo může být nutné panel
+          rozšířit nebo zvýšit. Pro zarovnání soupeřů použij u obou týmů stejné
+          nastavení.
         </p>
         <p>
           Data se automaticky kontrolují každých 15 sekund. Zdrojové API
@@ -129,17 +245,31 @@ export function ObsSetup({ id }: { id: number }) {
         Zelená: výhra na dráze · červená: prohra · žlutá: remíza. Nepotvrzený
         výsledek zůstává neutrální.
       </p>
-      <div className={`obs-preview-teams obs-preview-${density}`}>
-        <div>
-          <OverlayContent panel="home" density={density} {...state} />
-        </div>
-        <div>
-          <OverlayContent panel="away" density={density} {...state} />
-        </div>
-      </div>
-      <div className="obs-preview-score">
-        <OverlayContent panel="score" {...state} />
-      </div>
+      <p>
+        Náhled zachovává nastavené rozměry; větší panel lze posunout do stran.
+        Celá plocha zdroje má tmavý podklad.
+      </p>
+      {overlayPanels.map((panel) => (
+        <section key={panel} aria-label={`Náhled: ${panels[panel].name}`}>
+          <h3>{panels[panel].name}</h3>
+          <div className="obs-preview-scroll">
+            <div
+              style={{
+                width: settings[panel].width,
+                height: settings[panel].height,
+              }}
+            >
+              <ObsFrame settings={settings[panel]}>
+                <OverlayContent
+                  panel={panel}
+                  density={settings[panel].density}
+                  {...state}
+                />
+              </ObsFrame>
+            </div>
+          </div>
+        </section>
+      ))}
     </main>
   );
 }
