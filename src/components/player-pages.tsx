@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { ShareButton } from "./share-button";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Star, Search, ArrowLeft } from "lucide-react";
@@ -256,6 +257,11 @@ export function PlayerSeasonPage({
         </div>
         <FollowPlayerButton player={player} />
       </div>
+      <ShareButton
+        title={`${playerName(player)} – Kuželkátor`}
+        label="Sdílet hráče"
+        disabled={!id}
+      />
       {warning && <p role="status">{warning}</p>}
       <label className="player-season-select">
         Sezóna

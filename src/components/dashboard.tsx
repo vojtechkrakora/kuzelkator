@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { ShareButton } from "./share-button";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState, useRef } from "react";
 import { useQuery, useQueries } from "@tanstack/react-query";
@@ -282,6 +283,12 @@ export function Dashboard() {
       />
       <section className="dashboard-main">
         <div className="eyebrow">VÁŠ OSOBNÍ VÝSLEDKOVÝ SERVIS</div>
+        <ShareButton
+          title="Kuželkátor – výsledky"
+          label={teamId ? "Sdílet tým" : "Sdílet přehled"}
+          disabled={!activeSeason}
+          href={`/?${new URLSearchParams({ date: day, season: activeSeason, ...(teamId ? { team: teamId } : {}), ...(competitionId ? { competition: competitionId } : {}) })}`}
+        />
         <div className="intro">
           <div>
             <h1>

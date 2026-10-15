@@ -1,4 +1,5 @@
 import { BackToFeed } from "@/components/feed-navigation";
+import { ShareButton } from "@/components/share-button";
 import { TeamLogo } from "@/components/team-logo";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -45,6 +46,11 @@ export default async function MatchDetail({
         <span className="match-status">{statusLabel(match.status)}</span>
       </div>
       <section className="scoreboard">
+        <ShareButton
+          title={`${match.homeTeam?.name ?? "Domácí"} – ${match.awayTeam?.name ?? "Hosté"}`}
+          label="Sdílet zápas"
+          href={`/matches/${id}`}
+        />
         <p className="scoreboard-date">
           {dayLabel(match.date, true)}
           {match.time ? ` · ${match.time.slice(0, 5)}` : ""}
