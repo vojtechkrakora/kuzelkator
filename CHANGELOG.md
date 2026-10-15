@@ -4,6 +4,8 @@
 
 ### Vylepšení
 
+- Přes verzi v zápatí lze otevřít přehled „Co je nového“ se stručnými českými poznámkami a daty vydání. Přehled zachovává oblíbené i mobilní navigaci.
+
 - Tabulky družstev, pořadí hráčů, nejlepší výkony a hráčské statistiky mají rozbalovací vysvětlivky dostupné klepnutím i klávesnicí. Vysvětlují zobrazené body, zkratky a průměry včetně příkladu rozdílu průměru výkonů a průměru průměrů.
 
 - Zápas, hráče, tým nebo přehled výsledků lze sdílet systémovou nabídkou telefonu nebo zkopírováním odkazu. Odkazy zachovají datum, sezónu a vybraný soutěžní kontext; osobní filtr oblíbených se nepřenáší.
