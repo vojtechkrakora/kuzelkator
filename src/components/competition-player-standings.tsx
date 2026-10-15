@@ -15,6 +15,7 @@ import { teamSeasonHref } from "@/lib/team-navigation";
 import { usePreferences } from "./providers";
 import { FollowPlayerButton } from "./player-pages";
 import { Freshness } from "./common";
+import { CompetitionBestPerformances } from "./competition-best-performances";
 
 export function CompetitionStandings({
   competition,
@@ -27,7 +28,7 @@ export function CompetitionStandings({
   seasonName?: string;
   children: ReactNode;
 }) {
-  const [view, setView] = useState<"teams" | "players">("teams");
+  const [view, setView] = useState<"teams" | "players" | "best">("teams");
   return (
     <>
       <div
@@ -49,9 +50,22 @@ export function CompetitionStandings({
         >
           Hráči
         </button>
+        <button
+          type="button"
+          aria-pressed={view === "best"}
+          onClick={() => setView("best")}
+        >
+          Nejlepší výkony
+        </button>
       </div>
       {view === "teams" ? (
         children
+      ) : view === "best" ? (
+        <CompetitionBestPerformances
+          competition={competition}
+          seasonId={seasonId}
+          seasonName={seasonName}
+        />
       ) : (
         <CompetitionPlayerStandings
           competition={competition}

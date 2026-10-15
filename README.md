@@ -261,6 +261,8 @@ Výchozí záložka „Přehled týmu“ obsahuje formu, hráče a zápasy prohl
 
 ## Pořadí hráčů soutěže
 
+Vedle pohledů Družstva a Hráči je volba **Nejlepší výkony** (#24), načítaná až po otevření. Ukazuje dvacet nejlepších samostatných výkonů sezóny a všechny shody na posledním místě. Stejné výkony sdílejí pozici; tentýž hráč může být uveden vícekrát za různé zápasy. Přehled obsahuje tým, kuželnu, datum, plné/dorážku/chyby a odkazy na hráče, tým a zápas. Z API `/player-match-results` přebírá sestupně seřazené stránky, vylučuje neobsazené pozice, střídání a zápasy bez stavu FINISHED, kontroluje soutěž, sezónu a disciplínu. Chybějící podklady o střídání nepovažuje za samostatný výkon. Načítání končí po nalezení výsledku horšího než poslední zařazený výkon; má ochranu proti neúplným, duplicitním či nesprávně seřazeným stránkám a limit 10 000 zdrojových záznamů. Cache je sdílená, pětiminutová, bez databáze a bez požadavku na detail každého zápasu.
+
 U vybrané soutěže lze přepnout **Družstva / Hráči**. Hráčská tabulka se načítá až
 po otevření pohledu Hráči. Výchozí řazení je podle průměru sestupně; oficiální pořadí ČKA lze zvolit zvlášť. Shodné průměry sdílejí pozici a chybějící průměry patří na konec. Pořadí se určí před hledáním a filtrováním oblíbených. Nabízí Celkem, Doma,
 Venku, volbu kola, hledání hráče/týmu a filtr oblíbených. Odkazy na hráče i tým
