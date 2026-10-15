@@ -4066,6 +4066,93 @@ details.competition-group[open] > summary > span > svg {
   align-items: center;
   min-height: 44px;
 }
+.share-control {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  justify-content: flex-end;
+  margin: 0 0 8px;
+  min-width: 0;
+}
+.share-button {
+  min-height: 44px;
+  min-width: 44px;
+  width: 44px;
+  height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: var(--muted);
+  cursor: pointer;
+}
+.share-button:hover {
+  background: var(--line);
+  color: var(--ink);
+}
+.share-button:focus-visible {
+  outline: 2px solid var(--green);
+  outline-offset: 2px;
+}
+.share-button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+.share-toast {
+  position: fixed;
+  z-index: 100;
+  bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: calc(100vw - 32px);
+  box-sizing: border-box;
+  padding: 12px 18px;
+  border-radius: 12px;
+  background: #173d32;
+  color: #fff;
+  box-shadow: 0 6px 24px #0003;
+  font-size: 0.875rem;
+  font-weight: 600;
+  pointer-events: none;
+}
+.share-toast svg {
+  flex-shrink: 0;
+}
+.share-fallback {
+  width: 100%;
+  text-align: left;
+}
+@media (max-width: 740px) {
+  .share-toast {
+    bottom: calc(88px + env(safe-area-inset-bottom, 0px));
+  }
+}
+.share-status {
+  font-size: 0.875rem;
+}
+.share-status:empty {
+  display: none;
+}
+.share-manual {
+  display: grid;
+  gap: 6px;
+  width: 100%;
+  min-width: 0;
+  text-align: left;
+}
+.share-manual input {
+  min-width: 0;
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 44px;
+}
 @media (max-width: 700px) {
   .best-performance-list {
     grid-template-columns: 1fr;
