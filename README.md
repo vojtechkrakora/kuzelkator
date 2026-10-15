@@ -1,5 +1,7 @@
 # Kuželkátor
 
+Při hledání a procházení hráčů se zvolená sezóna uchovává v `sessionStorage` pro otevřenou relaci prohlížeče. Sezóna v URL má přednost a je ověřena proti dostupným sezónám; neplatná hodnota přejde na aktuální sezónu (případně první dostupnou). Zvolená sezóna se zapisuje do adresy, takže obnovení a sdílení zachovají výběr i bez úložiště. Datum, soutěž a další filtry přehledu se tímto neobnovují; jejich stávající chování a reset zůstávají zachované.
+
 A working proof of concept for a personalised Czech nine-pin bowling results site, using real public ČKA data. No API key or ČKA account is required.
 
 ## Run with Docker

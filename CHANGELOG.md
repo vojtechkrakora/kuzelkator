@@ -4,6 +4,8 @@
 
 ### Vylepšení
 
+- Hledání a detaily hráčů si v otevřené relaci prohlížeče pamatují zvolenou sezónu. Odkaz s vlastní sezónou má přednost; neplatná nebo nedostupná sezóna bezpečně přejde na aktuální. Přehled zápasů dál začíná aktuálním datem a jeho reset zůstává zachován.
+
 - U soutěže lze otevřít nejlepší samostatné výkony sezóny s hráčem, týmem, kuželnou a odkazem na zápas. Přehled vynechává střídání a nedohraná utkání, zachovává shodná umístění a načítá se až po otevření.
 
 ## 0.12.0 — připraveno k vydání
