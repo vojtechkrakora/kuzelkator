@@ -56,6 +56,21 @@ nenahrazuje ověření živých dat, nezávislou kontrolu ani schválení uživa
 Po schválení vydání doplníme v changelogu skutečné datum vydání; příprava verze
 není důkaz nasazení. Dokud datum není potvrzené, používáme „připraveno k vydání“.
 
+## Uživatelský přehled „Co je nového“
+
+Stránka `/novinky`, odkazovaná z verze v zápatí, čte ručně udržovaný soubor
+`src/content/releases.ts`. Obsahuje pouze vydané verze, od nejnovější po nejstarší;
+starší záznamy ponecháváme. Historie začíná verzí 0.10.0, pro kterou máme ověřené
+záznamy vydání. Nečte sekci „Nevydáno“ ani interní technické poznámky z changelogu.
+
+Při přípravě release PR doplníme stručné české body z pohledu uživatele,
+verzi a datum vydání ve formátu `YYYY-MM-DD` (Europe/Prague). Datum není čas
+sestavení ani publikování GitHub Release. Před schválením kandidáta zkontrolujeme,
+že odpovídá plánovanému nasazení; při odložení do jiného dne upravíme kandidáta
+a obnovíme jeho ověření a schválení. Po nasazení datum ověříme proti skutečnosti.
+Záznam budoucího vydání se do produkce dostane až spolu s tímto vydáním.
+Změna je součástí běžné přípravy vydání, nevyžaduje další službu nebo požadavky na API.
+
 ## Lokální ověření
 
 Na přesné revizi kandidáta provedeme lokální kontroly. Níže uvedené Docker příkazy jsou doplňkové pro kompatibilní prostředí; při nekompatibilní emulaci na Apple Silicon je nahradí povinná kontrola na nativním Linuxu v GitHub Actions. Uživatelské ověření a živá data zkontrolujeme v lokálně spuštěném produkčním sestavení podle README:

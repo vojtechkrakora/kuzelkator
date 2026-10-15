@@ -1199,7 +1199,72 @@ tfoot {
   margin-left: 8px;
 }
 .build-info {
-  white-space: nowrap;
+  overflow-wrap: anywhere;
+}
+.release-notes-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.release-notes {
+  min-width: 0;
+  max-width: 800px;
+  overflow-wrap: anywhere;
+}
+.release-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  margin-bottom: 16px;
+}
+.release-notes-link:focus-visible,
+.release-back:focus-visible {
+  outline: 2px solid var(--green);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+.release-notes h1 {
+  margin: 0 0 12px;
+}
+.release-card {
+  margin-top: 24px;
+  padding: clamp(16px, 3vw, 28px);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: white;
+}
+.release-card header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+.release-card h2 {
+  margin: 0;
+  font-size: 1.15rem;
+}
+.release-card time {
+  width: 100%;
+  color: var(--muted);
+  font-size: 0.875rem;
+}
+.release-latest {
+  background: #edf5ed;
+  color: #176347;
+  border-radius: 12px;
+  padding: 4px 9px;
+  font-size: 0.75rem;
+}
+.release-card ul {
+  padding-left: 20px;
+  margin: 20px 0 0;
+}
+.release-card li {
+  line-height: 1.65;
+  margin-top: 12px;
 }
 .skeleton {
   height: 164px;

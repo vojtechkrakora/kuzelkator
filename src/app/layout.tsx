@@ -68,7 +68,14 @@ export default function RootLayout({
             </a>
             <span className="muted">Časy v zóně Europe/Prague</span>
             <span className="build-info">
-              Verze {buildInfo.version} · sestaveno{" "}
+              <Link
+                href="/novinky"
+                className="release-notes-link"
+                prefetch={false}
+              >
+                Verze {buildInfo.version} · Co je nového
+              </Link>
+              {" · sestaveno "}
               {buildInfo.builtAt ? (
                 <time dateTime={buildInfo.builtAt}>{buildInfo.builtLabel}</time>
               ) : (
