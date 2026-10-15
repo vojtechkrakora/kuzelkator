@@ -6,6 +6,14 @@
 
 - U soutěže lze otevřít nejlepší samostatné výkony sezóny s hráčem, týmem, kuželnou a odkazem na zápas. Přehled vynechává střídání a nedohraná utkání, zachovává shodná umístění a načítá se až po otevření.
 
+## 0.12.0 — připraveno k vydání
+
+### Vylepšení
+
+- Čtyři dráhy v OBS panelech jsou ve dvou řádcích po dvou pro užší a vyšší rozložení; u 100 HS zůstávají dvě dráhy vedle sebe.
+
+- OBS zdroje mají vlastní šířku, výšku, velikost obsahu a mezery hráčů, živý náhled a nastavení uložené v odkazu i pro další zápasy. Celá plocha zdrojů je neprůhledná; příliš malý prostor automaticky zmenší obsah, aby hráči nechyběli.
+
 ## 0.11.0 — připraveno k vydání
 
 ### Vylepšení
