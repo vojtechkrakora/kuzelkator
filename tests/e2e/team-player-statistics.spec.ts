@@ -100,7 +100,11 @@ for (const width of [320, 390, 1280])
     await expect(
       roster.getByRole("button", { name: "Přestat sledovat Jiří Semerád" }),
     ).toBeVisible();
-    await roster.locator("summary").click();
+    const glossary = roster.locator(".statistics-glossary");
+    await glossary.locator("summary").click();
+    await expect(glossary).toContainText("(610 + 550) ÷ 2 = 580");
+    await glossary.locator("summary").click();
+    await roster.locator(".team-player-card summary").click();
     await expect(roster.getByRole("row", { name: "Chyby 0 0" })).toBeVisible();
     await expect(roster.getByRole("row", { name: "Plné — —" })).toBeVisible();
     await expect(roster).toContainText("5. pozice: 2×");
@@ -110,6 +114,7 @@ for (const width of [320, 390, 1280])
       ),
     ).toBe(true);
     await roster.getByRole("button", { name: "Doma", exact: true }).click();
+    await expect(glossary.locator("dt")).not.toContainText(["Průměr průměrů"]);
     await expect(
       roster.getByRole("button", { name: "Doma", exact: true }),
     ).toHaveAttribute("aria-pressed", "true");
@@ -153,7 +158,9 @@ for (const width of [320, 390, 1280])
     );
     await roster.getByLabel("Soutěž statistik").selectOption("17");
     await expect(roster.locator(".team-player-summary")).toContainText("500");
-    await expect(roster.locator("details")).not.toHaveAttribute("open", "");
+    await expect(
+      roster.locator(".team-player-card details"),
+    ).not.toHaveAttribute("open", "");
     await expect(roster).not.toContainText("577,33");
     await roster.getByRole("button", { name: "Doma", exact: true }).click();
     await expect(roster.locator(".team-player-summary")).toContainText(

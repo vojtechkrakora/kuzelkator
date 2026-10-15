@@ -69,10 +69,26 @@ for (const width of [320, 390, 1280])
     await expect(
       table.getByRole("link", { name: "SKK Bohušovice" }),
     ).toHaveAttribute("href", "/?team=57&season=20");
-    await expect(table.locator("details, summary")).toHaveCount(0);
+    await expect(table.locator("table details, table summary")).toHaveCount(0);
+    const glossary = table.locator(".statistics-glossary");
+    const help = glossary.locator("summary");
+    await expect(glossary).not.toHaveAttribute("open", "");
+    expect((await help.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+    await help.focus();
+    await page.keyboard.press("Enter");
+    await expect(glossary).toHaveAttribute("open", "");
+    await expect(glossary).toContainText("Tabulkové body");
+    await expect(glossary.locator("dt")).not.toContainText(["Průměr průměrů"]);
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= innerWidth,
+      ),
+    ).toBe(true);
+    await page.keyboard.press("Space");
+    await expect(glossary).not.toHaveAttribute("open", "");
     await table.getByRole("button", { name: "Doma", exact: true }).click();
     await expect(table).toContainText("Změna oproti tabulce 2. kola · doma.");
-    await expect(table.locator("details, summary")).toHaveCount(0);
+    await expect(table.locator("table details, table summary")).toHaveCount(0);
     expect(
       await page.evaluate(
         () => document.documentElement.scrollWidth <= innerWidth,

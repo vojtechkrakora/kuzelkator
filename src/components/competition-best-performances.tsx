@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { StatisticsGlossary } from "./statistics-glossary";
 import { useQuery } from "@tanstack/react-query";
 import { playerName, type Competition } from "@/domain/models";
 import type { BestPerformances } from "@/domain/best-performances";
@@ -82,6 +83,10 @@ export function CompetitionBestPerformances({
           {query.data && (
             <>
               <Freshness {...query.data} />
+              <StatisticsGlossary
+                context="nejlepší výkony"
+                items={["rank", "total", "full", "spare", "errors", "missing"]}
+              />
               {!query.data.data.items.length ? (
                 <p className="empty-copy">
                   Zatím nejsou dostupné samostatné výkony z dohraných zápasů

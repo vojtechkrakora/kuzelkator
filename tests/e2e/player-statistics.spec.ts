@@ -106,6 +106,18 @@ for (const width of [320, 390, 1280]) {
     });
     await page.goto("/players/711?season=20");
     const stats = page.getByRole("region", { name: "Statistiky sezóny" });
+    const glossary = stats.locator(".statistics-glossary");
+    await glossary.locator("summary").click();
+    await expect(glossary).toContainText("(600 + 620 + 550) ÷ 3 = 590");
+    await expect(glossary).toContainText("(610 + 550) ÷ 2 = 580");
+    await expect(glossary).toContainText("Body hráče");
+    await expect(glossary).toContainText("Dílčí body");
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= innerWidth,
+      ),
+    ).toBe(true);
+    await glossary.locator("summary").click();
     await expect(stats.locator(".stats-card-primary")).toContainText("586");
     await expect(stats.locator(".stats-cards")).toContainText("577,33");
     await expect(stats.locator(".stats-match-picker button")).toHaveCount(3);
