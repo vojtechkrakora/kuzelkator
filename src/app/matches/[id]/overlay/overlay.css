@@ -1,7 +1,7 @@
-/* The marker is rendered on the server: transparency does not wait for hydration. */
+/* Opaque even before hydration and with OBS's default transparent body CSS. */
 html:has([data-obs-overlay]),
 body:has([data-obs-overlay]) {
-  background: transparent !important;
+  background: #0e191e !important;
   margin: 0;
   padding: 0;
   min-height: 0;
@@ -16,6 +16,7 @@ body:has([data-obs-overlay]) .skip-link {
 }
 .obs-root {
   width: 100%;
+  height: 100dvh;
   margin: 0;
   padding: 0;
   color: #f6faf8;
@@ -270,8 +271,7 @@ body:has([data-obs-overlay]) .skip-link {
   gap: 20px;
   padding: 20px;
   border-radius: 12px;
-  background: repeating-conic-gradient(#c8cfca 0% 25%, #e1e6e2 0% 50%) 0 / 24px
-    24px;
+  background: #0e191e;
 }
 .obs-preview-teams > div {
   width: 360px;
@@ -289,7 +289,7 @@ body:has([data-obs-overlay]) .skip-link {
     padding: 8px;
   }
 }
-@media (max-width: 650px) {
+@container obs-frame (max-width: 650px) {
   .obs-score-main {
     grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
     gap: 10px;
@@ -333,7 +333,7 @@ body:has([data-obs-overlay]) .skip-link {
 .obs-density-compact {
   border-top-width: 3px;
   border-radius: 7px;
-  background: transparent;
+  background: #0e191e;
 }
 .obs-density-compact .obs-team-heading {
   height: 52px;
@@ -355,7 +355,7 @@ body:has([data-obs-overlay]) .skip-link {
   padding: 4px 7px;
   grid-template-rows: 30px 28px;
   gap: 0;
-  border-top: 2px solid transparent;
+  border-top: 2px solid #455454;
   background: #0e191e;
   background-clip: padding-box;
 }
@@ -399,4 +399,70 @@ body:has([data-obs-overlay]) .skip-link {
 }
 .obs-density-compact .obs-stale {
   background: #463b25;
+}
+.obs-frame {
+  width: 100%;
+  height: 100%;
+  background: #0e191e;
+  overflow: hidden;
+  container: obs-frame / inline-size;
+}
+.obs-frame-content {
+  display: flow-root;
+}
+.obs-frame .obs-team,
+.obs-frame .obs-score {
+  min-height: var(--obs-height, 0px);
+  display: flex;
+  flex-direction: column;
+}
+.obs-frame .obs-score-main {
+  flex: 1;
+}
+.obs-frame .obs-team-heading,
+.obs-frame .obs-freshness {
+  flex-shrink: 0;
+}
+.obs-frame .obs-players {
+  display: grid;
+  gap: var(--obs-gap, 0px);
+  flex: 1;
+  grid-auto-rows: minmax(135px, 1fr);
+}
+.obs-frame .obs-player {
+  height: auto;
+  align-content: center;
+}
+.obs-frame .obs-density-compact .obs-players {
+  grid-auto-rows: minmax(68px, 1fr);
+}
+.obs-lanes {
+  grid-auto-flow: row;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.obs-player:has(.obs-lane:nth-child(4)) {
+  grid-template-rows: 42px 111px 20px;
+}
+.obs-density-compact .obs-player:has(.obs-lane:nth-child(4)) {
+  grid-template-rows: 30px 60px;
+}
+.obs-frame .obs-players:has(.obs-lane:nth-child(4)) {
+  grid-auto-rows: minmax(193px, 1fr);
+}
+.obs-frame .obs-density-compact .obs-players:has(.obs-lane:nth-child(4)) {
+  grid-auto-rows: minmax(100px, 1fr);
+}
+.obs-config-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.obs-config-fields label {
+  min-width: 0;
+}
+.obs-preview-scroll {
+  max-width: 100%;
+  overflow: auto;
+  border: 1px solid var(--line);
 }
