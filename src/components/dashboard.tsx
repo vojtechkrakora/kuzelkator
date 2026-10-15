@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { ShareButton } from "./share-button";
+import { StatisticsGlossary } from "./statistics-glossary";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState, useRef } from "react";
 import { useQuery, useQueries } from "@tanstack/react-query";
@@ -939,6 +940,10 @@ function Standings({
         {tableLabel} · Body v tabulce jsou tabulkové body družstva. Skóre a
         průměry najdete v podrobnostech týmu.
       </p>
+      <StatisticsGlossary
+        context="tabulka družstev"
+        items={["rank", "matches", "outcomes", "tablePoints", "movement"]}
+      />
       {table.isPending && <p role="status">Načítání tabulky…</p>}
       {table.isError && <ErrorNotice retry={() => void table.refetch()} />}
       {table.data && (

@@ -4066,6 +4066,64 @@ details.competition-group[open] > summary > span > svg {
   align-items: center;
   min-height: 44px;
 }
+.statistics-glossary {
+  margin: 8px 0 16px;
+  min-width: 0;
+}
+.statistics-glossary summary {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 44px;
+  min-width: 44px;
+  width: fit-content;
+  padding: 0 10px;
+  border-radius: 8px;
+  color: var(--ink);
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 600;
+  list-style: none;
+}
+.statistics-glossary summary::-webkit-details-marker {
+  display: none;
+}
+.statistics-glossary summary::after {
+  content: "+";
+  margin-left: 6px;
+}
+.statistics-glossary[open] summary::after {
+  content: "−";
+}
+.statistics-glossary summary:hover,
+.statistics-glossary[open] summary {
+  background: var(--line);
+}
+.statistics-glossary summary:focus-visible {
+  outline: 2px solid var(--green);
+  outline-offset: 2px;
+}
+.statistics-glossary dl {
+  margin: 8px 0 0;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: white;
+  text-align: left;
+}
+.statistics-glossary dl > div + div {
+  margin-top: 12px;
+}
+.statistics-glossary dt {
+  font-weight: 700;
+  font-size: 0.875rem;
+}
+.statistics-glossary dd {
+  margin: 4px 0 0;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
 .share-control {
   display: flex;
   flex-wrap: wrap;

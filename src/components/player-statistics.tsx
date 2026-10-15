@@ -12,6 +12,7 @@ import type { PlayerHistory } from "@/domain/players";
 import { getData } from "@/lib/client-api";
 import { dayLabel } from "@/lib/dates";
 import { ErrorNotice, Freshness } from "./common";
+import { StatisticsGlossary } from "./statistics-glossary";
 
 const number = (value: number | null | undefined) =>
   value == null
@@ -185,6 +186,23 @@ function StatisticsContent({
   const maxPosition = Math.max(1, ...positions.map(([, count]) => count));
   return (
     <>
+      <StatisticsGlossary
+        context="statistiky hráče"
+        items={[
+          "average",
+          "venueAverage",
+          "full",
+          "spare",
+          "errors",
+          "total",
+          "playerPoints",
+          "setPoints",
+          "starts",
+          "position",
+          "homeAway",
+          "missing",
+        ]}
+      />
       <div className="stats-cards">
         <div className="stats-card stats-card-primary">
           <span>Průměr průměrů</span>

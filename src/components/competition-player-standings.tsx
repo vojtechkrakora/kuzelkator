@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { StatisticsGlossary } from "./statistics-glossary";
 import { useState, type ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { playerName, type Competition } from "@/domain/models";
@@ -210,6 +211,17 @@ function CompetitionPlayerStandings({
           </button>
         )}
       </div>
+      <StatisticsGlossary
+        context="pořadí hráčů"
+        items={[
+          "rank",
+          "officialAverage",
+          "starts",
+          "playerPoints",
+          "homeAway",
+          "missing",
+        ]}
+      />
       <label className="player-table-order">
         Řadit podle
         <select
