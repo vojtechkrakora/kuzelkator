@@ -2,6 +2,8 @@
 
 ## Nevydáno
 
+## 0.13.0 — připraveno k vydání
+
 ### Vylepšení
 
 - Přes verzi v zápatí lze otevřít přehled „Co je nového“ se stručnými českými poznámkami a daty vydání. Přehled zachovává oblíbené i mobilní navigaci.
@@ -14,7 +16,7 @@
 
 - U soutěže lze otevřít nejlepší samostatné výkony sezóny s hráčem, týmem, kuželnou a odkazem na zápas. Přehled vynechává střídání a nedohraná utkání, zachovává shodná umístění a načítá se až po otevření.
 
-## 0.12.0 — připraveno k vydání
+## 0.12.0 — 15. 10. 2026
 
 ### Vylepšení
 
@@ -22,7 +24,7 @@
 
 - OBS zdroje mají vlastní šířku, výšku, velikost obsahu a mezery hráčů, živý náhled a nastavení uložené v odkazu i pro další zápasy. Celá plocha zdrojů je neprůhledná; příliš malý prostor automaticky zmenší obsah, aby hráči nechyběli.
 
-## 0.11.0 — připraveno k vydání
+## 0.11.0 — 14. 10. 2026
 
 ### Vylepšení
 

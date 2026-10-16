@@ -1,6 +1,17 @@
 // Published releases, newest first. See docs/RELEASE-PROCESS.md.
 export const releases = [
   {
+    version: "0.13.0",
+    date: "2026-10-16",
+    changes: [
+      "U soutěže si můžete otevřít nejlepší samostatné výkony sezóny a přejít na hráče nebo zápas. Přehled nezahrnuje střídání ani nedohraná utkání.",
+      "Zápas, hráče, tým i vybraný přehled výsledků snadno nasdílíte nebo zkopírujete odkaz. Odkaz zachová vybrané datum a soutěžní kontext.",
+      "Při procházení hráčů si aplikace pamatuje zvolenou sezónu po dobu otevřené relace prohlížeče.",
+      "U tabulek a statistik najdete rozbalovací vysvětlivky zkratek, bodů a průměrů, pohodlně dostupné i na telefonu.",
+      "Přes verzi v zápatí otevřete tento přehled novinek a oprav v jednotlivých vydáních.",
+    ],
+  },
+  {
     version: "0.12.0",
     date: "2026-10-15",
     changes: [
