@@ -9,6 +9,16 @@
   --soft: #edf3e9;
   --radius: 14px;
 }
+.match-share-actions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: flex-start;
+  gap: 4px;
+  margin-bottom: 8px;
+}
+.match-share-actions .share-control {
+  margin-bottom: 0;
+}
 .player-statistics {
   margin: 24px 0 32px;
   min-width: 0;
