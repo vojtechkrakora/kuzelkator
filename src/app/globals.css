@@ -1199,7 +1199,72 @@ tfoot {
   margin-left: 8px;
 }
 .build-info {
-  white-space: nowrap;
+  overflow-wrap: anywhere;
+}
+.release-notes-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.release-notes {
+  min-width: 0;
+  max-width: 800px;
+  overflow-wrap: anywhere;
+}
+.release-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  margin-bottom: 16px;
+}
+.release-notes-link:focus-visible,
+.release-back:focus-visible {
+  outline: 2px solid var(--green);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+.release-notes h1 {
+  margin: 0 0 12px;
+}
+.release-card {
+  margin-top: 24px;
+  padding: clamp(16px, 3vw, 28px);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: white;
+}
+.release-card header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+.release-card h2 {
+  margin: 0;
+  font-size: 1.15rem;
+}
+.release-card time {
+  width: 100%;
+  color: var(--muted);
+  font-size: 0.875rem;
+}
+.release-latest {
+  background: #edf5ed;
+  color: #176347;
+  border-radius: 12px;
+  padding: 4px 9px;
+  font-size: 0.75rem;
+}
+.release-card ul {
+  padding-left: 20px;
+  margin: 20px 0 0;
+}
+.release-card li {
+  line-height: 1.65;
+  margin-top: 12px;
 }
 .skeleton {
   height: 164px;
@@ -3809,7 +3874,7 @@ details.competition-group[open] > summary > span > svg {
 }
 
 .competition-standings-switch {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: 1fr 1fr 1.6fr;
 }
 .competition-player-table {
   min-width: 0;
@@ -3981,4 +4046,238 @@ details.competition-group[open] > summary > span > svg {
   background: white;
   font: inherit;
   color: inherit;
+}
+
+.competition-best-performances {
+  margin: 16px 0 24px;
+  min-width: 0;
+}
+.competition-best-performances > .muted {
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+.best-performance-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  padding: 0;
+  margin: 16px 0;
+  list-style: none;
+}
+.best-performance-list > li {
+  min-width: 0;
+  padding: 16px;
+  background: white;
+  border: 1px solid #dce4d8;
+  border-radius: 14px;
+  overflow-wrap: anywhere;
+}
+.best-performance-list > .best-performance-favorite {
+  background: #f2f8eb;
+  border-color: #b6cba0;
+}
+.best-performance-heading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.best-performance-rank {
+  color: #64725b;
+  min-width: 24px;
+  font-variant-numeric: tabular-nums;
+}
+.best-performance-player {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+}
+.best-performance-player a {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+}
+.best-performance-player a:first-child {
+  font-weight: 700;
+}
+.best-performance-player a:last-child {
+  font-size: 0.85rem;
+  color: #64725b;
+}
+.best-performance-result {
+  display: grid;
+  gap: 4px;
+  margin: 12px 0;
+}
+.best-performance-result strong {
+  font-size: 1.6rem;
+  font-variant-numeric: tabular-nums;
+}
+.best-performance-result small {
+  font-size: 0.8rem;
+  font-weight: 400;
+}
+.best-performance-result > span {
+  font-size: 0.8rem;
+  color: #64725b;
+}
+.best-performance-match {
+  display: grid;
+  font-size: 0.85rem;
+  border-top: 1px solid #e4e8e0;
+  padding-top: 10px;
+}
+.best-performance-match a {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+}
+.statistics-glossary {
+  margin: 8px 0 16px;
+  min-width: 0;
+}
+.statistics-glossary summary {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 44px;
+  min-width: 44px;
+  width: fit-content;
+  padding: 0 10px;
+  border-radius: 8px;
+  color: var(--ink);
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 600;
+  list-style: none;
+}
+.statistics-glossary summary::-webkit-details-marker {
+  display: none;
+}
+.statistics-glossary summary::after {
+  content: "+";
+  margin-left: 6px;
+}
+.statistics-glossary[open] summary::after {
+  content: "−";
+}
+.statistics-glossary summary:hover,
+.statistics-glossary[open] summary {
+  background: var(--line);
+}
+.statistics-glossary summary:focus-visible {
+  outline: 2px solid var(--green);
+  outline-offset: 2px;
+}
+.statistics-glossary dl {
+  margin: 8px 0 0;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: white;
+  text-align: left;
+}
+.statistics-glossary dl > div + div {
+  margin-top: 12px;
+}
+.statistics-glossary dt {
+  font-weight: 700;
+  font-size: 0.875rem;
+}
+.statistics-glossary dd {
+  margin: 4px 0 0;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+.share-control {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  justify-content: flex-end;
+  margin: 0 0 8px;
+  min-width: 0;
+}
+.share-button {
+  min-height: 44px;
+  min-width: 44px;
+  width: 44px;
+  height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: var(--muted);
+  cursor: pointer;
+}
+.share-button:hover {
+  background: var(--line);
+  color: var(--ink);
+}
+.share-button:focus-visible {
+  outline: 2px solid var(--green);
+  outline-offset: 2px;
+}
+.share-button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+.share-toast {
+  position: fixed;
+  z-index: 100;
+  bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: calc(100vw - 32px);
+  box-sizing: border-box;
+  padding: 12px 18px;
+  border-radius: 12px;
+  background: #173d32;
+  color: #fff;
+  box-shadow: 0 6px 24px #0003;
+  font-size: 0.875rem;
+  font-weight: 600;
+  pointer-events: none;
+}
+.share-toast svg {
+  flex-shrink: 0;
+}
+.share-fallback {
+  width: 100%;
+  text-align: left;
+}
+@media (max-width: 740px) {
+  .share-toast {
+    bottom: calc(88px + env(safe-area-inset-bottom, 0px));
+  }
+}
+.share-status {
+  font-size: 0.875rem;
+}
+.share-status:empty {
+  display: none;
+}
+.share-manual {
+  display: grid;
+  gap: 6px;
+  width: 100%;
+  min-width: 0;
+  text-align: left;
+}
+.share-manual input {
+  min-width: 0;
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 44px;
+}
+@media (max-width: 700px) {
+  .best-performance-list {
+    grid-template-columns: 1fr;
+  }
 }

@@ -1,5 +1,7 @@
 # Kuželkátor
 
+Při hledání a procházení hráčů se zvolená sezóna uchovává v `sessionStorage` pro otevřenou relaci prohlížeče. Sezóna v URL má přednost a je ověřena proti dostupným sezónám; neplatná hodnota přejde na aktuální sezónu (případně první dostupnou). Zvolená sezóna se zapisuje do adresy, takže obnovení a sdílení zachovají výběr i bez úložiště. Datum, soutěž a další filtry přehledu se tímto neobnovují; jejich stávající chování a reset zůstávají zachované.
+
 A working proof of concept for a personalised Czech nine-pin bowling results site, using real public ČKA data. No API key or ČKA account is required.
 
 ## Run with Docker
@@ -260,6 +262,8 @@ cron ani databázi. Použité veřejné endpointy: `/competitions/{slug}` a
 Výchozí záložka „Přehled týmu“ obsahuje formu, hráče a zápasy prohlíženého týmu. Samostatná záložka „Příští soupeř“ načítá soupeřova data až po přepnutí; při změně týmu nebo sezóny se znovu zobrazí přehled týmu. Přehled soupeře vybírá nejbližší budoucí neodehrané utkání podle data a času (probíhající utkání má přednost), nikoli podle kola. Utkání bez termínu zůstává v rozpisu a přehled na ně upozorní. Karta obsahuje odkazy na zápas a soupeře, kuželnu a navigaci, pokud je dostupná poloha. Jen pro tohoto soupeře se načítá rozpis vybrané sezóny a týmové souhrny ČKA s povinným competitionId. Forma a počty dohraných utkání se omezují na stejnou soutěž; průměr je údaj ČKA pro místo příštího startu soupeře (doma/venku). Počet dohraných utkání není počet výkonů započtených do průměru. Při výpadku statistik zůstává karta utkání funkční. Bez dalšího utkání se soupeři nepřednačítají.
 
 ## Pořadí hráčů soutěže
+
+Vedle pohledů Družstva a Hráči je volba **Nejlepší výkony** (#24), načítaná až po otevření. Ukazuje dvacet nejlepších samostatných výkonů sezóny a všechny shody na posledním místě. Stejné výkony sdílejí pozici; tentýž hráč může být uveden vícekrát za různé zápasy. Přehled obsahuje tým, kuželnu, datum, plné/dorážku/chyby a odkazy na hráče, tým a zápas. Z API `/player-match-results` přebírá sestupně seřazené stránky, vylučuje neobsazené pozice, střídání a zápasy bez stavu FINISHED, kontroluje soutěž, sezónu a disciplínu. Chybějící podklady o střídání nepovažuje za samostatný výkon. Načítání končí po nalezení výsledku horšího než poslední zařazený výkon; má ochranu proti neúplným, duplicitním či nesprávně seřazeným stránkám a limit 10 000 zdrojových záznamů. Cache je sdílená, pětiminutová, bez databáze a bez požadavku na detail každého zápasu.
 
 U vybrané soutěže lze přepnout **Družstva / Hráči**. Hráčská tabulka se načítá až
 po otevření pohledu Hráči. Výchozí řazení je podle průměru sestupně; oficiální pořadí ČKA lze zvolit zvlášť. Shodné průměry sdílejí pozici a chybějící průměry patří na konec. Pořadí se určí před hledáním a filtrováním oblíbených. Nabízí Celkem, Doma,

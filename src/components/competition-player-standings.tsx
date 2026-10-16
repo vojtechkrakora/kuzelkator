@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { StatisticsGlossary } from "./statistics-glossary";
 import { useState, type ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { playerName, type Competition } from "@/domain/models";
@@ -15,6 +16,7 @@ import { teamSeasonHref } from "@/lib/team-navigation";
 import { usePreferences } from "./providers";
 import { FollowPlayerButton } from "./player-pages";
 import { Freshness } from "./common";
+import { CompetitionBestPerformances } from "./competition-best-performances";
 
 export function CompetitionStandings({
   competition,
@@ -27,7 +29,7 @@ export function CompetitionStandings({
   seasonName?: string;
   children: ReactNode;
 }) {
-  const [view, setView] = useState<"teams" | "players">("teams");
+  const [view, setView] = useState<"teams" | "players" | "best">("teams");
   return (
     <>
       <div
@@ -49,9 +51,22 @@ export function CompetitionStandings({
         >
           Hráči
         </button>
+        <button
+          type="button"
+          aria-pressed={view === "best"}
+          onClick={() => setView("best")}
+        >
+          Nejlepší výkony
+        </button>
       </div>
       {view === "teams" ? (
         children
+      ) : view === "best" ? (
+        <CompetitionBestPerformances
+          competition={competition}
+          seasonId={seasonId}
+          seasonName={seasonName}
+        />
       ) : (
         <CompetitionPlayerStandings
           competition={competition}
@@ -196,6 +211,17 @@ function CompetitionPlayerStandings({
           </button>
         )}
       </div>
+      <StatisticsGlossary
+        context="pořadí hráčů"
+        items={[
+          "rank",
+          "officialAverage",
+          "starts",
+          "playerPoints",
+          "homeAway",
+          "missing",
+        ]}
+      />
       <label className="player-table-order">
         Řadit podle
         <select

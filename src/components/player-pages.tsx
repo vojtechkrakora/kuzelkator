@@ -1,11 +1,13 @@
 "use client";
 
 import Link from "next/link";
+import { ShareButton } from "./share-button";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Star, Search, ArrowLeft } from "lucide-react";
 import { getData } from "../lib/client-api";
-import { playerName, statusLabel, type Season } from "../domain/models";
+import { playerName, statusLabel } from "../domain/models";
+import { usePlayerSeason } from "./use-player-season";
 import type {
   DirectoryPlayer,
   PlayerProfile,
@@ -107,23 +109,8 @@ export function FavouritePlayers({ sidebar = false }: { sidebar?: boolean }) {
     </section>
   );
 }
-function useSeason(initialSeason = "") {
-  const [selected, setSelected] = useState(initialSeason);
-  const seasons = useQuery({
-    queryKey: ["seasons"],
-    queryFn: ({ signal }) => getData<Page<Season>>({ kind: "seasons" }, signal),
-  });
-  const id =
-    selected ||
-    String(
-      seasons.data?.data.items.find((s) => s.active)?.id ??
-        seasons.data?.data.items[0]?.id ??
-        "",
-    );
-  return { seasons, id, setSelected };
-}
 export function PlayerSearchPage() {
-  const { seasons, id, setSelected } = useSeason();
+  const { seasons, id, setSelected } = usePlayerSeason();
   const [text, setText] = useState(""),
     [query, setQuery] = useState(""),
     [offset, setOffset] = useState(0);
@@ -244,7 +231,7 @@ export function PlayerSeasonPage({
   player: PlayerProfile;
   initialSeason?: string;
 }) {
-  const { seasons, id, setSelected } = useSeason(initialSeason);
+  const { seasons, id, setSelected } = usePlayerSeason(initialSeason);
   const { warning } = usePreferences();
   const results = useQuery({
     queryKey: ["player-history", player.id, id],
@@ -257,7 +244,10 @@ export function PlayerSeasonPage({
   });
   return (
     <PlayerPageLayout>
-      <Link href="/players" className="back-link">
+      <Link
+        href={id ? `/players?season=${id}` : "/players"}
+        className="back-link"
+      >
         <ArrowLeft size={17} /> Hráči
       </Link>
       <div className="player-profile-heading">
@@ -267,6 +257,11 @@ export function PlayerSeasonPage({
         </div>
         <FollowPlayerButton player={player} />
       </div>
+      <ShareButton
+        title={`${playerName(player)} – Kuželkátor`}
+        label="Sdílet hráče"
+        disabled={!id}
+      />
       {warning && <p role="status">{warning}</p>}
       <label className="player-season-select">
         Sezóna

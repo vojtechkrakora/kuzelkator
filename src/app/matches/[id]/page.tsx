@@ -1,4 +1,6 @@
 import { BackToFeed } from "@/components/feed-navigation";
+import { ShareButton } from "@/components/share-button";
+import { StatisticsGlossary } from "@/components/statistics-glossary";
 import { TeamLogo } from "@/components/team-logo";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -45,6 +47,11 @@ export default async function MatchDetail({
         <span className="match-status">{statusLabel(match.status)}</span>
       </div>
       <section className="scoreboard">
+        <ShareButton
+          title={`${match.homeTeam?.name ?? "Domácí"} – ${match.awayTeam?.name ?? "Hosté"}`}
+          label="Sdílet zápas"
+          href={`/matches/${id}`}
+        />
         <p className="scoreboard-date">
           {dayLabel(match.date, true)}
           {match.time ? ` · ${match.time.slice(0, 5)}` : ""}
@@ -116,6 +123,18 @@ export default async function MatchDetail({
           {match.discipline?.replace("T", "") ?? "—"} hodů
         </span>
       </div>
+      <StatisticsGlossary
+        context="výsledky zápasu"
+        items={[
+          "full",
+          "spare",
+          "errors",
+          "total",
+          "playerPoints",
+          "setPoints",
+          "missing",
+        ]}
+      />
       <nav className="detail-team-navigation" aria-label="Výsledky podle týmu">
         <a href="#home-results">Domácí</a>
         <a href="#away-results">Hosté</a>

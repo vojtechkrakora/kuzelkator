@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { StatisticsGlossary } from "./statistics-glossary";
 import { useQuery } from "@tanstack/react-query";
 import { playerName, type Competition } from "@/domain/models";
 import type { PlayerProfile } from "@/domain/players";
@@ -185,6 +186,23 @@ export function TeamPlayers({
         <p className="empty-copy">
           V této soutěži zatím nejsou zveřejněné statistiky hráčů.
         </p>
+      )}
+      {stats.data && list.length > 0 && (
+        <StatisticsGlossary
+          context="hráči týmu"
+          items={[
+            "average",
+            ...(view === "all" ? ["venueAverage" as const] : []),
+            "full",
+            "spare",
+            "errors",
+            "total",
+            "starts",
+            "position",
+            "homeAway",
+            "missing",
+          ]}
+        />
       )}
       <ul
         className="team-player-cards"

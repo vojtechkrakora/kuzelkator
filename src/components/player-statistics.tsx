@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import {
@@ -12,6 +12,7 @@ import type { PlayerHistory } from "@/domain/players";
 import { getData } from "@/lib/client-api";
 import { dayLabel } from "@/lib/dates";
 import { ErrorNotice, Freshness } from "./common";
+import { StatisticsGlossary } from "./statistics-glossary";
 
 const number = (value: number | null | undefined) =>
   value == null
@@ -28,6 +29,19 @@ export function PlayerStatisticsSection({
   history?: PlayerHistory[];
 }) {
   const [selection, setSelection] = useState("");
+  const [contextReady, setContextReady] = useState(false);
+  useEffect(() => {
+    const restore = () => {
+      const query = new URLSearchParams(window.location.search);
+      setSelection(
+        `${query.get("competition") ?? ""}-${query.get("team") ?? ""}`,
+      );
+      setContextReady(true);
+    };
+    restore();
+    window.addEventListener("popstate", restore);
+    return () => window.removeEventListener("popstate", restore);
+  }, [playerId, seasonId]);
   const stats = useQuery({
     queryKey: ["player-statistics", playerId, seasonId],
     enabled: !!seasonId,
@@ -41,6 +55,14 @@ export function PlayerStatisticsSection({
   const items = stats.data?.data.items ?? [];
   const key = (s: PlayerStatistics) => `${s.competition.id}-${s.team.id}`;
   const selected = items.find((s) => key(s) === selection) ?? items[0];
+  useEffect(() => {
+    if (!contextReady || !selected) return;
+    const url = new URL(window.location.href);
+    url.searchParams.set("competition", String(selected.competition.id));
+    url.searchParams.set("team", String(selected.team.id));
+    if (url.href !== window.location.href)
+      window.history.replaceState(window.history.state, "", url);
+  }, [contextReady, selected]);
   return (
     <section
       className="player-statistics"
@@ -164,6 +186,23 @@ function StatisticsContent({
   const maxPosition = Math.max(1, ...positions.map(([, count]) => count));
   return (
     <>
+      <StatisticsGlossary
+        context="statistiky hráče"
+        items={[
+          "average",
+          "venueAverage",
+          "full",
+          "spare",
+          "errors",
+          "total",
+          "playerPoints",
+          "setPoints",
+          "starts",
+          "position",
+          "homeAway",
+          "missing",
+        ]}
+      />
       <div className="stats-cards">
         <div className="stats-card stats-card-primary">
           <span>Průměr průměrů</span>

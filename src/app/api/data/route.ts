@@ -1,4 +1,6 @@
 import { getTeamRecords, teamRecordsInput } from "@/server/team-records";
+import { getBestPerformances } from "@/server/best-performances";
+import { bestPerformancesInput } from "@/domain/best-performances";
 
 import { getCompetitionPlayerStandings } from "@/server/competition-player-standings";
 import {
@@ -134,6 +136,9 @@ export async function GET(request: NextRequest) {
         break;
       case "matches":
         result = await getMatches(matchFilters.parse(params));
+        break;
+      case "competition-best-performances":
+        result = await getBestPerformances(bestPerformancesInput.parse(params));
         break;
       case "competition-player-standings": {
         const input = z
