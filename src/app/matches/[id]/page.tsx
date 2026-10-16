@@ -4,7 +4,7 @@ import { StatisticsGlossary } from "@/components/statistics-glossary";
 import { TeamLogo } from "@/components/team-logo";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Trophy } from "lucide-react";
+import { Trophy, Image as ImageIcon } from "lucide-react";
 import { MatchInformation } from "@/components/match-information";
 import { getMatch } from "@/server/cka";
 import { UpstreamError } from "@/server/cache";
@@ -47,11 +47,22 @@ export default async function MatchDetail({
         <span className="match-status">{statusLabel(match.status)}</span>
       </div>
       <section className="scoreboard">
-        <ShareButton
-          title={`${match.homeTeam?.name ?? "Domácí"} – ${match.awayTeam?.name ?? "Hosté"}`}
-          label="Sdílet zápas"
-          href={`/matches/${id}`}
-        />
+        <div className="match-share-actions">
+          <Link
+            className="share-button"
+            href={`/matches/${id}/social`}
+            prefetch={false}
+            aria-label="Výsledek pro screenshot"
+            title="Výsledek pro screenshot"
+          >
+            <ImageIcon size={18} aria-hidden="true" />
+          </Link>
+          <ShareButton
+            title={`${match.homeTeam?.name ?? "Domácí"} – ${match.awayTeam?.name ?? "Hosté"}`}
+            label="Sdílet zápas"
+            href={`/matches/${id}`}
+          />
+        </div>
         <p className="scoreboard-date">
           {dayLabel(match.date, true)}
           {match.time ? ` · ${match.time.slice(0, 5)}` : ""}

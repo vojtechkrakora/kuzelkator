@@ -1,6 +1,15 @@
 // Published releases, newest first. See docs/RELEASE-PROCESS.md.
 export const releases = [
   {
+    version: "0.14.0",
+    date: "2026-10-16",
+    changes: [
+      "Vedle sdílení v detailu zápasu najdete ikonku obrázku. Otevře kompaktní kartu se skóre a výsledky hráčů pro screenshot na sociální sítě.",
+      "Výkony jsou vedle jmen skutečných soupeřů. Vítězné výkony mají zelené podbarvení, nejvyšší úplný výkon zlaté podbarvení a pohár.",
+      "Karta zachovává střídání a půlbody, uvádí průběžný stav i čas dat a během pořizování screenshotu se sama nemění.",
+    ],
+  },
+  {
     version: "0.13.0",
     date: "2026-10-16",
     changes: [
