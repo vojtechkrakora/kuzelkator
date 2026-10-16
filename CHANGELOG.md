@@ -2,6 +2,10 @@
 
 ## Nevydáno
 
+### Vylepšení
+
+- Detail zápasu nabízí kompaktní kartu pro screenshot na sociální sítě, s duely, získanými body, střídáním a zvýrazněním nejvyššího úplného výkonu. Průběžný stav a čas dat jsou uvedeny přímo na kartě; obsah se automaticky nemění.
+
 ## 0.13.0 — připraveno k vydání
 
 ### Vylepšení
