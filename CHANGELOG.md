@@ -2,6 +2,10 @@
 
 ## Nevydáno
 
+### Vylepšení
+
+- Detail zápasu zobrazuje kompaktní duely se zvýrazněnými výkony. Klepnutím na dvojici lze rozbalit dráhy, plné, dorážku, chyby a střídání; všechny duely lze otevřít i sbalit najednou. Samostatná karta pro screenshot zůstává zachovaná.
+
 ## 0.14.0 — připraveno k vydání
 
 ### Vylepšení
