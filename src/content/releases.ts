@@ -1,6 +1,15 @@
 // Published releases, newest first. See docs/RELEASE-PROCESS.md.
 export const releases = [
   {
+    version: "0.15.0",
+    date: "2026-10-19",
+    changes: [
+      "Výsledky hráčů jsou v detailu zápasu přehledně proti sobě, hned pod hlavičkou. Vítězné výkony mají zelený podklad, nejvyšší úplný výkon zlatý.",
+      "Klepnutím na dvojici rozbalíte jednotlivé dráhy, plné, dorážku, chyby, střídání a odkazy na profily hráčů.",
+      "Všechny duely lze rozbalit nebo sbalit najednou. Vysvětlivky a další ovládání najdete pod výsledky; samostatná karta pro screenshot zůstává zachovaná.",
+    ],
+  },
+  {
     version: "0.14.0",
     date: "2026-10-16",
     changes: [
