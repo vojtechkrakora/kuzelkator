@@ -135,113 +135,10 @@ body:has([data-social-match]) .footer {
   margin: 5px 0 0;
   font-weight: 600;
 }
-.social-duel {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 38px minmax(0, 1fr);
-  border-top: 1px solid #e1e6df;
-  padding: 10px 12px;
-  gap: 6px;
-}
-.social-player {
-  position: relative;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 5px;
-  min-width: 0;
-  font-size: 13px;
-  line-height: 1.3;
-}
-.social-player:last-child {
-  grid-template-columns: auto minmax(0, 1fr);
-  text-align: right;
-}
-.social-player:last-child .social-player-name {
-  grid-column: 2;
-  grid-row: 1;
-}
-.social-player:last-child .social-player-score {
-  grid-column: 1;
-  grid-row: 1;
-}
-.social-player-name {
-  font-weight: 600;
-}
-.social-player-name small {
-  display: block;
-  font-size: 10px;
-  color: #536159;
-  margin-top: 3px;
-}
-.social-player-score {
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-  align-items: center;
-  margin: 0;
-}
-.social-player:last-child .social-player-score {
-  justify-content: flex-end;
-}
-.social-player-score > strong {
-  font-size: 18px;
-}
-.social-winner .social-player-score > strong {
-  color: #176347;
-  background: #dcefe2;
-  border-radius: 4px;
-  box-shadow: 0 0 0 3px #dcefe2;
-}
-.social-player-points {
-  font-size: 11px;
-  white-space: nowrap;
-  color: #536159;
-}
-.social-scored .social-player-points {
-  color: #176347;
-  font-weight: 800;
-}
-.social-best .social-player-score > strong {
-  background: #fff0c2;
-  border-radius: 4px;
-  box-shadow: 0 0 0 3px #fff0c2;
-}
-.social-best-label {
-  position: absolute;
-  top: -8px;
-  right: -3px;
-  display: inline-flex;
-  align-items: center;
-  gap: 3px;
-  color: #775400;
-  font-size: 9px;
-}
-.social-player:last-child .social-best-label {
-  right: auto;
-  left: -3px;
-}
 .social-card-footer > span {
   display: inline-flex;
   gap: 3px;
   align-items: center;
-}
-.social-duel-center {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 2px;
-  color: #536159;
-}
-.social-duel-center > span {
-  font-size: 10px;
-}
-.social-duel-center strong {
-  font-size: 12px;
-  white-space: nowrap;
-}
-.social-duel-center small {
-  font-size: 9px;
 }
 .social-card-footer {
   border-top: 1px solid #e1e6df;
@@ -266,14 +163,6 @@ body:has([data-social-match]) .footer {
 .social-unmatched {
   padding: 12px;
   font-size: 12px;
-}
-@media (min-width: 500px) {
-  .social-player {
-    font-size: 15px;
-  }
-  .social-duel {
-    padding: 12px 20px;
-  }
 }
 @media print {
   body:has([data-social-match]) .social-tools,

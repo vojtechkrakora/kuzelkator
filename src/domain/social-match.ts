@@ -36,6 +36,11 @@ export function socialPlayer(player: PlayerResult, result: Result) {
       ? "Neobsazená pozice"
       : [...people.values()].map(playerName).join(" / ") || playerName(null),
     substituted,
+    people: [...people.values()],
+    changes: (result.substitutions ?? []).filter(
+      (s) =>
+        people.has(s.playerOut?.id ?? -1) || people.has(s.playerIn?.id ?? -1),
+    ),
   };
 }
 
