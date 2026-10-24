@@ -148,9 +148,9 @@ export function TeamPlayers({
           {view !== "all" && (
             <p className="stats-note">
               Průměry {viewLabel.toLowerCase()} podle role týmu v zápase, nikoli
-              podle konkrétní kuželny. Počty zápasů, pozice a střídání jsou za
-              celou sezónu ve vybrané soutěži. Průměr průměrů pro tento pohled
-              není dostupný. Pomlčka znamená nedostupný průměr.
+              podle konkrétní kuželny. Počty zápasů a pozice jsou za celou
+              sezónu ve vybrané soutěži. Průměr průměrů pro tento pohled není
+              dostupný. Pomlčka znamená nedostupný průměr.
             </p>
           )}
         </>
@@ -303,9 +303,7 @@ export function TeamPlayers({
                           : "Pozice nejsou zveřejněné."}
                       </span>
                     </p>
-                    <p className="stats-note">
-                      Průměry dle statistik ČKA.
-                    </p>
+                    <p className="stats-note">Průměry dle statistik ČKA.</p>
                   </details>
                 </>
               )}
