@@ -146,6 +146,7 @@ describe("player statistics", () => {
     expect(get.mock.calls[1][0]).toContain("offset=1");
     expect(get.mock.calls[2][0]).toContain("competitionId=16");
     expect(get.mock.calls[3][0]).toContain("competitionId=99");
+    expect(get).toHaveBeenCalledTimes(4);
     expect(result.data.items[0].aggregates).toEqual([aggregate]);
     expect(result.data.items[1].aggregates).toEqual([]);
     expect(result.stale).toBe(true);

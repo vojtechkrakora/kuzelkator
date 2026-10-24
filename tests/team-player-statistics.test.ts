@@ -88,7 +88,6 @@ it("distinguishes missing side performances from genuine zero errors", () => {
     player,
     type: "TOTAL",
     matches: 3,
-    substituteStarts: 1,
     averageResult: 577.33,
     averagePerformance: 586,
     homeAverage: 560,

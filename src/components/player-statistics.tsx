@@ -224,10 +224,7 @@ function StatisticsContent({
         <div className="stats-card">
           <span>Odehrané zápasy</span>
           <strong>{number(stats.matches)}</strong>
-          <small>
-            {number(stats.venuesPlayed)} kuželen ·{" "}
-            {number(total?.substituteStarts)} střídání
-          </small>
+          <small>{number(stats.venuesPlayed)} kuželen</small>
         </div>
       </div>
       <table className="stats-averages">

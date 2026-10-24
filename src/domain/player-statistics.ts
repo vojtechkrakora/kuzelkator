@@ -15,7 +15,6 @@ export const playerAggregateSchema = z.object({
   player: playerSchema,
   type: z.enum(["TOTAL", "FULL", "SPARE", "ERRORS"]),
   matches: z.number(),
-  substituteStarts: z.number(),
   averagePerformance: average,
   averageResult: average,
   homeAverage: average,

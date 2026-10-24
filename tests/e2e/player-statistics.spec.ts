@@ -120,6 +120,7 @@ for (const width of [320, 390, 1280]) {
     await glossary.locator("summary").click();
     await expect(stats.locator(".stats-card-primary")).toContainText("586");
     await expect(stats.locator(".stats-cards")).toContainText("577,33");
+    await expect(stats.locator(".stats-cards")).not.toContainText("střídání");
     await expect(stats.locator(".stats-match-picker button")).toHaveCount(3);
     await expect(
       stats.getByRole("region", { name: "Průměry na kuželnách" }),

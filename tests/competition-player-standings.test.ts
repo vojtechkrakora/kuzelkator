@@ -14,9 +14,14 @@ afterEach(() => {
   vi.unstubAllGlobals();
   vi.resetModules();
 });
-function mock(table: (url: URL) => Response) {
+function mock(
+  table: (url: URL) => Response,
+  matches: (url: URL) => Response = () =>
+    Response.json({ items: [], total: 0 }),
+) {
   const request = vi.fn(async (value: string | URL | Request) => {
     const url = new URL(String(value));
+    if (url.pathname.endsWith("/matches")) return matches(url);
     if (url.pathname.endsWith("/schedule"))
       return Response.json({
         items: [
@@ -57,6 +62,53 @@ it("fetches every page, sorts official positions (not averages), and never asks 
     request.mock.calls.some(([url]) => String(url).includes("offset=2")),
   ).toBe(true);
 });
+it.each([false, true])(
+  "paginates venue data and leaves qualification unknown if the listing is truncated (%s)",
+  async (truncated) => {
+    const match = (id: number) => ({
+      id,
+      slug: "test",
+      round: 4,
+      date: "2026-10-01",
+      time: "10:00",
+      status: "FINISHED",
+      competition: { id: 16, name: "Liga", slug: "test" },
+      homeTeam: { id: 1, name: "Tým" },
+      awayTeam: { id: 2, name: "Hosté" },
+      venue: { id, name: "Kuželna" },
+    });
+    const request = mock(
+      () =>
+        Response.json({ items: [{ ...row(1, 1), venuesPlayed: 1 }], total: 1 }),
+      (url) =>
+        Response.json({
+          items:
+            url.searchParams.get("offset") === "0"
+              ? [match(1)]
+              : truncated
+                ? []
+                : [match(2)],
+          total: 2,
+        }),
+    );
+    const { getCompetitionPlayerStandings } =
+      await import("../src/server/competition-player-standings");
+    const result = await getCompetitionPlayerStandings("test");
+    expect(result.data.items).toHaveLength(1);
+    expect(result.data.items[0].qualification).toEqual(
+      truncated
+        ? null
+        : { teamVenuesPlayed: 2, requiredVenues: 2, eligible: false },
+    );
+    expect(
+      request.mock.calls.some(
+        ([url]) =>
+          String(url).includes("/matches?competitionId=16") &&
+          String(url).includes("offset=1"),
+      ),
+    ).toBe(true);
+  },
+);
 it.each([404, 200])(
   "falls back only for unavailable/empty round (%s) and reports real round",
   async (status) => {
