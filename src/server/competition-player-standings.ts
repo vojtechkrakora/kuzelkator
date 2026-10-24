@@ -1,6 +1,7 @@
-import { collection } from "../domain/models";
+import { collection, matchSchema } from "../domain/models";
 import {
   competitionPlayerStandingSchema,
+  qualifyCompetitionPlayers,
   type CompetitionPlayerTable,
 } from "../domain/competition-player-standings";
 import type { Resource } from "../domain/models";
@@ -76,11 +77,30 @@ export async function getCompetitionPlayerStandings(
         a.player.id - b.player.id ||
         a.team.id - b.team.id,
     );
+    let qualifiedItems = items.map((row) => ({
+      ...row,
+      qualification: null,
+    })) as CompetitionPlayerTable["items"];
+    try {
+      const matches = await qualificationMatches(competition.data.id);
+      stale ||= matches.stale;
+      if (matches.checkedAt < checkedAt) checkedAt = matches.checkedAt;
+      qualifiedItems = qualifyCompetitionPlayers(
+        items,
+        matches.data.items,
+        competition.data.id,
+        candidate,
+        type,
+      );
+    } catch (error) {
+      // An unavailable venue listing must not hide the ranking or invent eligibility.
+      if (!(error instanceof UpstreamError)) throw error;
+    }
     return {
       stale,
       checkedAt,
       data: {
-        items,
+        items: qualifiedItems,
         total: items.length,
         round: candidate,
         latestStartedRound: playedRounds[0] ?? null,
@@ -97,4 +117,41 @@ export async function getCompetitionPlayerStandings(
       latestStartedRound: playedRounds[0] ?? null,
     },
   };
+}
+
+async function qualificationMatches(competitionId: number) {
+  const query = new URLSearchParams({
+    competitionId: String(competitionId),
+    limit: "100",
+    offset: "0",
+    sort: "id",
+    include: "homeTeam,awayTeam,competition,venue",
+  });
+  const first = await apiCache.get(
+    `/matches?${query}`,
+    collection(matchSchema),
+    300000,
+  );
+  const items = [...first.data.items];
+  let stale = first.stale,
+    checkedAt = first.checkedAt;
+  while (items.length < first.data.total) {
+    query.set("offset", String(items.length));
+    const next = await apiCache.get(
+      `/matches?${query}`,
+      collection(matchSchema),
+      300000,
+    );
+    if (!next.data.items.length || next.data.total !== first.data.total)
+      throw new UpstreamError(502);
+    items.push(...next.data.items);
+    stale ||= next.stale;
+    if (next.checkedAt < checkedAt) checkedAt = next.checkedAt;
+  }
+  if (
+    items.length !== first.data.total ||
+    new Set(items.map((m) => m.id)).size !== items.length
+  )
+    throw new UpstreamError(502);
+  return { data: { items }, stale, checkedAt };
 }
