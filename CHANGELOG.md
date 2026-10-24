@@ -5,6 +5,7 @@
 ### Opravy
 
 - Počítadlo střídání na profilu hráče vychází ze zápisů zápasů a započítává vystřídaného i střídajícího hráče. Neúplná data nezobrazuje jako nulu; oficiální průměry zůstávají zachované. (#84)
+- Hlavička a individuální výsledky na detailu zápasu mají společnou šířku. (#85)
 
 ## 0.15.0 — připraveno k vydání
 
