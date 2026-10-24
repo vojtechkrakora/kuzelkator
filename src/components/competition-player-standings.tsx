@@ -135,6 +135,14 @@ function CompetitionPlayerStandings({
   const actualRound = query.data?.data.round;
   const expectedRound = round ?? query.data?.data.latestStartedRound;
   const label = type === "HOME" ? "Doma" : type === "AWAY" ? "Venku" : "Celkem";
+  const qualificationGroup = (row: (typeof rows)[number]) =>
+    order === "official"
+      ? "official"
+      : row.qualification === null
+        ? "unknown"
+        : row.qualification?.eligible === false
+          ? "below"
+          : "qualified";
   const discipline = competition.discipline?.replace(/^T(\d+)$/, "$1 HS");
   return (
     <section
@@ -241,9 +249,16 @@ function CompetitionPlayerStandings({
         {actualRound != null ? ` · tabulka ${actualRound}. kola` : ""}. Průměr a
         body přebíráme od ČKA.
         {order === "average"
-          ? " Shodné průměry sdílejí pořadí; hráči bez průměru jsou na konci. Nejde o oficiální pořadí ČKA."
+          ? " Pro zařazení je potřeba alespoň 3/5 různých odehraných kuželen týmu, zaokrouhleno nahoru. Shodné průměry sdílejí pořadí. Nejde o oficiální pořadí ČKA."
           : " Pořadí ČKA zachováváme beze změny."}
       </p>
+      {order === "average" && (
+        <p className="player-table-note muted">
+          Počítají se pouze dohrané zápasy do zobrazeného kola. Kuželna se
+          počítá jednou; při pohledu Doma nebo Venku platí podmínka pro tento
+          pohled. Při chybějících údajích kvalifikaci neodhadujeme.
+        </p>
+      )}
       {actualRound != null &&
         expectedRound != null &&
         actualRound < expectedRound && (
@@ -315,13 +330,24 @@ function CompetitionPlayerStandings({
                   : ""}
               </p>
               <ol className="competition-player-list">
-                {rows.slice(0, limit).map((row) => (
+                {rows.slice(0, limit).map((row, index) => (
                   <li
                     key={`${row.player.id}:${row.team.id}`}
                     className={
                       favoriteIds.has(row.player.id) ? "is-favorite" : ""
                     }
                   >
+                    {qualificationGroup(row) !== "qualified" &&
+                      qualificationGroup(row) !== "official" &&
+                      (index === 0 ||
+                        qualificationGroup(rows[index - 1]) !==
+                          qualificationGroup(row)) && (
+                        <p className="player-qualification-divider">
+                          {qualificationGroup(row) === "below"
+                            ? "Pod čarou · nedostatečný počet kuželen"
+                            : "Kvalifikaci nelze ověřit"}
+                        </p>
+                      )}
                     <div className="player-standing-identity">
                       <span
                         className="player-standing-position"
@@ -366,6 +392,13 @@ function CompetitionPlayerStandings({
                         <dd>{num(row.teamPointsWon)}</dd>
                       </div>
                     </dl>
+                    {order === "average" && row.qualification !== undefined && (
+                      <p className="player-qualification-note">
+                        {row.qualification
+                          ? `Kuželny ${num(row.venuesPlayed)}/${row.qualification.teamVenuesPlayed} · potřeba ${row.qualification.requiredVenues}`
+                          : "Chybí údaje o odehraných kuželnách."}
+                      </p>
+                    )}
                   </li>
                 ))}
               </ol>

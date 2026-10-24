@@ -2,6 +2,15 @@
 
 ## Nevydáno
 
+### Opravy
+
+- Počítadlo střídání na profilu hráče vychází ze zápisů zápasů a započítává vystřídaného i střídajícího hráče. Neúplná data nezobrazuje jako nulu; oficiální průměry zůstávají zachované. (#84)
+- Hlavička a individuální výsledky na detailu zápasu mají společnou šířku. (#85)
+
+### Vylepšení
+
+- Pořadí podle průměru rozlišuje hráče s alespoň 3/5 různých odehraných kuželen jejich týmu. Ostatní zůstávají pod čarou, neznámou kvalifikaci výslovně označujeme; oficiální pořadí ČKA je dál dostupné. (#86)
+
 ## 0.15.0 — připraveno k vydání
 
 ### Vylepšení

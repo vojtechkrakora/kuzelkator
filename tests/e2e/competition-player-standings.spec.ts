@@ -203,3 +203,82 @@ test("average is the default, ranking is preserved through search, and official 
     "1.",
   );
 });
+
+test("qualification separates a high average below the line, preserves favourites/search and offers official positions", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 320, height: 900 });
+  await mock(page);
+  await page.route(
+    "**/api/data?kind=competition-player-standings&**",
+    (route) =>
+      route.fulfill({
+        json: {
+          data: {
+            items: [
+              {
+                ...row(1),
+                venuesPlayed: 2,
+                averagePerformance: 650,
+                qualification: {
+                  teamVenuesPlayed: 5,
+                  requiredVenues: 3,
+                  eligible: false,
+                },
+              },
+              {
+                ...row(2),
+                matches: 3,
+                venuesPlayed: 3,
+                averagePerformance: 600,
+                qualification: {
+                  teamVenuesPlayed: 5,
+                  requiredVenues: 3,
+                  eligible: true,
+                },
+              },
+              { ...row(3), venuesPlayed: null, qualification: null },
+            ],
+            total: 3,
+            round: 4,
+            latestStartedRound: 4,
+          },
+          checkedAt: "2026-10-24T08:00:00Z",
+          stale: false,
+        },
+      }),
+  );
+  await page.goto("/?competition=16&season=20");
+  await page
+    .getByRole("group", { name: "Pořadí v soutěži" })
+    .getByRole("button", { name: "Hráči", exact: true })
+    .click();
+  const section = page.getByRole("region", { name: "Pořadí hráčů v soutěži" });
+  const rows = section.locator(".competition-player-list > li");
+  await expect(rows.first()).toContainText("Jan Hráč 2");
+  await expect(rows.first().locator(".player-standing-position")).toHaveText(
+    "1.",
+  );
+  await expect(rows.nth(1)).toContainText("Pod čarou");
+  await expect(rows.nth(1)).toContainText("Kuželny 2/5 · potřeba 3");
+  await expect(rows.nth(1).locator(".player-standing-position")).toHaveText(
+    "—",
+  );
+  await expect(rows.nth(2)).toContainText("Kvalifikaci nelze ověřit");
+  await section.getByRole("searchbox").fill("Hráč 1");
+  await expect(rows).toHaveCount(1);
+  await expect(rows.first()).toContainText("Pod čarou");
+  await expect(rows.first()).toContainText("650");
+  await section
+    .getByRole("combobox", { name: "Řadit podle" })
+    .selectOption("official");
+  await expect(rows.first().locator(".player-standing-position")).toHaveText(
+    "1.",
+  );
+  await expect(section.locator(".player-qualification-divider")).toHaveCount(0);
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= innerWidth,
+    ),
+  ).toBe(true);
+});
