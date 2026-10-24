@@ -134,7 +134,7 @@ for (const width of [320, 390, 1280])
       roster.getByRole("row", { name: "Plné —", exact: true }),
     ).toBeVisible();
     await expect(roster).toContainText("Pozice v sestavě za sezónu");
-    await expect(roster).toContainText("Střídání za sezónu: 0");
+    await expect(roster).not.toContainText("Střídání za sezónu");
     await roster.getByRole("button", { name: "Venku", exact: true }).click();
     await expect(roster.locator(".team-player-summary")).toContainText(
       "Průměr venku612",

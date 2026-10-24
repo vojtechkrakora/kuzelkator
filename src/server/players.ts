@@ -1,15 +1,9 @@
 import { z } from "zod";
 import { apiCache, UpstreamError } from "./cache";
-import {
-  collection,
-  matchSchema,
-  type Competition,
-  type Resource,
-} from "../domain/models";
+import { collection, type Competition, type Resource } from "../domain/models";
 import {
   playerStandingSchema,
   playerAggregateSchema,
-  playerSubstitutionMatches,
   type PlayerStatistics,
 } from "../domain/player-statistics";
 import {
@@ -276,81 +270,16 @@ export async function getPlayerStatistics(id: number, seasonId: number) {
     record(page);
   }
   const items: PlayerStatistics[] = [];
-  const teamMatches = new Map<
-    number,
-    Awaited<ReturnType<typeof getTeamSubstitutionMatches>> | null
-  >();
   for (const summary of summaries) {
     const page = await getTeamAggregates(
       summary.team.id,
       summary.competition.id,
     );
     record(page);
-    if (!teamMatches.has(summary.team.id)) {
-      // One shared, cached team-season listing; no requests per match or player.
-      try {
-        teamMatches.set(
-          summary.team.id,
-          await getTeamSubstitutionMatches(summary.team.id, seasonId),
-        );
-      } catch (error) {
-        if (!(error instanceof UpstreamError)) throw error;
-        teamMatches.set(summary.team.id, null);
-      }
-    }
-    const matches = teamMatches.get(summary.team.id);
-    if (matches) record(matches);
     items.push({
       ...summary,
       aggregates: page.data.items.filter((r) => r.player.id === id),
-      substitutionMatches: matches
-        ? playerSubstitutionMatches(
-            matches.data.items,
-            id,
-            summary.team.id,
-            summary.competition.id,
-          )
-        : null,
     });
   }
   return { data: { items, total: items.length }, stale, checkedAt };
-}
-
-async function getTeamSubstitutionMatches(teamId: number, seasonId: number) {
-  const query = new URLSearchParams({
-    teamId: String(teamId),
-    seasonId: String(seasonId),
-    limit: "100",
-    offset: "0",
-    sort: "id",
-    include:
-      "homeTeam,awayTeam,competition,results,results.substitutions,results.substitutions.playerOut,results.substitutions.playerIn",
-  });
-  const first = await apiCache.get(
-    `/matches?${query}`,
-    collection(matchSchema),
-    300000,
-  );
-  const items = [...first.data.items];
-  let stale = first.stale,
-    checkedAt = first.checkedAt;
-  while (items.length < first.data.total) {
-    query.set("offset", String(items.length));
-    const next = await apiCache.get(
-      `/matches?${query}`,
-      collection(matchSchema),
-      300000,
-    );
-    if (!next.data.items.length || next.data.total !== first.data.total)
-      throw new UpstreamError(502);
-    items.push(...next.data.items);
-    stale ||= next.stale;
-    if (next.checkedAt < checkedAt) checkedAt = next.checkedAt;
-  }
-  if (
-    items.length !== first.data.total ||
-    new Set(items.map((m) => m.id)).size !== items.length
-  )
-    throw new UpstreamError(502);
-  return { data: { items }, stale, checkedAt };
 }

@@ -304,9 +304,7 @@ export function TeamPlayers({
                       </span>
                     </p>
                     <p className="stats-note">
-                      Střídání{view !== "all" ? " za sezónu" : ""}:{" "}
-                      {number(total?.substituteStarts)} · Průměry dle statistik
-                      ČKA.
+                      Průměry dle statistik ČKA.
                     </p>
                   </details>
                 </>
