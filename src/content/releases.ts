@@ -1,6 +1,15 @@
 // Published releases, newest first. See docs/RELEASE-PROCESS.md.
 export const releases = [
   {
+    version: "0.16.0",
+    date: "2026-10-24",
+    changes: [
+      "Pořadí podle průměru odděluje hráče, kteří odehráli alespoň 3/5 různých kuželen svého týmu. Ostatní najdete pod čarou; oficiální pořadí ČKA je dál dostupné.",
+      "Profil hráče a statistiky týmu už nezobrazují nespolehlivý souhrnný počet střídání. Konkrétní střídání zůstávají v detailu zápasu.",
+      "Hlavička zápasu a individuální výsledky mají společnou šířku pro sjednocené zobrazení na telefonu i počítači.",
+    ],
+  },
+  {
     version: "0.15.0",
     date: "2026-10-19",
     changes: [
