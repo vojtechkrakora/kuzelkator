@@ -2,6 +2,10 @@
 
 ## Nevydáno
 
+### Opravy
+
+- Počítadlo střídání na profilu hráče vychází ze zápisů zápasů a započítává vystřídaného i střídajícího hráče. Neúplná data nezobrazuje jako nulu; oficiální průměry zůstávají zachované. (#84)
+
 ## 0.15.0 — připraveno k vydání
 
 ### Vylepšení
