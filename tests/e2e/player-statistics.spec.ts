@@ -25,7 +25,6 @@ const summary = {
   venuesPlayed: 2,
   teamPointsWon: 3,
   setPointsWon: 9,
-  substitutionMatches: 1,
   aggregates: [
     aggregate,
     {
@@ -121,7 +120,7 @@ for (const width of [320, 390, 1280]) {
     await glossary.locator("summary").click();
     await expect(stats.locator(".stats-card-primary")).toContainText("586");
     await expect(stats.locator(".stats-cards")).toContainText("577,33");
-    await expect(stats.locator(".stats-cards")).toContainText("1 střídání");
+    await expect(stats.locator(".stats-cards")).not.toContainText("střídání");
     await expect(stats.locator(".stats-match-picker button")).toHaveCount(3);
     await expect(
       stats.getByRole("region", { name: "Průměry na kuželnách" }),

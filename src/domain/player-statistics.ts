@@ -1,11 +1,5 @@
 import { z } from "zod";
-import {
-  competitionSchema,
-  playerSchema,
-  teamSchema,
-  resultFor,
-  type Match,
-} from "./models";
+import { competitionSchema, playerSchema, teamSchema } from "./models";
 import type { PlayerHistory } from "./players";
 
 const average = z.number().nullable();
@@ -21,7 +15,6 @@ export const playerAggregateSchema = z.object({
   player: playerSchema,
   type: z.enum(["TOTAL", "FULL", "SPARE", "ERRORS"]),
   matches: z.number(),
-  substituteStarts: z.number(),
   averagePerformance: average,
   averageResult: average,
   homeAverage: average,
@@ -37,40 +30,7 @@ export const playerAggregateSchema = z.object({
 export type PlayerAggregate = z.infer<typeof playerAggregateSchema>;
 export type PlayerStatistics = z.infer<typeof playerStandingSchema> & {
   aggregates: PlayerAggregate[];
-  substitutionMatches?: number | null;
 };
-
-/** Count participation, not substitution events: both outgoing and incoming players count. */
-export function playerSubstitutionMatches(
-  matches: Match[],
-  playerId: number,
-  teamId: number,
-  competitionId: number,
-): number | null {
-  let count = 0;
-  for (const match of matches) {
-    if (
-      match.competition?.id !== competitionId ||
-      !["FINISHED", "IN_PROGRESS"].includes(match.status)
-    )
-      continue;
-    const home = match.homeTeam?.id === teamId;
-    if (!home && match.awayTeam?.id !== teamId) continue;
-    const substitutions = resultFor(match, home)?.substitutions;
-    if (
-      !substitutions ||
-      substitutions.some((s) => !s.playerOut || !s.playerIn)
-    )
-      return null;
-    if (
-      substitutions.some(
-        (s) => s.playerOut?.id === playerId || s.playerIn?.id === playerId,
-      )
-    )
-      count++;
-  }
-  return count;
-}
 export const statMetrics = [
   { type: "TOTAL", label: "Celkem", field: "totalPerformance" },
   { type: "FULL", label: "Plné", field: "totalFull" },

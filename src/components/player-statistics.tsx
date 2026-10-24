@@ -224,10 +224,7 @@ function StatisticsContent({
         <div className="stats-card">
           <span>Odehrané zápasy</span>
           <strong>{number(stats.matches)}</strong>
-          <small>
-            {number(stats.venuesPlayed)} kuželen ·{" "}
-            {number(stats.substitutionMatches)} střídání
-          </small>
+          <small>{number(stats.venuesPlayed)} kuželen</small>
         </div>
       </div>
       <table className="stats-averages">
@@ -259,7 +256,6 @@ function StatisticsContent({
       <p className="stats-note">
         Průměr průměrů vyrovnává počet startů na různých kuželnách. Souhrny
         přebíráme z ČKA; grafy výkonů nezahrnují střídání ani nedohrané zápasy.
-        Střídání počítáme ze zápisů zápasů pro oba zúčastněné hráče.
       </p>
       <div className="stats-metrics" role="group" aria-label="Ukazatel grafů">
         {statMetrics.map((m) => (

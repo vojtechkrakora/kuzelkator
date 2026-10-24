@@ -4,7 +4,7 @@
 
 ### Opravy
 
-- Počítadlo střídání na profilu hráče vychází ze zápisů zápasů a započítává vystřídaného i střídajícího hráče. Neúplná data nezobrazuje jako nulu; oficiální průměry zůstávají zachované. (#84)
+- Profil hráče ani hráčské statistiky na detailu týmu nezobrazují nespolehlivý souhrnný počet střídání; vlastní dopočítávání a související dotazy na zápasy byly odstraněny. Konkrétní střídání zůstávají v detailu zápasu podle údajů ČKA. (#84)
 - Hlavička a individuální výsledky na detailu zápasu mají společnou šířku. (#85)
 
 ### Vylepšení
