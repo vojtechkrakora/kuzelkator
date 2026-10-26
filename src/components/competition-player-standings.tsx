@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { Printer } from "lucide-react";
 import { StatisticsGlossary } from "./statistics-glossary";
 import { useState, type ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
@@ -59,6 +60,13 @@ export function CompetitionStandings({
           Nejlepší výkony
         </button>
       </div>
+      <Link
+        className="competition-print-link"
+        prefetch={false}
+        href={`/competitions/${encodeURIComponent(competition.slug)}/print?${new URLSearchParams({ name: competition.name, competition: String(competition.id), season: seasonId, ...(seasonName ? { seasonName } : {}) })}`}
+      >
+        <Printer size={16} aria-hidden="true" /> Tisk soutěže
+      </Link>
       {view === "teams" ? (
         children
       ) : view === "best" ? (

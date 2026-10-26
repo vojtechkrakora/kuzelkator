@@ -1208,6 +1208,15 @@ tfoot {
   font-weight: 400;
   margin-left: 8px;
 }
+.competition-print-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  margin-bottom: 8px;
+  font-size: 13px;
+  color: var(--green);
+}
 .build-info {
   overflow-wrap: anywhere;
 }
