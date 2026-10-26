@@ -39,6 +39,10 @@ docker --context desktop-linux compose down
 
 Use the same context and project name for subsequent management commands. Stopping this Compose project does not stop other containers. The local health endpoint is [health](http://localhost:43127/api/health); it checks application availability without calling ČKA.
 
+## Spec-driven development
+
+Vývoj používá verzované specifikace s akceptačními kritérii a šest repozitářových skills pro návrh, implementaci, data ČKA, ověření, nezávislé review a release. [Návod k SDD](docs/SPEC-DRIVEN-DEVELOPMENT.md) obsahuje aktivaci skills, šablony, příklady zadání a pravidla údržby. Závazná pravidla spolupráce zůstávají v [AGENTS.md](AGENTS.md).
+
 ## Release process
 
 Production releases are planned once a week, preferably Tuesday. Changes integrate into `develop`; only approved releases reach `main`. Production Docker candidates are validated on native Linux amd64 in GitHub Actions, with compatible local Docker testing as a supplementary check. There is one production service on Render and no hosted staging site. Ordinary PRs do not increase the app version; each production release does. See the Czech [release process](docs/RELEASE-PROCESS.md), including the Friday–Sunday deployment freeze and critical hotfix procedure.
