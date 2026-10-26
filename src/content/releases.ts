@@ -1,6 +1,15 @@
 // Published releases, newest first. See docs/RELEASE-PROCESS.md.
 export const releases = [
   {
+    version: "0.17.0",
+    date: "2026-10-26",
+    changes: [
+      "U pořadí soutěže najdete Tisk soutěže. Připraví čistý výtisk tabulky družstev na A4 nebo PDF bez navigace a ovládacích prvků.",
+      "Volitelně přidáte hráče s průměry ve dvou úsporných sloupcích. Můžete zahrnout jen kvalifikované hráče, nebo všechny včetně hráčů pod čarou.",
+      "Vybraný tým i jeho hráče lze barevně zvýraznit také na výtisku. Tabulka družstev obsahuje skóre ze zápasů včetně půlbodů.",
+    ],
+  },
+  {
     version: "0.16.0",
     date: "2026-10-24",
     changes: [
