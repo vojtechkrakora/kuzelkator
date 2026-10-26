@@ -2,7 +2,13 @@
 
 ## Nevydáno
 
-## 0.16.0 — připraveno k vydání
+## 0.17.0 — připraveno k vydání
+
+### Vylepšení
+
+- Soutěž nabízí úsporný tisk tabulky družstev se skóre nebo tabulky s hráči a průměry; hráči jsou při tisku ve dvou sloupcích s volbou kvalifikovaných či všech. Vybraný tým a jeho hráče lze barevně zvýraznit. (#92)
+
+## 0.16.0 — 24. 10. 2026
 
 ### Opravy
 
