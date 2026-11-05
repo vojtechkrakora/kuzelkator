@@ -2,11 +2,13 @@
 
 ## Nevydáno
 
+## 0.17.1 — připraveno k vydání
+
 ### Vylepšení
 
 - Web nově vystupuje jako mojekuzelky.cz: má sjednocené logo s kuželkou a koulí, nový úvod „Moje kuželky. Moje výsledky.“ a novou značku také ve sdílení, tisku a titulcích stránek. (#98)
 
-## 0.17.0 — připraveno k vydání
+## 0.17.0 — 26. 10. 2026
 
 ### Vylepšení
 
