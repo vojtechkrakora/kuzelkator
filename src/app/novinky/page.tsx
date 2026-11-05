@@ -7,8 +7,8 @@ import { FavouritePlayers } from "@/components/player-pages";
 import { releases } from "@/content/releases";
 
 export const metadata: Metadata = {
-  title: "Co je nového · Kuželkátor",
-  description: "Novinky a opravy ve vydaných verzích Kuželkátoru.",
+  title: "Co je nového · mojekuzelky.cz",
+  description: "Novinky a opravy ve vydaných verzích mojekuzelky.cz.",
 };
 const dateFormat = new Intl.DateTimeFormat("cs-CZ", {
   day: "numeric",
@@ -26,7 +26,7 @@ export default function ReleaseNotesPage() {
         </Link>
         <h1>Co je nového</h1>
         <p className="muted">
-          Novinky a opravy ve vydaných verzích Kuželkátoru.
+          Novinky a opravy ve vydaných verzích mojekuzelky.cz.
         </p>
         {releases.map((release, index) => (
           <article

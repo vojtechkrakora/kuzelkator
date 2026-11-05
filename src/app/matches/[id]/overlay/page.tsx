@@ -6,7 +6,7 @@ import { overlayPanels } from "@/domain/obs-overlay";
 import { obsSettings } from "@/domain/obs-settings";
 import "./overlay.css";
 export const metadata: Metadata = {
-  title: "OBS · Kuželkátor",
+  title: "OBS · mojekuzelky.cz",
   robots: { index: false, follow: false },
 };
 export default async function OverlayPage({

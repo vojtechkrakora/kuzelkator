@@ -1,4 +1,9 @@
-# Kuželkátor
+# mojekuzelky.cz
+
+Veřejná značka webu je **mojekuzelky.cz** (dříve Kuželkátor). Název repozitáře,
+proměnné prostředí `KUZELKATOR_*` a klíče uložených preferencí zůstávají zachované.
+Branding sám nemění produkční doménu ani DNS. Oblíbené jsou vázané na origin
+prohlížeče a mezi různými doménami se automaticky nepřenášejí.
 
 Při hledání a procházení hráčů se zvolená sezóna uchovává v `sessionStorage` pro otevřenou relaci prohlížeče. Sezóna v URL má přednost a je ověřena proti dostupným sezónám; neplatná hodnota přejde na aktuální sezónu (případně první dostupnou). Zvolená sezóna se zapisuje do adresy, takže obnovení a sdílení zachovají výběr i bez úložiště. Datum, soutěž a další filtry přehledu se tímto neobnovují; jejich stávající chování a reset zůstávají zachované.
 

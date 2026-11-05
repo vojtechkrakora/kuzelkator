@@ -199,7 +199,7 @@ export function CompetitionPrint({
         data-ready={ready}
       >
         <header className="print-heading">
-          <p>Kuželkátor · Oficiální data ČKA</p>
+          <p>mojekuzelky.cz · Oficiální data ČKA</p>
           <h2>{name}</h2>
           {context && <p>{context} · Celkem (doma i venku)</p>}
           {highlighted && <p>Zvýrazněno: {highlighted.name}</p>}

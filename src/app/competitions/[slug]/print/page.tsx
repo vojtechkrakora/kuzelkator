@@ -4,7 +4,7 @@ import { CompetitionPrint } from "@/components/competition-print";
 import "./print.css";
 
 export const metadata: Metadata = {
-  title: "Tisk soutěže · Kuželkátor",
+  title: "Tisk soutěže · mojekuzelky.cz",
   robots: { index: false, follow: false },
 };
 

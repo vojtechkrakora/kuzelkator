@@ -361,21 +361,34 @@ svg {
   gap: 36px;
 }
 .brand {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 10px;
-  font-size: 25px;
+  flex-shrink: 0;
+  min-height: 44px;
+  font-size: 26px;
   font-weight: 800;
   letter-spacing: -1px;
 }
+.brand-lockup {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  white-space: nowrap;
+}
 .brand-icon {
-  background: var(--green);
-  color: #effbcf;
-  border-radius: 11px;
-  width: 39px;
-  height: 39px;
-  display: grid;
-  place-items: center;
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+}
+.brand-wordmark {
+  color: var(--ink);
+}
+.brand-wordmark > span {
+  color: var(--green);
+}
+.brand-wordmark > .brand-domain {
+  color: #63715f;
+  font-weight: 500;
 }
 .header-caption {
   font-size: 12px;
@@ -1660,13 +1673,15 @@ tfoot {
     padding-top: calc(10px + env(safe-area-inset-top));
   }
   .brand {
-    font-size: 23px;
-    min-height: 44px;
+    font-size: clamp(20px, 5.5vw, 23px);
+    letter-spacing: -0.8px;
+  }
+  .brand-lockup {
+    gap: 8px;
   }
   .brand-icon {
     width: 34px;
     height: 34px;
-    border-radius: 10px;
   }
   .source-link {
     font-size: 0;
@@ -1705,13 +1720,14 @@ tfoot {
     letter-spacing: -1.2px;
     margin: 0;
   }
-  .intro h1 br {
-    display: none;
+  .intro p {
+    display: block;
+    font-size: 12px;
+    color: #63715f;
+    line-height: 1.6;
+    margin-top: 12px;
   }
-  .intro h1 span:before {
-    content: " ";
-  }
-  .intro p,
+  .intro .desktop-break,
   .hero-art {
     display: none;
   }

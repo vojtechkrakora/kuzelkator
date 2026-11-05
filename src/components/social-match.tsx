@@ -223,7 +223,7 @@ export function SocialMatch({ id }: { id: number }) {
             ) : null;
           })}
           <footer className="social-card-footer">
-            <strong>Kuželkátor</strong>
+            <strong>mojekuzelky.cz</strong>
             <span>
               ● získané body · <Trophy size={10} aria-hidden="true" /> nejvyšší
               výkon · Zdroj: ČKA
