@@ -258,7 +258,7 @@ export function PlayerSeasonPage({
         <FollowPlayerButton player={player} />
       </div>
       <ShareButton
-        title={`${playerName(player)} – Kuželkátor`}
+        title={`${playerName(player)} – mojekuzelky.cz`}
         label="Sdílet hráče"
         disabled={!id}
       />

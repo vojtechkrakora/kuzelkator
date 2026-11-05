@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import Link from "next/link";
-import { ArrowUpRight, CircleDot } from "lucide-react";
+import { ArrowUpRight } from "lucide-react";
+import { BrandLogo } from "@/components/brand-logo";
 import { Providers } from "@/components/providers";
 import { getBuildInfo } from "@/lib/build-info";
 import "./globals.css";
@@ -12,9 +13,10 @@ const buildInfo = getBuildInfo({
 });
 
 export const metadata: Metadata = {
-  title: "Kuželkátor · Vaše hra. Vaše výsledky.",
+  applicationName: "mojekuzelky.cz",
+  title: "mojekuzelky.cz · Moje kuželky. Moje výsledky.",
   description:
-    "Osobní přehled českých kuželek. Sledujte své týmy, zápasy a výsledky.",
+    "Vaše týmy, oblíbení hráči a výsledky českých kuželek na jednom místě. Přehledně a bez registrace na mojekuzelky.cz.",
 };
 export const viewport: Viewport = {
   width: "device-width",
@@ -36,13 +38,16 @@ export default function RootLayout({
           </a>
           <header className="site-header">
             <div className="header-inner">
-              <Link href="/" className="brand">
-                <span className="brand-icon">
-                  <CircleDot size={27} strokeWidth={2.5} />
-                </span>
-                Kuželkátor
+              <Link
+                href="/"
+                className="brand"
+                aria-label="mojekuzelky.cz – přehled zápasů"
+              >
+                <BrandLogo />
               </Link>
-              <span className="header-caption">Kuželky. Blíž k vám.</span>
+              <span className="header-caption">
+                Moje kuželky. Moje výsledky.
+              </span>
               <a
                 className="source-link"
                 href="https://vysledky.kuzelky.cz/"
@@ -56,7 +61,7 @@ export default function RootLayout({
           {children}
           <footer className="footer">
             <span>
-              Kuželkátor{" "}
+              mojekuzelky.cz{" "}
               <span className="muted">/ Nezávislý přehled českých kuželek</span>
             </span>
             <a

@@ -4,7 +4,7 @@ import { SocialMatch } from "@/components/social-match";
 import "./social.css";
 
 export const metadata: Metadata = {
-  title: "Výsledek pro sdílení · Kuželkátor",
+  title: "Výsledek pro sdílení · mojekuzelky.cz",
   robots: { index: false, follow: false },
 };
 export default async function SocialMatchPage({

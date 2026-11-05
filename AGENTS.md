@@ -36,3 +36,9 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - See `docs/RELEASE-PROCESS.md` for preparation, local checks, deployment, rollback, and one-time setup.
 
 - After verifying each production deployment, create an immutable annotated `v<version>` tag on the exact deployed `main` commit and publish the matching GitHub Release with the Czech release notes, subject to user authorization. Never move or overwrite an existing release tag.
+
+## Spec-driven development and repository skills
+
+- For feature and behavior changes, use the proportional specification workflow in [docs/SPEC-DRIVEN-DEVELOPMENT.md](docs/SPEC-DRIVEN-DEVELOPMENT.md). Resolve material product questions before dependent implementation; preserve authorization and decisions already given in the conversation. A specification does not authorize commits, pushes, or production releases.
+- Repository skills live in `.agents/skills`: [spec](.agents/skills/kuzelkator-spec/SKILL.md), [implement](.agents/skills/kuzelkator-implement/SKILL.md), [ČKA data](.agents/skills/kuzelkator-cka-data/SKILL.md), [verify](.agents/skills/kuzelkator-verify/SKILL.md), [review](.agents/skills/kuzelkator-review/SKILL.md), and [release](.agents/skills/kuzelkator-release/SKILL.md). Read only the skills relevant to the current task. If the host does not discover them automatically, read their SKILL.md files directly.
+- Keep specifications and their acceptance evidence with the implementation. Small fixes use a short reproduction/expectation/regression specification; documentation-only changes need no separate product specification. Do not retrofit every existing feature.

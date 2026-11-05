@@ -1,6 +1,14 @@
 // Published releases, newest first. See docs/RELEASE-PROCESS.md.
 export const releases = [
   {
+    version: "0.17.1",
+    date: "2026-11-05",
+    changes: [
+      "Web nově vystupuje jako mojekuzelky.cz. Logo s kuželkou a koulí doplňuje nový úvod „Moje kuželky. Moje výsledky.“.",
+      "Novou značku najdete také při sdílení výsledků, na kartě pro screenshot, v tiskových přehledech a titulcích stránek. Na telefonu je úvod čitelný po celých větách.",
+    ],
+  },
+  {
     version: "0.17.0",
     date: "2026-10-26",
     changes: [
