@@ -285,7 +285,7 @@ export function Dashboard() {
       <section className="dashboard-main">
         <div className="eyebrow">VÁŠ OSOBNÍ VÝSLEDKOVÝ SERVIS</div>
         <ShareButton
-          title="Kuželkátor – výsledky"
+          title="mojekuzelky.cz – výsledky"
           label={teamId ? "Sdílet tým" : "Sdílet přehled"}
           disabled={!activeSeason}
           href={`/?${new URLSearchParams({ date: day, season: activeSeason, ...(teamId ? { team: teamId } : {}), ...(competitionId ? { competition: competitionId } : {}) })}`}
@@ -293,13 +293,13 @@ export function Dashboard() {
         <div className="intro">
           <div>
             <h1>
-              Vaše hra.
+              Moje kuželky.
               <br />
-              <span>Vaše výsledky.</span>
+              <span>Moje výsledky.</span>
             </h1>
             <p>
-              Všechno podstatné ze světa kuželek.
-              <br className="desktop-break" /> A vaše týmy vždy o něco blíž.
+              Vaše týmy, oblíbení hráči a výsledky na jednom místě.
+              <br className="desktop-break" /> Přehledně a bez registrace.
             </p>
           </div>
           <div className="hero-art" aria-hidden="true">
