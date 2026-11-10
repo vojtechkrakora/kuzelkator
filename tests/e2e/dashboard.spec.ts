@@ -218,10 +218,29 @@ for (const width of [320, 390, 430]) {
     const right = (await next.boundingBox())!;
     expect(left.y).toBe(right.y);
     expect(Math.abs(left.width - right.width)).toBeLessThan(1);
-    expect(left.height).toBeGreaterThanOrEqual(64);
+    expect(left.height).toBeGreaterThanOrEqual(44);
+    expect(left.height).toBeLessThanOrEqual(48);
     expect(right.x).toBeGreaterThan(left.x + left.width);
     const date = page.getByLabel("Datum zápasů");
-    expect((await date.boundingBox())!.height).toBeGreaterThanOrEqual(54);
+    expect((await date.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+    const dateRow = (await page.locator(".date-control").boundingBox())!;
+    const dayBack = (await page
+      .getByRole("button", { name: "Předchozí den", exact: true })
+      .boundingBox())!;
+    const dayForward = (await page
+      .getByRole("button", { name: "Následující den", exact: true })
+      .boundingBox())!;
+    expect(dateRow.y).toBe(dayBack.y);
+    expect(dateRow.y).toBe(dayForward.y);
+    expect(dateRow.height).toBeLessThanOrEqual(48);
+    const season = (await page
+      .getByRole("combobox", { name: "Sezóna soutěží", exact: true })
+      .boundingBox())!;
+    const picker = (await page.locator("#competitions summary").boundingBox())!;
+    expect(season.y).toBe(picker.y);
+    expect(season.x + season.width).toBeLessThan(picker.x);
+    expect(season.height).toBeLessThanOrEqual(48);
+    expect(picker.height).toBeLessThanOrEqual(48);
     await next.click();
     await expect(date).toHaveValue("2026-10-03");
     await previous.click();
@@ -256,6 +275,12 @@ for (const width of [320, 390, 430]) {
     expect(touchSize!.height).toBeGreaterThanOrEqual(44);
     expect(touchSize!.width).toBeGreaterThanOrEqual(44);
     await page.locator("#competitions summary").click();
+    const expandedPicker = (await page
+      .locator(".league-picker-body")
+      .boundingBox())!;
+    const filters = (await page.locator(".filters").boundingBox())!;
+    expect(expandedPicker.width).toBe(filters.width);
+    expect(expandedPicker.x).toBe(filters.x);
     for (const name of ["Oblast soutěží", "Sezóna soutěží"]) {
       const select = page.getByRole("combobox", { name, exact: true });
       expect(

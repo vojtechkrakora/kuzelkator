@@ -283,25 +283,19 @@ export function Dashboard() {
         playerFavorites={<FavouritePlayers sidebar />}
       />
       <section className="dashboard-main">
-        <div className="eyebrow">VÁŠ OSOBNÍ VÝSLEDKOVÝ SERVIS</div>
-        <ShareButton
-          title="mojekuzelky.cz – výsledky"
-          label={teamId ? "Sdílet tým" : "Sdílet přehled"}
-          disabled={!activeSeason}
-          href={`/?${new URLSearchParams({ date: day, season: activeSeason, ...(teamId ? { team: teamId } : {}), ...(competitionId ? { competition: competitionId } : {}) })}`}
-        />
+        <div className="dashboard-heading">
+          <div className="eyebrow">VÁŠ OSOBNÍ VÝSLEDKOVÝ SERVIS</div>
+          <ShareButton
+            title="mojekuzelky.cz – výsledky"
+            label={teamId ? "Sdílet tým" : "Sdílet přehled"}
+            disabled={!activeSeason}
+            href={`/?${new URLSearchParams({ date: day, season: activeSeason, ...(teamId ? { team: teamId } : {}), ...(competitionId ? { competition: competitionId } : {}) })}`}
+          />
+        </div>
         <div className="intro">
-          <div>
-            <h1>
-              Moje kuželky.
-              <br />
-              <span>Moje výsledky.</span>
-            </h1>
-            <p>
-              Vaše týmy, oblíbení hráči a výsledky na jednom místě.
-              <br className="desktop-break" /> Přehledně a bez registrace.
-            </p>
-          </div>
+          <h1>
+            Moje kuželky. <span>Moje výsledky.</span>
+          </h1>
           <div className="hero-art" aria-hidden="true">
             <span className="orbit orbit-one" />
             <span className="orbit orbit-two" />
@@ -311,7 +305,6 @@ export function Dashboard() {
               ))}
             </div>
             <span className="ball" />
-            <span className="art-label">9 KUŽELEK. JEDNA VÁŠEŇ.</span>
           </div>
         </div>
         {warning && (
@@ -320,13 +313,23 @@ export function Dashboard() {
           </div>
         )}
         <div className="section-title" id="match-feed">
-          <div>
-            <span className="section-kicker">NA KUŽELNÁCH</span>
-            <h2>
-              {teamId
-                ? (selectedTeam?.name ?? "Sezóna týmu")
-                : "Přehled zápasů"}
-            </h2>
+          <div className="feed-heading">
+            <div>
+              <span className="section-kicker">NA KUŽELNÁCH</span>
+              <h2>
+                {teamId
+                  ? (selectedTeam?.name ?? "Sezóna týmu")
+                  : "Přehled zápasů"}
+              </h2>
+            </div>
+            {!teamId && (
+              <button
+                className="today-button"
+                onClick={() => changeDay(todayPrague())}
+              >
+                Dnes
+              </button>
+            )}
           </div>
           {!teamId && (
             <div className="week-controls">
@@ -344,12 +347,6 @@ export function Dashboard() {
                 onClick={() => changeDay(shiftDay(day, 1))}
               >
                 <ChevronRight size={18} />
-              </button>
-              <button
-                className="today-button"
-                onClick={() => changeDay(todayPrague())}
-              >
-                Dnes
               </button>
             </div>
           )}
@@ -378,6 +375,22 @@ export function Dashboard() {
               ))}
             </select>
           </label>
+          <CompetitionPicker
+            seasonId={activeSeason}
+            seasonName={
+              seasons.data?.data.items.find(
+                (item) => String(item.id) === activeSeason,
+              )?.name ?? ""
+            }
+            items={competitions.data?.data.items ?? []}
+            selected={competitionId}
+            onChoose={(id) => {
+              chooseTeam("");
+              chooseCompetition(id);
+            }}
+            loading={seasons.isPending || competitions.isPending}
+            failed={seasons.isError || competitions.isError}
+          />
           {filtersActive && (
             <button
               className="clear-filters"
@@ -390,22 +403,6 @@ export function Dashboard() {
             </button>
           )}
         </div>
-        <CompetitionPicker
-          seasonId={activeSeason}
-          seasonName={
-            seasons.data?.data.items.find(
-              (item) => String(item.id) === activeSeason,
-            )?.name ?? ""
-          }
-          items={competitions.data?.data.items ?? []}
-          selected={competitionId}
-          onChoose={(id) => {
-            chooseTeam("");
-            chooseCompetition(id);
-          }}
-          loading={seasons.isPending || competitions.isPending}
-          failed={seasons.isError || competitions.isError}
-        />
         {(seasons.isError || competitions.isError) && (
           <ErrorNotice
             message="Seznam soutěží se nepodařilo načíst. Zápasy můžete dál procházet podle data."
@@ -462,11 +459,12 @@ export function Dashboard() {
               {matchDays.data?.data.previous && (
                 <button
                   className="button match-day-jump previous-matches"
+                  aria-label={`Předchozí zápasy ${dayLabel(matchDays.data.data.previous)}`}
                   onClick={() => changeDay(matchDays.data!.data.previous!)}
                 >
                   <ChevronLeft size={20} aria-hidden="true" />
                   <span>
-                    <span>Předchozí zápasy</span>
+                    <span>Předchozí</span>
                     <strong>{dayLabel(matchDays.data.data.previous)}</strong>
                   </span>
                 </button>
@@ -474,10 +472,11 @@ export function Dashboard() {
               {matchDays.data?.data.next && (
                 <button
                   className="button match-day-jump next-matches"
+                  aria-label={`Následující zápasy ${dayLabel(matchDays.data.data.next)}`}
                   onClick={() => changeDay(matchDays.data!.data.next!)}
                 >
                   <span>
-                    <span>Následující zápasy</span>
+                    <span>Následující</span>
                     <strong>{dayLabel(matchDays.data.data.next)}</strong>
                   </span>
                   <ChevronRight size={20} aria-hidden="true" />
@@ -1018,14 +1017,16 @@ function Standings({
                   {table.data.data.items.map((row) => (
                     <tr key={row.team.id}>
                       <td>
-                        {row.position}
-                        <StandingMovement
-                          current={row.position}
-                          previous={priorRows.get(row.team.id)?.position}
-                          loading={
-                            comparisonRound != null && previous.isPending
-                          }
-                        />
+                        <span className="standing-position">
+                          {row.position}
+                          <StandingMovement
+                            current={row.position}
+                            previous={priorRows.get(row.team.id)?.position}
+                            loading={
+                              comparisonRound != null && previous.isPending
+                            }
+                          />
+                        </span>
                       </td>
                       <th scope="row">
                         <span className="table-team">

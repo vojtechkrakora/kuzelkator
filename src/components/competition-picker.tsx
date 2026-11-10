@@ -80,7 +80,7 @@ export function CompetitionPicker({
       aria-label="Výběr soutěže"
     >
       <details ref={panel}>
-        <summary ref={trigger}>
+        <summary ref={trigger} title={current?.name ?? "Najít soutěž"}>
           <MapPin size={22} />
           <span>
             <small>
@@ -89,8 +89,7 @@ export function CompetitionPicker({
                 : "OD OKRESU PO PRVNÍ LIGU"}
             </small>
             <strong>
-              {current?.name ??
-                (selected ? "Vybraná soutěž" : "Najděte svou soutěž")}
+              {current?.name ?? (selected ? "Vybraná soutěž" : "Najít soutěž")}
             </strong>
           </span>
           <ChevronRight className="picker-chevron" size={20} />

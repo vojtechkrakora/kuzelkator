@@ -2,6 +2,13 @@
 
 ## Nevydáno
 
+## 0.17.2 — připraveno k vydání
+
+### Vylepšení
+
+- Úvod a ovládání přehledu zápasů zabírají méně místa. Sezóna a výběr soutěže jsou vedle sebe; datum i přechody mezi hracími dny mají kompaktnější ovládání. (#103)
+- Tabulky družstev mají nižší řádky. Indikátory pohybu jsou vedle čísla pořadí, svisle uprostřed řádku i při zalomeném názvu týmu. (#103)
+
 ## 0.17.1 — připraveno k vydání
 
 ### Vylepšení
