@@ -1,6 +1,14 @@
 // Published releases, newest first. See docs/RELEASE-PROCESS.md.
 export const releases = [
   {
+    version: "0.17.2",
+    date: "2026-11-10",
+    changes: [
+      "Přehled zápasů má menší úvod a kompaktnější ovládání. Sezóna a výběr soutěže jsou vedle sebe, méně místa zabírá také výběr data a přechody mezi hracími dny.",
+      "Tabulky družstev mají nižší řádky. Indikátory pohybu jsou vedle čísla pořadí a uprostřed řádku i u zalomených názvů týmů.",
+    ],
+  },
+  {
     version: "0.17.1",
     date: "2026-11-05",
     changes: [
