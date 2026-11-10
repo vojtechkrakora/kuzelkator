@@ -1206,6 +1206,13 @@ tbody tr:last-child th {
 tbody th {
   font-weight: 600;
 }
+.standings thead th {
+  padding: 6px 14px;
+}
+.standings tbody th,
+.standings tbody td {
+  padding: 2px 14px;
+}
 tfoot {
   background: #eef3e8;
   font-weight: 600;
@@ -1983,9 +1990,17 @@ tfoot {
     white-space: normal;
     font-size: 13px;
   }
-  .standings th,
-  .standings td {
-    padding: 10px 7px;
+  .standings thead th {
+    padding: 6px 5px;
+  }
+  .standings tbody th,
+  .standings tbody td {
+    padding: 2px 5px;
+  }
+  .standings .table-team-link {
+    min-height: 44px;
+    gap: 6px;
+    line-height: 1.3;
   }
   .standings th:nth-child(4),
   .standings th:nth-child(5),
@@ -3687,6 +3702,20 @@ details.competition-group[open] > summary > span > svg {
 }
 .standing-movement-unknown {
   border: 1px dashed #a5afa9;
+}
+.standings .standing-position {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 34px;
+  white-space: nowrap;
+}
+.standings .standing-movement {
+  min-width: 24px;
+  min-height: 18px;
+  padding: 0 3px;
+  margin-top: 0;
+  font-size: 11px;
 }
 
 .match-organizer-tools {

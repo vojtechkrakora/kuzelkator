@@ -1017,14 +1017,16 @@ function Standings({
                   {table.data.data.items.map((row) => (
                     <tr key={row.team.id}>
                       <td>
-                        {row.position}
-                        <StandingMovement
-                          current={row.position}
-                          previous={priorRows.get(row.team.id)?.position}
-                          loading={
-                            comparisonRound != null && previous.isPending
-                          }
-                        />
+                        <span className="standing-position">
+                          {row.position}
+                          <StandingMovement
+                            current={row.position}
+                            previous={priorRows.get(row.team.id)?.position}
+                            loading={
+                              comparisonRound != null && previous.isPending
+                            }
+                          />
+                        </span>
                       </td>
                       <th scope="row">
                         <span className="table-team">
