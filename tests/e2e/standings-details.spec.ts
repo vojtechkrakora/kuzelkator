@@ -51,7 +51,7 @@ for (const width of [320, 390, 1280])
                   ...row,
                   position: 2,
                   tablePoints: 1,
-                  team: { id: 58, name: "SKK Náchod" },
+                  team: { id: 58, name: "TJ Lokomotiva České Velenice" },
                 },
               ],
               total: 2,
@@ -66,6 +66,32 @@ for (const width of [320, 390, 1280])
     const table = page.locator(".standings");
     await expect(table).toContainText("Změna oproti tabulce 2. kola · celkem.");
     await expect(table.locator(".standing-movement").first()).toHaveText("↑2");
+    const firstRow = (await table.locator("tbody tr").first().boundingBox())!;
+    expect(firstRow.height).toBeLessThanOrEqual(width <= 740 ? 50 : 44);
+    for (const standingRow of await table.locator("tbody tr").all()) {
+      const bounds = (await standingRow.boundingBox())!;
+      const movement = (await standingRow
+        .locator(".standing-movement")
+        .boundingBox())!;
+      expect(
+        Math.abs(
+          movement.y + movement.height / 2 - bounds.y - bounds.height / 2,
+        ),
+      ).toBeLessThanOrEqual(1);
+    }
+    if (width <= 740) {
+      for (const control of [
+        table.getByRole("link", { name: "SKK Bohušovice" }),
+        table.getByRole("button", {
+          name: "Sledovat SKK Bohušovice",
+          exact: true,
+        }),
+      ]) {
+        expect((await control.boundingBox())!.height).toBeGreaterThanOrEqual(
+          44,
+        );
+      }
+    }
     await expect(
       table.getByRole("link", { name: "SKK Bohušovice" }),
     ).toHaveAttribute("href", "/?team=57&season=20");
